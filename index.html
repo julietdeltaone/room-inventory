@@ -1639,13 +1639,18 @@ function showSuggestions(s){
   }
 
   // Notes chip
-  const tagsWrap=document.getElementById('suggest-tags-wrap');
-  const tagsChips=document.getElementById('suggest-tags-chips');
-  if(s.notes&&s.notes.trim()){
-    tagsWrap.style.display='block';
-    tagsChips.innerHTML=`<span class="suggest-chip" onclick="applySuggestNotes('${esc(s.notes)}',this)">${esc(s.notes)}</span>`;
+const valWrap=document.getElementById('suggest-tags-wrap');
+const valChips=document.getElementById('suggest-tags-chips');
+if(s.estimatedValue&&s.estimatedValue.trim()){
+  valWrap.style.display='block';
+  document.querySelector('.suggest-field-label',valWrap).textContent='Est. Value / Notes';
+  valChips.innerHTML=`<span class="suggest-chip" onclick="applySuggestValue('${esc(s.estimatedValue)}',this)">$${esc(s.estimatedValue)}</span>`;
+  if(s.notes&&s.notes.trim()) valChips.innerHTML+=`<span class="suggest-chip" onclick="applySuggestNotes('${esc(s.notes)}',this)">${esc(s.notes)}</span>`;
+}else if(s.notes&&s.notes.trim()){
+    valWrap.style.display='block';
+    valChips.innerHTML=`<span class="suggest-chip" onclick="applySuggestNotes('${esc(s.notes)}',this)">${esc(s.notes)}</span>`;
   }else{
-    tagsWrap.style.display='none';
+    valWrap.style.display='none';
   }
 
   document.getElementById('suggest-reasoning').textContent=s.reasoning||'';
@@ -1673,11 +1678,11 @@ function applyAllScoring(scoring,chip){
   toast('All scoring suggestions applied');
 }
 
-function applySuggestNotes(notes,chip){
+function applySuggestValue(val,chip){
   if(!window._claudeSuggestPending)window._claudeSuggestPending={};
-  window._claudeSuggestPending.notes=notes;
+  window._claudeSuggestPending.estValue=val;
   chip.classList.add('applied');
-  toast('Note will be applied on add');
+  toast(`Est. value $${val} will be applied on add`);
 }
 
 function resetClaudeSuggest(){
@@ -1700,7 +1705,7 @@ function resetClaudeSuggest(){
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 // Fill these in after creating your Supabase project.
 // Settings → API → Project URL and anon/public key.
-const SUPABASE_URL = ' https://npdtjxjhepaqhrqtvueu.supabase.co';       // e.g. 'https://xyzxyz.supabase.co'
+const SUPABASE_URL = 'https://npdtjxjhepaqhrqtvueu.supabase.co';       // e.g. 'https://xyzxyz.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';       // your anon/public key
 const SUPABASE_TABLE = 'inventory';
 
@@ -2522,7 +2527,7 @@ function deleteItem(id){if(!confirm('Delete this item?'))return;snapshot();inven
 
 function addBlankRow(){
   snapshot();
-  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false};
+  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:pending.estValue||'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false};
   inventory.push(item);save();render();
   setTimeout(()=>{const rows=document.querySelectorAll('#inventory-body tr');const last=rows[rows.length-1];if(last){const td=last.querySelector('td.editable-td[data-field="name"]');if(td)startInlineEdit(item.id,'name',td);}},60);
 }
