@@ -2527,7 +2527,7 @@ function deleteItem(id){if(!confirm('Delete this item?'))return;snapshot();inven
 
 function addBlankRow(){
   snapshot();
-  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:pending.estValue||'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false};
+  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false};
   inventory.push(item);save();render();
   setTimeout(()=>{const rows=document.querySelectorAll('#inventory-body tr');const last=rows[rows.length-1];if(last){const td=last.querySelector('td.editable-td[data-field="name"]');if(td)startInlineEdit(item.id,'name',td);}},60);
 }
@@ -2628,7 +2628,7 @@ function qaSubmit(keepOpen){
     criticality:pending.criticality||'',
     replaceability:pending.replaceability||'',
     notes:pending.notes||'',
-    estValue:'',yearPurchased:'',lastUsed:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false
+    estValue:pending.estValue||'',yearPurchased:'',lastUsed:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false
   };
   inventory.push(item);save();render();
   const locLabel=locationPath.length?locationPath.join(' > '):'(no location)';
