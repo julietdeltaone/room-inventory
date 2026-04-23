@@ -2,541 +2,1145 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Room Inventory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-  :root{
-    --bg:#0e0e0e;--surface:#161616;--surface2:#1f1f1f;--surface3:#242424;--border:#2a2a2a;
-    --accent:#e8ff00;--accent2:#ff6b35;--text:#e8e8e8;
-    --text-dim:#555;--text-mid:#888;--red:#ff4444;--green:#44ff88;--blue:#64b4ff;
-    --score-green:#44ff88;--score-yellow:#ffe664;--score-orange:#ff9a3c;--score-red:#ff4444;
+:root {
+  --bg:       #080809;
+  --s1:       #0f0f11;
+  --s2:       #151518;
+  --s3:       #1c1c20;
+  --s4:       #232328;
+  --border:   #242428;
+  --border2:  #2e2e34;
+
+  --rose:     #B76E79;
+  --rose-dim: rgba(183,110,121,0.18);
+  --rose-glow:rgba(183,110,121,0.08);
+  --steel:    #7B8FA8;
+  --steel-dim:rgba(123,143,168,0.18);
+
+  --text:     #dddde0;
+  --text-mid: #7a7a82;
+  --text-dim: #3e3e45;
+
+  --green:    #5a9e7a;
+  --red:      #9e5a5a;
+  --amber:    #b8924a;
+
+  --score-green:  #5a9e7a;
+  --score-yellow: #b8924a;
+  --score-orange: #a06040;
+  --score-red:    #8a4444;
+
+  --radius:   5px;
+  --font-mono: 'DM Mono', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── HEADER ── */
+header {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  gap: 12px;
+}
+
+.logo {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--rose);
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 320px;
+}
+
+.header-search {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.header-search:focus { border-color: var(--rose); }
+.header-search::placeholder { color: var(--text-dim); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sync-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+}
+#sync-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: background 0.4s;
+  flex-shrink: 0;
+}
+#sync-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-mid);
+  letter-spacing: 0.05em;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all 0.13s;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.btn-primary { background: var(--rose); color: #fff; border-color: var(--rose); font-weight: 500; }
+.btn-primary:hover { background: #c97882; border-color: #c97882; }
+.btn-ghost { background: transparent; color: var(--text-mid); border-color: var(--border2); }
+.btn-ghost:hover { border-color: var(--text-mid); color: var(--text); }
+.btn-steel { background: transparent; color: var(--steel); border-color: rgba(123,143,168,0.3); }
+.btn-steel:hover { background: var(--steel-dim); }
+.btn-danger { background: transparent; color: var(--red); border-color: rgba(158,90,90,0.3); }
+.btn-danger:hover { background: rgba(158,90,90,0.12); }
+.btn-amber { background: transparent; color: var(--amber); border-color: rgba(184,146,74,0.3); }
+.btn-amber:hover { background: rgba(184,146,74,0.1); }
+.btn-sm { padding: 3px 8px; font-size: 9px; }
+.btn-xs { padding: 2px 6px; font-size: 9px; }
+
+/* ── LAYOUT ── */
+.app {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 46px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 10px 8px;
+  position: sticky;
+  top: 46px;
+  height: calc(100vh - 46px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sb-section { margin-bottom: 4px; }
+
+.sb-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 6px 6px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-mid);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.1s;
+  margin-bottom: 1px;
+  gap: 6px;
+}
+.filter-btn:hover { background: var(--s2); color: var(--text); border-color: var(--border); }
+.filter-btn.active { background: var(--rose-glow); color: var(--rose); border-color: var(--rose-dim); }
+.filter-btn .count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.filter-btn.active .count { color: var(--rose); opacity: 0.7; }
+
+/* ── LOCATION TREE ── */
+.loc-node { margin-bottom: 1px; }
+.loc-node-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.1s;
+  font-size: 11px;
+  color: var(--text-mid);
+}
+.loc-node-row:hover { background: var(--s2); color: var(--text); border-color: var(--border); }
+.loc-node-row.active { background: var(--rose-glow); color: var(--rose); border-color: var(--rose-dim); }
+.loc-expand {
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: var(--text-dim);
+  flex-shrink: 0; cursor: pointer;
+  background: transparent; border: none;
+}
+.loc-expand:hover { color: var(--text); }
+.loc-node-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: 10px; }
+.loc-node-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.loc-density-bar { width: 16px; height: 2px; background: var(--border); border-radius: 2px; }
+.loc-density-fill { height: 100%; border-radius: 2px; background: var(--rose); opacity: 0.5; }
+.loc-density-fill.warn { background: var(--amber); }
+.loc-density-fill.full { background: var(--red); }
+.loc-count { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); }
+.loc-children { padding-left: 12px; border-left: 1px solid var(--border); margin-left: 7px; }
+.loc-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; }
+.loc-node-row:hover .loc-actions { opacity: 1; }
+.loc-action-btn {
+  width: 14px; height: 14px;
+  border-radius: 2px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-dim);
+  cursor: pointer; font-size: 9px;
+  display: flex; align-items: center; justify-content: center;
+}
+.loc-action-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+/* ── MAIN ── */
+main { padding: 12px 16px; overflow-y: auto; min-width: 0; }
+
+/* ── STAT BAR ── */
+.stat-bar {
+  display: flex;
+  gap: 1px;
+  margin-bottom: 10px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.stat-cell {
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px solid var(--border);
+  cursor: default;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.stat-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+.stat-val.rose { color: var(--rose); }
+.stat-val.steel { color: var(--steel); }
+.stat-val.green { color: var(--green); }
+.stat-val.red { color: var(--red); }
+.stat-val.amber { color: var(--amber); }
+.stat-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 3px; }
+
+/* ── SCORE DIST ── */
+.score-dist-wrap { margin-bottom: 10px; }
+.score-dist {
+  display: flex;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  gap: 2px;
+}
+.score-dist-seg {
+  height: 100%;
+  border-radius: 2px;
+  min-width: 0;
+}
+
+/* ── COLLAPSIBLE PANELS ── */
+.panel {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+.panel-header:hover { background: var(--s2); }
+.panel-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.panel-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rose); opacity: 0.6; }
+.panel-toggle { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.panel-body { display: none; padding: 10px 12px; border-top: 1px solid var(--border); }
+.panel-body.open { display: block; }
+
+/* ── DASHBOARD INSIDE PANEL ── */
+.dash-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 10px; }
+.dash-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+.dash-card-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.dash-card-val { font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--text); line-height: 1; }
+.dash-card-val.accent { color: var(--rose); }
+.dash-card-val.orange { color: var(--amber); }
+.dash-card-val.green { color: var(--green); }
+.dash-card-val.red { color: var(--red); }
+.dash-card-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 3px; }
+.dash-section-title { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; }
+.completeness-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.completeness-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.completeness-fill { height: 100%; border-radius: 2px; background: var(--rose); }
+.completeness-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); white-space: nowrap; }
+.scoring-explainer { background: var(--s3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.scoring-explainer h4 { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 8px; }
+.score-formula { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 8px; }
+.formula-item { background: var(--s2); border-radius: var(--radius); padding: 6px 8px; }
+.formula-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+.formula-weight { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--rose); }
+.formula-vals { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 2px; line-height: 1.6; }
+.formula-note { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); line-height: 1.7; }
+
+/* ── IMPORT PANEL ── */
+.parse-textarea {
+  width: 100%;
+  height: 80px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 9px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+}
+.parse-textarea:focus { border-color: var(--rose); }
+.parse-textarea::placeholder { color: var(--text-dim); }
+.parse-actions { display: flex; gap: 6px; margin-top: 7px; align-items: center; }
+.parse-hint { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); }
+
+/* ── PREVIEW ITEMS ── */
+.preview-items { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.preview-item { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 9px; }
+.preview-item-row1 { display: grid; grid-template-columns: 1fr 120px 55px 22px; gap: 4px; align-items: center; margin-bottom: 4px; }
+.preview-item-row2 { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
+.preview-item-row3 { display: grid; grid-template-columns: 80px 80px 140px 1fr; gap: 4px; margin-top: 4px; }
+.preview-item input, .preview-item select {
+  background: var(--s2); border: 1px solid var(--border); border-radius: 3px;
+  padding: 3px 5px; color: var(--text); font-family: var(--font-mono); font-size: 10px; outline: none; width: 100%;
+}
+.preview-item input:focus, .preview-item select:focus { border-color: var(--rose); }
+.preview-item select option { background: var(--s2); }
+.preview-field { display: flex; flex-direction: column; }
+.preview-field-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+.preview-guessed { border-color: rgba(183,110,121,0.25) !important; background: rgba(183,110,121,0.04) !important; }
+.remove-preview { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; align-self: center; }
+.remove-preview:hover { color: var(--red); }
+
+/* ── BULK BAR ── */
+.bulk-bar {
+  display: none;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 8px 10px;
+  background: var(--s2);
+  border: 1px solid rgba(183,110,121,0.3);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.bulk-bar.visible { display: flex; }
+.bulk-bar-label { font-family: var(--font-mono); font-size: 10px; color: var(--rose); font-weight: 500; white-space: nowrap; padding-top: 4px; }
+.bulk-fields { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; flex: 1; }
+.bulk-group { display: flex; align-items: center; gap: 3px; }
+.bulk-field-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; }
+.bulk-select, .bulk-text-input {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 3px 6px; color: var(--text); font-family: var(--font-mono); font-size: 10px; outline: none;
+}
+.bulk-select:focus, .bulk-text-input:focus { border-color: var(--rose); }
+.bulk-text-input { width: 110px; }
+.bulk-select option { background: var(--s2); }
+
+/* ── TABLE CONTROLS ── */
+.table-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  gap: 8px;
+}
+.view-tabs { display: flex; gap: 3px; }
+.view-tab {
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.1s;
+}
+.view-tab.active { background: var(--s2); color: var(--text); border-color: var(--border2); }
+.relocate-badge {
+  background: var(--amber);
+  color: #000;
+  border-radius: 2px;
+  padding: 1px 4px;
+  font-size: 8px;
+  font-family: var(--font-mono);
+  margin-left: 4px;
+}
+.table-right { display: flex; gap: 4px; align-items: center; }
+
+/* ── COLUMN PICKER ── */
+.col-resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; cursor: col-resize; z-index: 10; user-select: none; }
+.col-resize-handle:hover, .col-resize-handle.dragging { background: var(--rose); opacity: 0.4; }
+th { position: relative; white-space: nowrap; }
+.col-picker-wrap { position: relative; }
+.col-picker-btn {
+  padding: 3px 8px; border-radius: var(--radius);
+  font-family: var(--font-mono); font-size: 10px;
+  cursor: pointer; border: 1px solid var(--border);
+  background: transparent; color: var(--text-mid);
+}
+.col-picker-btn:hover { border-color: var(--rose); color: var(--rose); }
+.col-picker-popover {
+  display: none; position: absolute; right: 0; top: calc(100% + 4px);
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 8px; z-index: 400;
+  min-width: 170px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.col-picker-popover.open { display: block; }
+.col-picker-item {
+  display: flex; align-items: center; gap: 7px; padding: 3px 2px;
+  font-family: var(--font-sans); font-size: 11px; color: var(--text-mid);
+  cursor: pointer; border-radius: 2px;
+}
+.col-picker-item:hover { color: var(--text); }
+.col-picker-item input { accent-color: var(--rose); cursor: pointer; }
+.col-picker-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* ── TABLE ── */
+.table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
+thead tr { background: var(--s1); border-bottom: 1px solid var(--border); }
+th {
+  padding: 7px 8px; text-align: left;
+  font-family: var(--font-mono); font-size: 8px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-dim); font-weight: 400;
+  white-space: nowrap; user-select: none;
+}
+th.sortable { cursor: pointer; }
+th.sortable:hover { color: var(--text-mid); }
+th.sort-asc { color: var(--rose) !important; }
+th.sort-asc::after { content: ' ↑'; color: var(--rose); }
+th.sort-desc { color: var(--rose) !important; }
+th.sort-desc::after { content: ' ↓'; color: var(--rose); }
+th.check-col { width: 28px; text-align: center; }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.08s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--s1); }
+tbody tr.misplaced-row { background: rgba(184,146,74,0.04); }
+tbody tr.selected { background: rgba(183,110,121,0.05) !important; }
+
+td { padding: 6px 8px; vertical-align: middle; }
+td.check-col { text-align: center; }
+.row-check { width: 12px; height: 12px; cursor: pointer; accent-color: var(--rose); }
+
+/* ── INLINE EDIT ── */
+td.editable-td {
+  cursor: pointer; position: relative;
+  border-left: 2px solid transparent;
+  transition: border-color 0.1s, background 0.1s;
+}
+td.editable-td:hover { background: var(--s2); border-left-color: var(--rose); }
+td.editable-td.active-edit { background: var(--s3); border-left-color: var(--rose); }
+.cell-editor {
+  background: var(--s4); border: 1px solid var(--rose);
+  border-radius: var(--radius); padding: 4px 7px;
+  color: var(--text); font-family: var(--font-mono); font-size: 11px;
+  outline: none; width: 100%; min-width: 80px;
+  box-shadow: 0 0 0 2px rgba(183,110,121,0.08);
+}
+.cell-editor-select {
+  background: var(--s4); border: 1px solid var(--rose);
+  border-radius: var(--radius); padding: 4px 6px;
+  color: var(--text); font-family: var(--font-mono); font-size: 11px;
+  outline: none; width: 100%;
+}
+.cell-editor-select option { background: var(--s2); }
+.key-hint { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+.key-hint b { color: var(--rose); }
+
+/* ── BADGES & PILLS ── */
+.loc-path { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); }
+.loc-path-sep { color: var(--text-dim); margin: 0 2px; font-size: 9px; }
+.loc-path-leaf { color: var(--text); }
+.cat-badge {
+  display: inline-block; padding: 2px 5px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.03em; text-transform: uppercase;
+  font-weight: 500; white-space: nowrap;
+}
+.sn-badge {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--steel); background: var(--steel-dim);
+  border: 1px solid rgba(123,143,168,0.2);
+  border-radius: 3px; padding: 1px 4px;
+  display: inline-block; margin-top: 2px;
+}
+.notes-plain { font-size: 10px; color: var(--text-dim); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qty-ctrl { display: flex; align-items: center; gap: 2px; }
+.qty-btn {
+  width: 16px; height: 16px; border-radius: 3px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-mid); cursor: pointer; font-size: 12px;
+  line-height: 1; display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s; padding: 0;
+}
+.qty-btn:hover { border-color: var(--rose); color: var(--rose); }
+.qty-val { font-family: var(--font-mono); font-size: 11px; min-width: 18px; text-align: center; }
+.cond-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin-right: 3px; }
+.tier-pill {
+  display: inline-block; padding: 2px 5px; border-radius: 10px;
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500; white-space: nowrap;
+}
+.year-text { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); }
+.age-text { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); }
+.score-badge { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1px; }
+.score-num { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+.score-bar-mini { width: 28px; height: 2px; border-radius: 2px; background: var(--border); margin-top: 2px; }
+.score-fill { height: 100%; border-radius: 2px; }
+.complete-pip { display: inline-block; width: 4px; height: 4px; border-radius: 50%; margin-right: 1px; }
+.misplace-toggle {
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; width: 30px; height: 20px;
+  border-radius: var(--radius); border: 1px solid var(--border);
+  background: transparent; font-size: 10px; transition: all 0.1s;
+  margin: auto; font-family: var(--font-mono); font-weight: 500;
+}
+.misplace-toggle:hover { border-color: var(--amber); }
+.misplace-toggle.flagged { background: rgba(184,146,74,0.12); border-color: var(--amber); color: var(--amber); }
+.row-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; }
+tbody tr:hover .row-actions { opacity: 1; }
+.row-btn {
+  width: 20px; height: 20px; border-radius: 3px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-dim); cursor: pointer; font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+}
+.row-btn:hover { border-color: var(--text-mid); color: var(--text); }
+.row-btn.delete:hover { border-color: var(--red); color: var(--red); }
+.row-btn.qs-btn { color: var(--steel); border-color: rgba(123,143,168,0.25); }
+.row-btn.qs-btn:hover { border-color: var(--steel); background: var(--steel-dim); }
+
+.dup-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; cursor: pointer; margin-right: 3px; flex-shrink: 0; vertical-align: middle; border: 1px solid transparent; transition: transform 0.1s; }
+.dup-dot:hover { transform: scale(1.4); }
+.dup-dot.dup-yellow { background: var(--score-yellow); }
+.dup-dot.dup-orange { background: var(--score-orange); }
+.dup-dot.dup-red { background: var(--score-red); }
+.merged-badge { font-family: var(--font-mono); font-size: 9px; color: var(--steel); background: var(--steel-dim); border: 1px solid rgba(123,143,168,0.2); border-radius: 3px; padding: 1px 4px; display: inline-block; margin-top: 2px; cursor: pointer; }
+
+.digital-toggle-btn { background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; font-family: var(--font-mono); font-size: 9px; cursor: pointer; color: var(--text-dim); transition: all 0.12s; white-space: nowrap; }
+.digital-toggle-btn:hover { border-color: var(--green); color: var(--green); }
+.digital-toggle-btn.has-copy { background: rgba(90,158,122,0.1); border-color: rgba(90,158,122,0.3); color: var(--green); }
+
+.doctype-badge { font-family: var(--font-mono); font-size: 9px; background: rgba(123,143,168,0.1); color: var(--steel); border: 1px solid rgba(123,143,168,0.2); border-radius: 3px; padding: 1px 4px; display: inline-block; white-space: nowrap; }
+.fill-badge { font-family: var(--font-mono); font-size: 9px; border-radius: 3px; padding: 1px 4px; display: inline-block; white-space: nowrap; border: 1px solid; }
+.fill-full { background: rgba(90,158,122,0.1); color: var(--green); border-color: rgba(90,158,122,0.3); }
+.fill-most { background: rgba(183,110,121,0.1); color: var(--rose); border-color: rgba(183,110,121,0.25); }
+.fill-half { background: rgba(184,146,74,0.1); color: var(--amber); border-color: rgba(184,146,74,0.25); }
+.fill-low { background: rgba(160,96,64,0.1); color: #a06040; border-color: rgba(160,96,64,0.3); }
+.fill-empty { background: rgba(158,90,90,0.1); color: var(--red); border-color: rgba(158,90,90,0.25); }
+
+.empty-state { padding: 40px 20px; text-align: center; color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; }
+.empty-icon { font-size: 18px; margin-bottom: 8px; }
+
+/* ── QUICK SCORE ── */
+.qs-overlay { display: none; position: fixed; inset: 0; z-index: 300; }
+.qs-overlay.open { display: block; }
+.qs-popover { position: absolute; background: var(--s2); border: 1px solid var(--border2); border-radius: 6px; padding: 13px; width: 250px; z-index: 301; box-shadow: 0 8px 32px rgba(0,0,0,0.7); }
+.qs-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--steel); margin-bottom: 9px; font-weight: 500; }
+.qs-field { margin-bottom: 6px; }
+.qs-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 3px; }
+.qs-select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 7px; color: var(--text); font-family: var(--font-mono); font-size: 11px; outline: none; }
+.qs-select:focus { border-color: var(--rose); }
+.qs-select option { background: var(--s2); }
+.qs-actions { display: flex; gap: 6px; margin-top: 9px; }
+.qs-score-preview { font-family: var(--font-mono); font-size: 20px; font-weight: 500; text-align: center; margin: 7px 0; padding: 5px; background: var(--bg); border-radius: var(--radius); }
+
+/* ── MODALS ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 500; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--s1); border: 1px solid var(--border2); border-radius: 8px; width: 840px; max-width: 96vw; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; }
+.modal-sm { width: 560px; }
+.modal-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rose); }
+.modal-close { background: transparent; border: none; color: var(--text-dim); font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; gap: 7px; align-items: center; }
+
+/* ── LOCATION MANAGER ── */
+.loc-mgr-tree { font-family: var(--font-mono); font-size: 11px; }
+.loc-mgr-node { margin: 2px 0; }
+.loc-mgr-row { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--s2); margin-bottom: 2px; }
+.loc-mgr-indent { padding-left: 20px; border-left: 1px solid var(--border); margin-left: 10px; }
+.loc-mgr-name { flex: 1; color: var(--text); }
+.loc-mgr-count { color: var(--text-dim); font-size: 10px; }
+.loc-mgr-actions { display: flex; gap: 3px; }
+.loc-mgr-btn { padding: 2px 7px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-mid); cursor: pointer; font-family: var(--font-mono); font-size: 9px; }
+.loc-mgr-btn:hover { border-color: var(--rose); color: var(--rose); }
+.loc-mgr-btn.danger:hover { border-color: var(--red); color: var(--red); }
+.loc-mgr-input { background: var(--bg); border: 1px solid var(--rose); border-radius: var(--radius); padding: 3px 7px; color: var(--text); font-family: var(--font-mono); font-size: 11px; outline: none; width: 140px; }
+
+/* ── QUICK ADD / DUPE ADD ── */
+.qa-overlay { display: none; position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+.qa-overlay.open { display: flex; }
+.qa-modal {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 20px;
+  width: 400px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.8);
+}
+.qa-title { font-family: var(--font-mono); font-size: 10px; color: var(--rose); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+.qa-loc { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 8px; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qa-loc span { color: var(--steel); }
+.qa-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.qa-field { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.qa-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.qa-input { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 8px; color: var(--text); font-family: var(--font-sans); font-size: 12px; width: 100%; }
+.qa-input:focus { outline: none; border-color: var(--rose); background: var(--s3); }
+.qa-suggest { position: absolute; background: var(--s3); border: 1px solid var(--rose); border-radius: var(--radius); z-index: 500; max-height: 160px; overflow-y: auto; width: 100%; }
+.qa-suggest-item { padding: 5px 9px; font-family: var(--font-sans); font-size: 11px; color: var(--text-mid); cursor: pointer; }
+.qa-suggest-item:hover, .qa-suggest-item.active { background: var(--s4); color: var(--rose); }
+.qa-suggest-wrap { position: relative; }
+.qa-actions { display: flex; gap: 7px; margin-top: 12px; }
+.qa-added { font-family: var(--font-mono); font-size: 10px; color: var(--green); margin-top: 8px; min-height: 14px; }
+
+/* ── CLAUDE SUGGEST ── */
+.claude-suggest-wrap {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.claude-suggest-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--s2);
+  border: none;
+  color: var(--text-mid);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.13s;
+}
+.claude-suggest-btn:hover { background: var(--s3); color: var(--text); }
+.claude-suggest-btn .sparkle { color: var(--rose); font-size: 12px; }
+.claude-suggest-btn.loading { color: var(--rose); }
+.claude-suggest-result {
+  display: none;
+  padding: 10px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.claude-suggest-result.visible { display: block; }
+.suggest-field { margin-bottom: 8px; }
+.suggest-field-label { font-family: var(--font-mono); font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 3px; }
+.suggest-chip {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  background: var(--rose-glow);
+  border: 1px solid var(--rose-dim);
+  color: var(--rose);
+  margin: 2px 2px 0 0;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.suggest-chip:hover { background: var(--rose-dim); }
+.suggest-chip.applied { background: var(--rose); color: #fff; border-color: var(--rose); }
+.suggest-reasoning { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 6px; line-height: 1.6; font-style: italic; }
+
+/* ── VOICE GUIDE ── */
+.voice-guide { font-family: var(--font-mono); font-size: 10px; line-height: 1.8; color: var(--text-mid); }
+.guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.guide-section { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.guide-section-title { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--rose); margin-bottom: 8px; font-weight: 500; }
+.guide-item { margin-bottom: 7px; }
+.guide-item-label { font-family: var(--font-mono); font-size: 10px; color: var(--text); font-weight: 500; margin-bottom: 2px; }
+.guide-item-desc { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); line-height: 1.6; }
+.guide-tag { display: inline-block; padding: 1px 4px; border-radius: 2px; background: var(--s3); border: 1px solid var(--border); font-size: 8px; font-family: var(--font-mono); color: var(--text-mid); margin-right: 2px; }
+
+/* ── MERGE ── */
+.merge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.merge-item-card { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+.merge-item-name { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.merge-item-field { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-bottom: 3px; }
+.merge-item-field span:last-child { color: var(--text-mid); }
+.merge-section-title { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.merge-field-row { display: grid; grid-template-columns: 110px 1fr 1fr 1fr; gap: 5px; align-items: center; margin-bottom: 5px; }
+.merge-field-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+.merge-radio-opt { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); transition: all 0.1s; overflow: hidden; }
+.merge-radio-opt:hover { border-color: var(--rose); color: var(--text); }
+.merge-radio-opt input { accent-color: var(--rose); margin: 0; flex-shrink: 0; }
+.merge-radio-opt.selected { border-color: var(--rose); color: var(--rose); background: var(--rose-glow); }
+.merge-custom-input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 3px 6px; color: var(--text); font-family: var(--font-mono); font-size: 10px; outline: none; width: 100%; }
+.merge-custom-input:focus { border-color: var(--rose); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 16px; right: 16px;
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 7px 13px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text); z-index: 600;
+  opacity: 0; transform: translateY(6px);
+  transition: all 0.18s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── UR BUTTONS ── */
+.undo-redo { display: flex; gap: 3px; }
+.ur-btn { padding: 4px 9px; border-radius: var(--radius); font-family: var(--font-mono); font-size: 10px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-dim); transition: all 0.12s; }
+.ur-btn:hover:not(:disabled) { border-color: var(--text-mid); color: var(--text); }
+.ur-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════
+   MOBILE LAYOUT  (≤ 768px)
+══════════════════════════════════════════════ */
+.mobile-only { display: none; }
+.desktop-only { display: flex; }
+
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: flex; }
+
+  header { padding: 0 12px; gap: 8px; }
+  .logo { font-size: 10px; letter-spacing: 0.16em; }
+
+  /* Mobile tab bar at bottom */
+  .mobile-tabbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--s1);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 300;
+    padding: 0 8px;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;}
+  .mob-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.15s;
+    border-radius: var(--radius);
+  }
+  .mob-tab.active { color: var(--rose); }
+  .mob-tab-icon { font-size: 16px; line-height: 1; }
 
-  header{border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:200;}
-  .logo{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;letter-spacing:0.12em;color:var(--accent);text-transform:uppercase;}
-  .header-right{display:flex;align-items:center;gap:10px;}
-  .undo-redo{display:flex;gap:3px;}
-  .ur-btn{padding:4px 10px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-mid);transition:all 0.12s;}
-  .ur-btn:hover:not(:disabled){border-color:var(--text-mid);color:var(--text);}
-  .ur-btn:disabled{opacity:0.28;cursor:not-allowed;}
-  .header-actions{display:flex;gap:4px;}
+  /* Mobile pages */
+  .mobile-page { display: none; padding: 10px 12px 72px; }
+  .mobile-page.active { display: block; }
 
-  .app{display:grid;grid-template-columns:252px 1fr;min-height:calc(100vh - 45px);}
+  /* Mobile item cards */
+  .mob-item-card {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+  }
+  .mob-item-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .mob-item-loc {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mob-item-pills { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .mob-pill {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+  }
 
-  /* SIDEBAR */
-  sidebar{display:block;border-right:1px solid var(--border);padding:12px;position:sticky;top:45px;height:calc(100vh - 45px);overflow-y:auto;}
-  .sidebar-section{margin-bottom:16px;}
-  .sidebar-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
-  .filter-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:5px 7px;background:transparent;border:1px solid transparent;border-radius:3px;color:var(--text-mid);font-family:'IBM Plex Sans',sans-serif;font-size:11px;cursor:pointer;text-align:left;transition:all 0.1s;margin-bottom:1px;}
-  .filter-btn:hover{background:var(--surface);color:var(--text);border-color:var(--border);}
-  .filter-btn.active{background:var(--surface2);color:var(--accent);border-color:var(--accent);}
-  .filter-btn .count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);flex-shrink:0;}
-  .filter-btn.active .count{color:var(--accent);}
-  .search-box{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:6px 8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;transition:border-color 0.12s;}
-  .search-box:focus{border-color:var(--accent);}
-  .search-box::placeholder{color:var(--text-dim);}
+  /* Mobile search */
+  .mob-search {
+    width: 100%;
+    background: var(--s2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .mob-search:focus { border-color: var(--rose); }
+  .mob-search::placeholder { color: var(--text-dim); }
 
-  /* LOCATION TREE */
-  .loc-node{margin-bottom:1px;}
-  .loc-node-row{display:flex;align-items:center;gap:3px;width:100%;padding:4px 6px;border-radius:3px;cursor:pointer;border:1px solid transparent;transition:all 0.1s;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:var(--text-mid);}
-  .loc-node-row:hover{background:var(--surface);color:var(--text);border-color:var(--border);}
-  .loc-node-row.active{background:var(--surface2);color:var(--accent);border-color:var(--accent);}
-  .loc-expand{width:14px;height:14px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text-dim);flex-shrink:0;cursor:pointer;user-select:none;background:transparent;border:none;}
-  .loc-expand:hover{color:var(--text);}
-  .loc-node-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .loc-node-right{display:flex;align-items:center;gap:4px;flex-shrink:0;}
-  .loc-density-bar{width:20px;height:3px;background:var(--border);border-radius:2px;}
-  .loc-density-fill{height:100%;border-radius:2px;background:var(--accent);}
-  .loc-density-fill.warn{background:var(--accent2);}
-  .loc-density-fill.full{background:var(--red);}
-  .loc-count{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);}
-  .loc-children{padding-left:14px;border-left:1px solid var(--border);margin-left:7px;}
-  .loc-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.1s;}
-  .loc-node-row:hover .loc-actions{opacity:1;}
-  .loc-action-btn{width:16px;height:16px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;}
-  .loc-action-btn:hover{border-color:var(--accent);color:var(--accent);}
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 68px;
+    right: 16px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--rose);
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(183,110,121,0.4);
+    z-index: 290;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .fab:active { transform: scale(0.94); box-shadow: 0 2px 8px rgba(183,110,121,0.3); }
 
-  main{padding:14px 18px;overflow-y:auto;min-width:0;}
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  main { display: none; }
 
-  /* DASHBOARD */
-  .dashboard{margin-bottom:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
-  .dash-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
-  .dash-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);display:flex;align-items:center;gap:8px;}
-  .dash-title-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
-  .dash-body{padding:14px;display:none;}
-  .dash-body.open{display:block;}
-  .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
-  .dash-card{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:11px 13px;}
-  .dash-card-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
-  .dash-card-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--text);line-height:1;}
-  .dash-card-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-mid);margin-top:4px;}
-  .dash-card-val.accent{color:var(--accent);} .dash-card-val.orange{color:var(--accent2);} .dash-card-val.green{color:var(--green);} .dash-card-val.red{color:var(--red);}
-  .dash-section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:7px;}
-  .score-dist{display:flex;height:18px;border-radius:3px;overflow:hidden;gap:2px;margin-bottom:12px;}
-  .score-dist-seg{height:100%;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#000;font-weight:600;min-width:0;overflow:hidden;}
-  .completeness-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-  .completeness-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-  .completeness-fill{height:100%;border-radius:3px;background:var(--accent);}
-  .completeness-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid);white-space:nowrap;}
-  .scoring-explainer{background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:11px 13px;}
-  .scoring-explainer h4{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-mid);margin-bottom:9px;}
-  .score-formula{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:9px;}
-  .formula-item{background:var(--surface2);border-radius:3px;padding:7px 9px;}
-  .formula-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px;}
-  .formula-weight{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
-  .formula-vals{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:3px;line-height:1.6;}
-  .formula-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);line-height:1.7;}
-
-  /* PANELS */
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
-  .panel-header{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
-  .panel-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-mid);display:flex;align-items:center;gap:7px;}
-  .panel-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
-  .panel-body{padding:12px;display:none;}
-  .panel-body.open{display:block;}
-  .parse-textarea{width:100%;height:85px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:7px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;resize:vertical;outline:none;line-height:1.6;}
-  .parse-textarea:focus{border-color:var(--accent);}
-  .parse-textarea::placeholder{color:var(--text-dim);}
-  .parse-hint{font-size:10px;color:var(--text-dim);margin-top:5px;font-family:'IBM Plex Mono',monospace;line-height:1.7;}
-  .parse-actions{display:flex;gap:6px;margin-top:8px;}
-
-  /* VOICE GUIDE */
-  .voice-guide{font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.8;color:var(--text-mid);}
-  .voice-example{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:7px 9px;margin:6px 0;font-size:11px;color:var(--text);line-height:1.7;}
-  .voice-note{color:var(--text-dim);font-size:10px;margin-top:6px;line-height:1.7;border-top:1px solid var(--border);padding-top:7px;}
-
-  /* GUIDE */
-  .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-  .guide-section{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:11px 13px;}
-  .guide-section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:9px;font-weight:600;}
-  .guide-item{margin-bottom:8px;}
-  .guide-item-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text);font-weight:600;margin-bottom:2px;}
-  .guide-item-desc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);line-height:1.65;}
-  .guide-tag{display:inline-block;padding:1px 5px;border-radius:2px;background:var(--surface3);border:1px solid var(--border);font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-mid);margin-right:2px;}
-
-  /* PREVIEW */
-  .preview-items{margin-top:9px;display:flex;flex-direction:column;gap:5px;}
-  .preview-item{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:7px 9px;}
-  .preview-item-row1{display:grid;grid-template-columns:1fr 120px 55px 24px;gap:4px;align-items:center;margin-bottom:4px;}
-  .preview-item-row2{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
-  .preview-item-row3{display:grid;grid-template-columns:80px 80px 140px 1fr;gap:4px;margin-top:4px;}
-  .preview-item input,.preview-item select{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:3px 5px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:10px;outline:none;width:100%;}
-  .preview-item input:focus,.preview-item select:focus{border-color:var(--accent);}
-  .preview-item select option{background:var(--surface2);}
-  .preview-field{display:flex;flex-direction:column;}
-  .preview-field-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px;}
-  .preview-guessed{border-color:rgba(232,255,0,0.25)!important;background:rgba(232,255,0,0.04)!important;}
-  .remove-preview{background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;align-self:center;}
-  .remove-preview:hover{color:var(--red);}
-
-  /* BULK BAR */
-  .bulk-bar{display:none;align-items:flex-start;gap:5px;padding:8px 10px;background:var(--surface2);border:1px solid var(--accent2);border-radius:5px;margin-bottom:9px;flex-wrap:wrap;}
-  .bulk-bar.visible{display:flex;}
-  .bulk-bar-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);font-weight:600;white-space:nowrap;padding-top:4px;}
-  .bulk-fields{display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex:1;}
-  .bulk-group{display:flex;align-items:center;gap:3px;}
-  .bulk-field-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;}
-  .bulk-select,.bulk-text-input{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;}
-  .bulk-select:focus,.bulk-text-input:focus{border-color:var(--accent);}
-  .bulk-text-input{width:110px;}
-  .bulk-select option{background:var(--surface2);}
-
-  /* BUTTONS */
-  .btn{padding:5px 10px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.04em;cursor:pointer;border:1px solid;transition:all 0.12s;text-transform:uppercase;white-space:nowrap;}
-  .btn-primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600;}
-  .btn-primary:hover{background:#d4e800;}
-  .btn-ghost{background:transparent;color:var(--text-mid);border-color:var(--border);}
-  .btn-ghost:hover{border-color:var(--text-mid);color:var(--text);}
-  .btn-danger{background:transparent;color:var(--red);border-color:var(--red);}
-  .btn-danger:hover{background:var(--red);color:#fff;}
-  .btn-orange{background:transparent;color:var(--accent2);border-color:var(--accent2);}
-  .btn-orange:hover{background:var(--accent2);color:#fff;}
-  .btn-blue{background:transparent;color:var(--blue);border-color:rgba(100,180,255,0.4);}
-  .btn-blue:hover{background:rgba(100,180,255,0.1);}
-  .btn-sm{padding:3px 7px;font-size:10px;}
-
-  /* TABLE CONTROLS */
-  .table-controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;}
-  .view-tabs{display:flex;gap:3px;}
-  .view-tab{padding:5px 11px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-dim);transition:all 0.1s;}
-  .view-tab.active{background:var(--surface2);color:var(--text);border-color:var(--text-mid);}
-  .relocate-badge{background:var(--accent2);color:#fff;border-radius:2px;padding:1px 5px;font-size:9px;font-family:'IBM Plex Mono',monospace;margin-left:4px;}
-  .table-right{display:flex;gap:4px;align-items:center;}
-  .col-resize-handle{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;z-index:10;user-select:none;}
-  .col-resize-handle:hover,.col-resize-handle.dragging{background:var(--accent);opacity:0.5;}
-  th{position:relative;white-space:nowrap;}
-  .col-picker-wrap{position:relative;}
-  .col-picker-btn{padding:3px 8px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-mid);}
-  .col-picker-btn:hover{border-color:var(--accent);color:var(--accent);}
-  .col-picker-popover{display:none;position:absolute;right:0;top:calc(100% + 4px);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:8px;z-index:400;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
-  .col-picker-popover.open{display:block;}
-  .col-picker-item{display:flex;align-items:center;gap:7px;padding:3px 2px;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:var(--text-mid);cursor:pointer;border-radius:2px;}
-  .col-picker-item:hover{color:var(--text);}
-  .col-picker-item input{accent-color:var(--accent);cursor:pointer;}
-  .col-picker-divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
-
-  /* TABLE */
-  .table-wrap{border:1px solid var(--border);border-radius:6px;overflow:hidden;overflow-x:auto;}
-  table{width:100%;border-collapse:collapse;min-width:600px;table-layout:fixed;}
-  thead tr{background:var(--surface);border-bottom:1px solid var(--border);}
-  th{padding:7px 8px;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);font-weight:500;white-space:nowrap;user-select:none;}
-  th.sortable{cursor:pointer;}
-  th.sortable:hover{color:var(--text-mid);}
-  th.sort-asc{color:var(--accent)!important;}
-  th.sort-asc::after{content:' \2191';color:var(--accent);}
-  th.sort-desc{color:var(--accent)!important;}
-  th.sort-desc::after{content:' \2193';color:var(--accent);}
-  th.check-col{width:28px;text-align:center;}
-
-  tbody tr{border-bottom:1px solid var(--border);transition:background 0.08s;}
-  tbody tr:last-child{border-bottom:none;}
-  tbody tr:hover{background:var(--surface);}
-  tbody tr.misplaced-row{background:rgba(255,107,53,0.035);}
-  tbody tr.selected{background:rgba(232,255,0,0.04)!important;}
-
-  td{padding:7px 8px;vertical-align:middle;}
-  td.name-cell{font-weight:500;font-size:13px;min-width:120px;}
-  td.check-col{text-align:center;}
-  .row-check{width:13px;height:13px;cursor:pointer;accent-color:var(--accent);}
-
-  /* INLINE EDIT */
-  td.editable-td{cursor:pointer;position:relative;border-left:2px solid transparent;transition:border-color 0.1s,background 0.1s;}
-  td.editable-td:hover{background:var(--surface);border-left-color:var(--accent);}
-  td.editable-td.active-edit{background:var(--surface2);border-left-color:var(--accent);}
-  .cell-editor{background:var(--surface3);border:1px solid var(--accent);border-radius:3px;padding:4px 7px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;width:100%;min-width:80px;box-shadow:0 0 0 2px rgba(232,255,0,0.1);}
-  .cell-editor-select{background:var(--surface3);border:1px solid var(--accent);border-radius:3px;padding:4px 6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;width:100%;box-shadow:0 0 0 2px rgba(232,255,0,0.1);}
-  .cell-editor-select option{background:var(--surface2);}
-  .key-hint{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:3px;line-height:1.5;}
-  .key-hint b{color:var(--accent);}
-
-  /* PATH DISPLAY */
-  .loc-path{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid);}
-  .loc-path-sep{color:var(--text-dim);margin:0 3px;font-size:9px;}
-  .loc-path-leaf{color:var(--text);}
-
-  .cat-badge{display:inline-block;padding:2px 6px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;white-space:nowrap;}
-  .sn-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue);background:rgba(100,180,255,0.08);border:1px solid rgba(100,180,255,0.2);border-radius:2px;padding:1px 5px;letter-spacing:0.06em;display:inline-block;margin-top:2px;}
-  .notes-plain{font-size:11px;color:var(--text-dim);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .qty-ctrl{display:flex;align-items:center;gap:2px;}
-  .qty-btn{width:17px;height:17px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-mid);cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all 0.1s;padding:0;}
-  .qty-btn:hover{border-color:var(--accent);color:var(--accent);}
-  .qty-val{font-family:'IBM Plex Mono',monospace;font-size:12px;min-width:18px;text-align:center;}
-  .cond-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px;}
-  .tier-pill{display:inline-block;padding:2px 5px;border-radius:10px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;white-space:nowrap;}
-  .year-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-mid);}
-  .age-text{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);}
-  .score-badge{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;}
-  .score-num{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}
-  .score-bar-mini{width:32px;height:3px;border-radius:2px;background:var(--border);margin-top:2px;}
-  .score-fill{height:100%;border-radius:2px;}
-  .complete-pip{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:1px;}
-  .misplace-toggle{display:flex;align-items:center;justify-content:center;cursor:pointer;width:34px;height:22px;border-radius:3px;border:1px solid var(--border);background:transparent;font-size:11px;transition:all 0.1s;margin:auto;font-family:'IBM Plex Mono',monospace;font-weight:600;}
-  .misplace-toggle:hover{border-color:var(--accent2);}
-  .misplace-toggle.flagged{background:rgba(255,107,53,0.15);border-color:var(--accent2);}
-  .row-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.1s;}
-  tbody tr:hover .row-actions{opacity:1;}
-  .row-btn{width:21px;height:21px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;}
-  .row-btn:hover{border-color:var(--text-mid);color:var(--text);}
-  .row-btn.delete:hover{border-color:var(--red);color:var(--red);}
-  .row-btn.qs-btn{color:var(--accent2);border-color:rgba(255,107,53,0.3);}
-  .row-btn.qs-btn:hover{border-color:var(--accent2);background:rgba(255,107,53,0.1);}
-
-  /* DUPLICATE */
-  .dup-dot{display:inline-block;width:7px;height:7px;border-radius:50%;cursor:pointer;margin-right:4px;flex-shrink:0;vertical-align:middle;border:1px solid transparent;transition:transform 0.1s;}
-  .dup-dot:hover{transform:scale(1.4);}
-  .dup-dot.dup-yellow{background:var(--score-yellow);}
-  .dup-dot.dup-orange{background:var(--score-orange);}
-  .dup-dot.dup-red{background:var(--score-red);}
-  .merged-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--blue);background:rgba(100,180,255,0.08);border:1px solid rgba(100,180,255,0.2);border-radius:2px;padding:1px 5px;display:inline-block;margin-top:2px;cursor:pointer;}
-  .merged-badge:hover{background:rgba(100,180,255,0.15);}
-
-  /* QUICK SCORE */
-  .qs-overlay{display:none;position:fixed;inset:0;z-index:300;}
-  .qs-overlay.open{display:block;}
-  .qs-popover{position:absolute;background:var(--surface2);border:1px solid var(--accent2);border-radius:6px;padding:13px;width:255px;z-index:301;box-shadow:0 8px 32px rgba(0,0,0,0.6);}
-  .qa-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;}
-  .qa-overlay.open{display:flex;}
-  .qa-modal{background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:18px;width:380px;box-shadow:0 12px 40px rgba(0,0,0,0.7);}
-  .qa-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
-  .qa-loc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-mid);background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:5px 8px;margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .qa-loc span{color:var(--accent2);}
-  .qa-row{display:flex;gap:8px;margin-bottom:8px;}
-  .qa-field{display:flex;flex-direction:column;gap:3px;flex:1;}
-  .qa-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;}
-  .qa-input{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:5px 8px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:12px;width:100%;box-sizing:border-box;}
-  .qa-input:focus{outline:none;border-color:var(--accent);background:var(--surface2);}
-  .qa-suggest{position:absolute;background:var(--surface2);border:1px solid var(--accent);border-radius:3px;z-index:500;max-height:160px;overflow-y:auto;width:100%;box-sizing:border-box;}
-  .qa-suggest-item{padding:5px 9px;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:var(--text-mid);cursor:pointer;}
-  .qa-suggest-item:hover,.qa-suggest-item.active{background:var(--surface);color:var(--accent);}
-  .qa-suggest-wrap{position:relative;}
-  .qa-actions{display:flex;gap:7px;margin-top:12px;}
-  .qa-added{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);margin-top:8px;min-height:14px;}
-  .qs-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:9px;font-weight:600;}
-  .qs-field{margin-bottom:6px;}
-  .qs-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px;}
-  .qs-select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 7px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;}
-  .qs-select:focus{border-color:var(--accent);}
-  .qs-select option{background:var(--surface2);}
-  .qs-actions{display:flex;gap:6px;margin-top:9px;}
-  .qs-score-preview{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;text-align:center;margin:7px 0;padding:5px;background:var(--bg);border-radius:3px;}
-
-  /* MODALS */
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;align-items:center;justify-content:center;}
-  .modal-overlay.open{display:flex;}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;width:840px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;}
-  .modal-sm{width:560px;}
-  .modal-header{padding:13px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-  .modal-title{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);}
-  .modal-close{background:transparent;border:none;color:var(--text-dim);font-size:17px;cursor:pointer;padding:0 4px;line-height:1;}
-  .modal-close:hover{color:var(--text);}
-  .modal-body{padding:15px 17px;overflow-y:auto;flex:1;}
-  .modal-footer{padding:11px 17px;border-top:1px solid var(--border);display:flex;gap:7px;align-items:center;}
-
-  /* MERGE */
-  .merge-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
-  .merge-item-card{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:11px;}
-  .merge-item-name{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--text);margin-bottom:7px;}
-  .merge-item-field{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);margin-bottom:3px;}
-  .merge-item-field span:last-child{color:var(--text-mid);}
-  .merge-section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid var(--border);}
-  .merge-field-row{display:grid;grid-template-columns:110px 1fr 1fr 1fr;gap:5px;align-items:center;margin-bottom:5px;}
-  .merge-field-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);}
-  .merge-radio-opt{display:flex;align-items:center;gap:4px;padding:3px 7px;border:1px solid var(--border);border-radius:3px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-mid);transition:all 0.1s;overflow:hidden;}
-  .merge-radio-opt:hover{border-color:var(--accent);color:var(--text);}
-  .merge-radio-opt input{accent-color:var(--accent);margin:0;flex-shrink:0;}
-  .merge-radio-opt.selected{border-color:var(--accent);color:var(--accent);background:rgba(232,255,0,0.06);}
-  .merge-custom-input{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:3px 6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:10px;outline:none;width:100%;}
-  .merge-custom-input:focus{border-color:var(--accent);}
-
-  /* LOCATION MANAGER MODAL */
-  .loc-mgr-tree{font-family:'IBM Plex Mono',monospace;font-size:11px;}
-  .loc-mgr-node{margin:2px 0;}
-  .loc-mgr-row{display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);margin-bottom:2px;}
-  .loc-mgr-indent{padding-left:20px;border-left:1px solid var(--border);margin-left:10px;}
-  .loc-mgr-name{flex:1;color:var(--text);}
-  .loc-mgr-count{color:var(--text-dim);font-size:10px;}
-  .loc-mgr-actions{display:flex;gap:3px;}
-  .loc-mgr-btn{padding:2px 7px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text-mid);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:9px;}
-  .loc-mgr-btn:hover{border-color:var(--accent);color:var(--accent);}
-  .loc-mgr-btn.danger:hover{border-color:var(--red);color:var(--red);}
-  .loc-mgr-input{background:var(--bg);border:1px solid var(--accent);border-radius:3px;padding:3px 7px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;outline:none;width:140px;}
-
-  .digital-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;background:rgba(68,255,136,0.12);color:var(--green);border:1px solid rgba(68,255,136,0.3);border-radius:2px;padding:1px 5px;display:inline-block;white-space:nowrap;}
-  .digital-missing{font-family:'IBM Plex Mono',monospace;font-size:9px;background:rgba(255,68,68,0.08);color:var(--text-dim);border:1px solid var(--border);border-radius:2px;padding:1px 5px;display:inline-block;cursor:pointer;}
-  .digital-missing:hover{border-color:var(--green);color:var(--green);}
-  .doctype-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;background:rgba(200,220,255,0.1);color:#c8dcff;border:1px solid rgba(200,220,255,0.2);border-radius:2px;padding:1px 5px;display:inline-block;white-space:nowrap;}
-  .fill-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;border-radius:2px;padding:1px 5px;display:inline-block;white-space:nowrap;border:1px solid;}
-  .fill-full{background:rgba(68,255,136,0.1);color:#44ff88;border-color:rgba(68,255,136,0.3);}
-  .fill-most{background:rgba(232,255,0,0.1);color:#e8ff00;border-color:rgba(232,255,0,0.25);}
-  .fill-half{background:rgba(255,165,0,0.1);color:#ffa040;border-color:rgba(255,165,0,0.25);}
-  .fill-low{background:rgba(255,107,53,0.12);color:#ff6b35;border-color:rgba(255,107,53,0.3);}
-  .fill-empty{background:rgba(255,80,80,0.1);color:#ff5050;border-color:rgba(255,80,80,0.25);}
-  .digital-toggle-btn{background:transparent;border:1px solid var(--border);border-radius:3px;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;color:var(--text-dim);transition:all 0.12s;white-space:nowrap;}
-  .digital-toggle-btn:hover{border-color:var(--green);color:var(--green);}
-  .digital-toggle-btn.has-copy{background:rgba(68,255,136,0.1);border-color:rgba(68,255,136,0.3);color:var(--green);}
-  .empty-icon{font-size:20px;margin-bottom:8px;color:var(--text-dim);}
-  .add-row-btn{display:flex;align-items:center;gap:6px;padding:7px 10px;width:100%;background:transparent;border:none;border-top:1px solid var(--border);color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;text-align:left;transition:all 0.1s;}
-  .add-row-btn:hover{background:var(--surface);color:var(--text-mid);}
-  .toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--accent);border-radius:4px;padding:7px 13px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);z-index:600;opacity:0;transform:translateY(6px);transition:all 0.18s;pointer-events:none;}
-  .toast.show{opacity:1;transform:translateY(0);}
-  ::-webkit-scrollbar{width:3px;height:3px;}
-  ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  /* Mobile Quick Add - full screen */
+  .qa-modal { width: 100%; max-width: 100%; border-radius: 0; padding: 16px; min-height: 100vh; }
+  .qa-overlay { align-items: flex-start; }
+}
 </style>
 </head>
 <body>
 
+<!-- ══ HEADER ══ -->
 <header>
-  <div class="logo">[ INVENTORY ]</div>
+  <div class="logo">Inventory</div>
+
+  <!-- Desktop: search in header -->
+  <div class="header-center desktop-only">
+    <input type="text" class="header-search" id="search-input" placeholder="search items…">
+  </div>
+
   <div class="header-right">
-    <div id="sync-indicator" style="display:flex;align-items:center;gap:5px;margin-right:8px;opacity:0.7;">
-      <div id="sync-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background 0.3s;"></div>
-      <span id="sync-label" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.06em;">local only</span>
+    <!-- Sync pill -->
+    <div class="sync-pill">
+      <div id="sync-dot"></div>
+      <span id="sync-label">—</span>
     </div>
-    <div class="undo-redo">
-      <button class="ur-btn" id="undo-btn" onclick="undo()" disabled title="Ctrl+Z">&#8617; Undo</button>
-      <button class="ur-btn" id="redo-btn" onclick="redo()" disabled title="Ctrl+Y">&#8618; Redo</button>
-    </div>
-    <div class="header-actions">
-      <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Manage Locations</button>
+
+    <!-- Desktop actions -->
+    <div class="desktop-only" style="display:flex;gap:4px;align-items:center;">
+      <div class="undo-redo">
+        <button class="ur-btn" id="undo-btn" onclick="undo()" disabled title="Ctrl+Z">↩</button>
+        <button class="ur-btn" id="redo-btn" onclick="redo()" disabled title="Ctrl+Y">↪</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">CSV</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export JSON</button>
-      <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import JSON<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
+      <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
     </div>
   </div>
 </header>
 
-<div class="app">
-  <sidebar>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Search</div>
-      <input type="text" class="search-box" id="search-input" placeholder="search...">
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">View</div>
+<!-- ══ DESKTOP LAYOUT ══ -->
+<div class="app" id="desktop-app">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="main-sidebar">
+    <div class="sb-section">
+      <div class="sb-label">View</div>
       <button class="filter-btn active" data-view="all" onclick="setView('all',this)">All Items <span class="count" id="cnt-all">0</span></button>
-      <button class="filter-btn" data-view="misplaced" onclick="setView('misplaced',this)" style="color:var(--accent2)">&gt; To Relocate <span class="count" id="cnt-mis">0</span></button>
-      <button class="filter-btn" data-view="purge" onclick="setView('purge',this)" style="color:var(--red)">x Purge Candidates <span class="count" id="cnt-purge">0</span></button>
-      <button class="filter-btn" data-view="nodigital" onclick="setView('nodigital',this)" style="color:var(--score-yellow)">o No Digital Copy <span class="count" id="cnt-nodigital">0</span></button>
+      <button class="filter-btn" data-view="misplaced" onclick="setView('misplaced',this)" style="color:var(--amber)">To Relocate <span class="count" id="cnt-mis">0</span></button>
+      <button class="filter-btn" data-view="purge" onclick="setView('purge',this)" style="color:var(--red)">Purge Candidates <span class="count" id="cnt-purge">0</span></button>
+      <button class="filter-btn" data-view="nodigital" onclick="setView('nodigital',this)" style="color:var(--steel)">No Digital Copy <span class="count" id="cnt-nodigital">0</span></button>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Score Band</div>
+
+    <div class="sb-section">
+      <div class="sb-label">Score</div>
       <button class="filter-btn active" data-score="all" onclick="setScoreFilter('all',this)">All <span class="count" id="cnt-score-all">0</span></button>
-      <button class="filter-btn" data-score="green" onclick="setScoreFilter('green',this)"><span style="color:var(--score-green)">+ Core (80-100)</span><span class="count" id="cnt-score-green">0</span></button>
-      <button class="filter-btn" data-score="yellow" onclick="setScoreFilter('yellow',this)"><span style="color:var(--score-yellow)">~ Situational (50-79)</span><span class="count" id="cnt-score-yellow">0</span></button>
-      <button class="filter-btn" data-score="orange" onclick="setScoreFilter('orange',this)"><span style="color:var(--score-orange)">- Low Value (20-49)</span><span class="count" id="cnt-score-orange">0</span></button>
-      <button class="filter-btn" data-score="red" onclick="setScoreFilter('red',this)"><span style="color:var(--score-red)">x Remove (0-19)</span><span class="count" id="cnt-score-red">0</span></button>
+      <button class="filter-btn" data-score="green" onclick="setScoreFilter('green',this)"><span style="color:var(--score-green)">Core 80+</span><span class="count" id="cnt-score-green">0</span></button>
+      <button class="filter-btn" data-score="yellow" onclick="setScoreFilter('yellow',this)"><span style="color:var(--score-yellow)">Situational 50+</span><span class="count" id="cnt-score-yellow">0</span></button>
+      <button class="filter-btn" data-score="orange" onclick="setScoreFilter('orange',this)"><span style="color:var(--score-orange)">Low 20+</span><span class="count" id="cnt-score-orange">0</span></button>
+      <button class="filter-btn" data-score="red" onclick="setScoreFilter('red',this)"><span style="color:var(--score-red)">Remove 0+</span><span class="count" id="cnt-score-red">0</span></button>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Category</div>
+
+    <div class="sb-section">
+      <div class="sb-label">Category</div>
       <button class="filter-btn active" data-cat="all" onclick="setCat('all',this)">All <span class="count" id="cnt-cat-all">0</span></button>
       <div id="cat-filters"></div>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Location Tree</div>
+
+    <div class="sb-section">
+      <div class="sb-label">Location</div>
       <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)">All <span class="count" id="cnt-loc-all">0</span></button>
       <div id="loc-tree"></div>
     </div>
-  </sidebar>
+  </div>
 
+  <!-- MAIN -->
   <main>
-    <!-- DASHBOARD -->
-    <div class="dashboard">
-      <div class="dash-header" onclick="toggleDash()">
-        <div class="dash-title"><div class="dash-title-dot"></div>Dashboard &amp; Scoring Reference</div>
-        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim)" id="dash-arrow">+</span>
+    <!-- STAT BAR -->
+    <div class="stat-bar">
+      <div class="stat-cell">
+        <div class="stat-label">Items</div>
+        <div class="stat-val rose" id="stat-total">—</div>
       </div>
-      <div class="dash-body open" id="dash-body">
+      <div class="stat-cell">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-val" id="stat-score">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Completeness</div>
+        <div class="stat-val" id="stat-complete">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Purge Value</div>
+        <div class="stat-val amber" id="stat-purge">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Misplaced</div>
+        <div class="stat-val" id="stat-misplaced">—</div>
+      </div>
+    </div>
+
+    <!-- Score dist thin bar -->
+    <div class="score-dist-wrap">
+      <div class="score-dist" id="score-dist-bar"></div>
+    </div>
+
+    <!-- COLLAPSIBLE PANELS -->
+    <!-- Dashboard / Scoring -->
+    <div class="panel">
+      <div class="panel-header" onclick="togglePanel('dash-body','dash-toggle')">
+        <div class="panel-title"><div class="panel-dot"></div>Dashboard &amp; Scoring</div>
+        <span class="panel-toggle" id="dash-toggle">+</span>
+      </div>
+      <div class="panel-body" id="dash-body">
         <div class="dash-grid" id="dash-cards"></div>
-        <div class="dash-section-title">Score Distribution</div>
-        <div class="score-dist" id="score-dist-bar"></div>
-        <div class="dash-section-title">Data Completeness</div>
+        <div class="dash-section-title" style="margin-top:6px">Completeness</div>
         <div class="completeness-row">
           <div class="completeness-bar"><div class="completeness-fill" id="completeness-fill"></div></div>
           <span class="completeness-label" id="completeness-label">0%</span>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);margin-left:6px" id="completeness-detail"></span>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-left:6px" id="completeness-detail"></span>
         </div>
         <div class="scoring-explainer">
-          <h4>How Scores Are Calculated (0-100)</h4>
+          <h4>Score Formula</h4>
           <div class="score-formula">
-            <div class="formula-item"><div class="formula-label">Criticality</div><div class="formula-weight">40%</div><div class="formula-vals">Essential=5 / Important=4<br>Nice to Have=2 / Redundant=1</div></div>
-            <div class="formula-item"><div class="formula-label">Replaceability</div><div class="formula-weight">35%</div><div class="formula-vals">Irreplaceable=5 / Hard=4<br>Moderate=3 / Easy/Cheap=1</div></div>
-            <div class="formula-item"><div class="formula-label">Frequency</div><div class="formula-weight">25%</div><div class="formula-vals">Daily=5 / Weekly=4<br>Monthly=3 / Rarely=2 / Never=1</div></div>
+            <div class="formula-item"><div class="formula-label">Criticality</div><div class="formula-weight">40%</div><div class="formula-vals">Essential=5 / Important=4<br>Nice=2 / Redundant=1</div></div>
+            <div class="formula-item"><div class="formula-label">Replaceability</div><div class="formula-weight">35%</div><div class="formula-vals">Irreplaceable=5 / Hard=4<br>Moderate=3 / Easy=1</div></div>
+            <div class="formula-item"><div class="formula-label">Frequency</div><div class="formula-weight">25%</div><div class="formula-vals">Daily=5 / Weekly=4<br>Monthly=3 / Rarely=2</div></div>
           </div>
-          <div class="formula-note">
-            Condition mult: New x1.0 / Good x0.95 / Fair x0.80 / Poor x0.60<br>
-            Last used: within 6mo +5 / 1-2yr -5 / 2+yr -10 / never -8<br>
-            Age: 10+yr non-essential -5 &nbsp;&nbsp; Keep=Sell/Donate/Trash: cap score at 20
-          </div>
+          <div class="formula-note">Condition: New×1.0 / Good×0.95 / Fair×0.80 / Poor×0.60 · Last used &lt;6mo +5 / 1-2yr -5 / 2+yr -10 · Keep=Purge caps at 20</div>
         </div>
       </div>
     </div>
 
-    <!-- IMPORT PANEL - full width, always open -->
-    <div class="panel" style="margin-bottom:9px;">
-      <div class="panel-header" onclick="togglePanel('photo-body','photo-arrow')">
-        <div class="panel-title"><div class="panel-dot"></div>Import — Outline / CSV / Photo / Voice</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim)">auto-detects format</span>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim)" id="photo-arrow">-</span>
-        </div>
+    <!-- Import Panel -->
+    <div class="panel">
+      <div class="panel-header" onclick="togglePanel('import-body','import-toggle')">
+        <div class="panel-title"><div class="panel-dot"></div>Import — Outline / CSV / Voice</div>
+        <span class="panel-toggle" id="import-toggle">+</span>
       </div>
-      <div class="panel-body open" id="photo-body" style="padding:12px;">
-        <textarea class="parse-textarea" id="parse-input" style="height:160px;" placeholder="OUTLINE FORMAT:
+      <div class="panel-body" id="import-body">
+        <textarea class="parse-textarea" id="parse-input" placeholder="OUTLINE FORMAT:
 For all, freq- monthly crit- nice to have repl- moderate keep- keep
 Location: Box #2301
   * NRA Course Handouts
-  * It's good to be a man - Book
 Location: Filing Cabinet
 Top Drawer
   * 2019 Passport
-Middle Drawer
-  2016 Passat
-    * Bill of sale, Jeremy McDonald, $8,500
 
 CSV FORMAT:
-- Batteries AAA, Organizer > Shelf 2, two, new, monthly, nice to have, easy cheap, keep, 2024
-- Watch G-Shock, Desk, one, good"></textarea>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-          <button class="btn btn-primary" onclick="parseInput()">Parse &rarr;</button>
-          <button class="btn btn-ghost" onclick="clearParse()">Clear</button>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);flex:1">Outline: Location: headers + * bullets + sub-group headers. CSV: Name, Path, Qty, Condition, Freq, Crit, Repl, Keep, Year.</span>
+- Batteries AAA, Organizer > Shelf 2, two, new, monthly, nice to have, easy cheap, keep, 2024"></textarea>
+        <div class="parse-actions">
+          <button class="btn btn-primary btn-sm" onclick="parseInput()">Parse →</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearParse()">Clear</button>
+          <span class="parse-hint">Outline: Location: headers + * bullets. CSV: Name, Path, Qty, Cond, Freq, Crit, Repl, Keep, Year.</span>
         </div>
         <div id="preview-items" class="preview-items"></div>
         <div id="preview-actions" style="display:none;margin-top:8px;gap:6px;align-items:center;">
-          <button class="btn btn-primary" onclick="confirmImport()">Add All to Inventory</button>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim)" id="preview-count"></span>
+          <button class="btn btn-primary btn-sm" onclick="confirmImport()">Add All to Inventory</button>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)" id="preview-count"></span>
         </div>
       </div>
     </div>
 
-    <!-- VOICE + GUIDE - collapsible, side by side -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;">
-      <div class="panel">
-        <div class="panel-header" onclick="togglePanel('voice-body','voice-arrow')">
-          <div class="panel-title"><div class="panel-dot"></div>Voice Dictation Guide</div>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim)" id="voice-arrow">+</span>
+    <!-- Voice + Guide side by side, both collapsed -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header" onclick="togglePanel('voice-body','voice-toggle')">
+          <div class="panel-title"><div class="panel-dot"></div>Voice Guide</div>
+          <span class="panel-toggle" id="voice-toggle">+</span>
         </div>
         <div class="panel-body" id="voice-body">
           <div class="voice-guide">
-            <div style="margin-bottom:7px">Say each item on one line, fields separated by commas:</div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:7px 9px;font-size:10px;line-height:2;margin-bottom:8px;">
-              <span style="color:var(--accent)">[type spec]</span>, <span style="color:var(--blue)">[location path]</span>, <span style="color:var(--text-mid)">[qty]</span>, <span style="color:var(--green)">[condition]</span>, <span style="color:#b464ff">[frequency]</span>, <span style="color:#ffc864">[criticality]</span>, <span style="color:#ff7850">[replaceability]</span>, <span style="color:#50ffa0">[keep]</span>, <span style="color:var(--text-dim)">[year]</span>
+            <div style="margin-bottom:8px;font-size:9px;color:var(--text-dim)">Each item on one line, fields separated by commas. Say "right angle bracket" for location levels.</div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px;font-size:10px;line-height:2;margin-bottom:8px;">
+              <span style="color:var(--rose)">[type spec]</span>, <span style="color:var(--steel)">[location path]</span>, <span style="color:var(--text-mid)">[qty]</span>, <span style="color:var(--green)">[condition]</span>, <span style="color:var(--text)">[freq, crit, repl, keep, year]</span>
             </div>
-            <div style="background:var(--bg);border:1px solid var(--accent);border-radius:3px;padding:7px 9px;font-size:11px;color:var(--text);margin-bottom:8px;line-height:1.8;">
-              "Batteries AAA, Organizer right angle bracket Shelf 2, two packs, new, monthly, nice to have, easy cheap, keep, 2024"
+            <div style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-size:9px;line-height:2;color:var(--text-dim)">
+              <div><b style="color:var(--text-mid)">FREQ</b>  daily / weekly / monthly / rarely / never</div>
+              <div><b style="color:var(--text-mid)">CRIT</b>  essential / important / nice to have / redundant</div>
+              <div><b style="color:var(--text-mid)">REPL</b>  irreplaceable / hard expensive / moderate / easy cheap</div>
+              <div><b style="color:var(--text-mid)">KEEP</b>  keep / maybe / sell / donate / trash</div>
             </div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.9;">
-              <div><span style="color:var(--blue);font-weight:600">LOCATION:</span> <span style="color:var(--text-dim)">Say "right angle bracket" between path levels</span></div>
-              <div><span style="color:var(--text-mid);font-weight:600">QTY:</span> <span style="color:var(--text-dim)">one / two / three / a pack / two packs / a pair / a few</span></div>
-              <div><span style="color:var(--green);font-weight:600">COND:</span> <span style="color:var(--text-dim)">new / good / fair / poor</span></div>
-              <div><span style="color:#b464ff;font-weight:600">FREQ:</span> <span style="color:var(--text-dim)">daily / weekly / monthly / rarely / never</span></div>
-              <div><span style="color:#ffc864;font-weight:600">CRIT:</span> <span style="color:var(--text-dim)">essential / important / nice to have / redundant</span></div>
-              <div><span style="color:#ff7850;font-weight:600">REPL:</span> <span style="color:var(--text-dim)">irreplaceable / hard expensive / moderate / easy cheap</span></div>
-              <div><span style="color:#50ffa0;font-weight:600">KEEP:</span> <span style="color:var(--text-dim)">keep / maybe / sell / donate / trash</span></div>
-              <div><span style="color:var(--accent);font-weight:600">NAME:</span> <span style="color:var(--text-dim)">type first then spec then brand</span></div>
-              <div><span style="color:var(--blue);font-weight:600">S/N:</span> <span style="color:var(--text-dim)">add "S/N" then number at end</span></div>
-            </div>
-            <div style="display:flex;gap:5px;margin-top:7px;">
+            <div style="display:flex;gap:5px;margin-top:8px;">
               <button class="btn btn-ghost btn-sm" onclick="copyCheatCard()">Copy Cheat Card</button>
-              <button class="btn btn-ghost btn-sm" onclick="copyVoiceTemplate()">Copy Template</button>
+              <button class="btn btn-ghost btn-sm" onclick="copyVoiceTemplate()">Template</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-header" onclick="togglePanel('guide-body','guide-arrow')">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header" onclick="togglePanel('guide-body','guide-toggle')">
           <div class="panel-title"><div class="panel-dot"></div>User Guide</div>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim)" id="guide-arrow">+</span>
+          <span class="panel-toggle" id="guide-toggle">+</span>
         </div>
         <div class="panel-body" id="guide-body">
           <div class="guide-grid">
             <div class="guide-section">
               <div class="guide-section-title">Location System</div>
-              <div class="guide-item"><div class="guide-item-label">Path hierarchy</div><div class="guide-item-desc">Locations are path arrays: ["Organizer","Shelf 2","Box A"]. No depth limit. Displayed as Organizer &gt; Shelf 2 &gt; Box A.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Sidebar tree</div><div class="guide-item-desc">Click expand arrow to open a node. Click name to filter. Counts include all descendants.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Manage Locations</div><div class="guide-item-desc">Header button: Rename, Move Under, Wrap in Parent. All item paths update automatically.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Path hierarchy</div><div class="guide-item-desc">Locations use > separator. No depth limit. Click tree to filter.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Manage Locations</div><div class="guide-item-desc">Header button: Rename, Move Under, Wrap in Parent. All paths update.</div></div>
             </div>
             <div class="guide-section">
               <div class="guide-section-title">Editing</div>
-              <div class="guide-item"><div class="guide-item-label">Click-to-edit</div><div class="guide-item-desc">Click any cell. Tab/Shift+Tab moves fields. Shortcut keys shown below open dropdowns.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Quick Score <span class="guide-tag">S</span></div><div class="guide-item-desc">Hover a row, click S. Live scoring panel. Fastest way to score.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Bulk ops</div><div class="guide-item-desc">Check rows → orange bar. Bulk-set location, category, doc type, digital copy, scoring fields.</div></div>
-            </div>
-            <div class="guide-section">
-              <div class="guide-section-title">Import</div>
-              <div class="guide-item"><div class="guide-item-label">Outline format</div><div class="guide-item-desc">Location: X sets path. Sub-headers nest. * bullets are items. "For all, freq- monthly..." sets block defaults.</div></div>
-              <div class="guide-item"><div class="guide-item-label">CSV format</div><div class="guide-item-desc">Name, Location &gt; Path, Qty, Condition, Freq, Crit, Repl, Keep, Year. Scoring auto-guessed if omitted.</div></div>
-            </div>
-            <div class="guide-section">
-              <div class="guide-section-title">Scoring</div>
-              <div class="guide-item"><div class="guide-item-label">Bands</div><div class="guide-item-desc"><span style="color:var(--score-green)">80+ Core</span> / <span style="color:var(--score-yellow)">50+ Situational</span> / <span style="color:var(--score-orange)">20+ Low</span> / <span style="color:var(--score-red)">0+ Remove</span></div></div>
-              <div class="guide-item"><div class="guide-item-label">Digital Copy</div><div class="guide-item-desc">Toggle [+] on documents. Sidebar "No Digital Copy" view shows what still needs scanning.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Undo / Redo</div><div class="guide-item-desc">Ctrl+Z / Ctrl+Y. 50-step history.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Click-to-edit</div><div class="guide-item-desc">Click any cell. Tab / Shift+Tab moves. Shortcut keys open dropdowns.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Bulk ops</div><div class="guide-item-desc">Check rows → bar appears. Set location, category, scoring fields in bulk.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Undo / Redo</div><div class="guide-item-desc">Ctrl+Z / Ctrl+Y. 50 steps.</div></div>
             </div>
           </div>
         </div>
@@ -547,22 +1151,22 @@ CSV FORMAT:
     <div class="bulk-bar" id="bulk-bar">
       <span class="bulk-bar-label" id="bulk-label">0 selected</span>
       <div class="bulk-fields">
-        <div class="bulk-group"><span class="bulk-field-label">Loc</span><input type="text" class="bulk-text-input" id="bulk-loc" placeholder="path or Org > Shelf 2"><button class="btn btn-orange btn-sm" onclick="bulkSetLoc()">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Cat</span><select class="bulk-select" id="bulk-cat"><option value="">--</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('category','bulk-cat','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Freq</span><select class="bulk-select" id="bulk-freq"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Rarely</option><option>Never</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('frequency','bulk-freq','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Crit</span><select class="bulk-select" id="bulk-crit"><option value="">--</option><option>Essential</option><option>Important</option><option>Nice to Have</option><option>Redundant</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('criticality','bulk-crit','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Repl</span><select class="bulk-select" id="bulk-repl"><option value="">--</option><option>Irreplaceable</option><option>Hard/Expensive</option><option>Moderate</option><option>Easy/Cheap</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('replaceability','bulk-repl','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Keep</span><select class="bulk-select" id="bulk-keep"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('keep','bulk-keep','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Cond</span><select class="bulk-select" id="bulk-cond"><option value="">--</option><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('condition','bulk-cond','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Year</span><input type="text" class="bulk-text-input" id="bulk-year" placeholder="2020" style="width:60px"><button class="btn btn-orange btn-sm" onclick="bulkSet('yearPurchased','bulk-year','text')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Fill Level</span><select class="bulk-select" id="bulk-filllevel"><option value="">--</option><option>Full</option><option>Most</option><option>Half</option><option>Low</option><option>Empty</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('fillLevel','bulk-filllevel','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Doc Type</span><select class="bulk-select" id="bulk-doctype"><option value="">--</option><option>Certificate</option><option>Title</option><option>Receipt</option><option>Permit</option><option>Application</option><option>ID</option><option>License</option><option>Insurance</option><option>Registration</option><option>Contract</option><option>Letter</option><option>Notes/Handouts</option><option>Financial</option><option>Book</option><option>Other</option></select><button class="btn btn-orange btn-sm" onclick="bulkSet('docType','bulk-doctype','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Digital</span><button class="btn btn-orange btn-sm" onclick="bulkSetDigital(true)">Has Copy</button><button class="btn btn-ghost btn-sm" onclick="bulkSetDigital(false)">No Copy</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Loc</span><input type="text" class="bulk-text-input" id="bulk-loc" placeholder="path or Org > Shelf"><button class="btn btn-rose btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSetLoc()">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Cat</span><select class="bulk-select" id="bulk-cat"><option value="">--</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('category','bulk-cat','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Freq</span><select class="bulk-select" id="bulk-freq"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Rarely</option><option>Never</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('frequency','bulk-freq','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Crit</span><select class="bulk-select" id="bulk-crit"><option value="">--</option><option>Essential</option><option>Important</option><option>Nice to Have</option><option>Redundant</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('criticality','bulk-crit','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Repl</span><select class="bulk-select" id="bulk-repl"><option value="">--</option><option>Irreplaceable</option><option>Hard/Expensive</option><option>Moderate</option><option>Easy/Cheap</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('replaceability','bulk-repl','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Keep</span><select class="bulk-select" id="bulk-keep"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('keep','bulk-keep','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Cond</span><select class="bulk-select" id="bulk-cond"><option value="">--</option><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('condition','bulk-cond','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Year</span><input type="text" class="bulk-text-input" id="bulk-year" placeholder="2020" style="width:54px"><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('yearPurchased','bulk-year','text')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Fill</span><select class="bulk-select" id="bulk-filllevel"><option value="">--</option><option>Full</option><option>Most</option><option>Half</option><option>Low</option><option>Empty</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('fillLevel','bulk-filllevel','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Doc</span><select class="bulk-select" id="bulk-doctype"><option value="">--</option><option>Certificate</option><option>Title</option><option>Receipt</option><option>Permit</option><option>Application</option><option>ID</option><option>License</option><option>Insurance</option><option>Registration</option><option>Contract</option><option>Letter</option><option>Notes/Handouts</option><option>Financial</option><option>Book</option><option>Other</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('docType','bulk-doctype','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Digital</span><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSetDigital(true)">Has Copy</button><button class="btn btn-ghost btn-xs" onclick="bulkSetDigital(false)">No Copy</button></div>
         <div class="bulk-group" style="margin-left:4px">
-          <button class="btn btn-ghost btn-sm" onclick="bulkSetMisplaced(true)">Flag</button>
-          <button class="btn btn-ghost btn-sm" onclick="bulkSetMisplaced(false)">Unflag</button>
-          <button class="btn btn-danger btn-sm" onclick="bulkDelete()">Del</button>
-          <button class="btn btn-ghost btn-sm" onclick="clearSelection()">x Clear</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(true)">Flag</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(false)">Unflag</button>
+          <button class="btn btn-danger btn-xs" onclick="bulkDelete()">Del</button>
+          <button class="btn btn-ghost btn-xs" onclick="clearSelection()">✕ Clear</button>
         </div>
       </div>
     </div>
@@ -574,9 +1178,9 @@ CSV FORMAT:
         <button class="view-tab" id="tab-relocate" onclick="switchTab('relocate')">Relocate<span class="relocate-badge" id="relocate-badge">0</span></button>
       </div>
       <div class="table-right">
-        <button class="btn btn-ghost btn-sm" onclick="addBlankRow()">+ Add Item</button>
-        <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">⚡ Quick Add</button>
-        <button class="btn btn-ghost btn-sm" onclick="openDupeAdd()" id="dupe-add-btn" title="Duplicate selected item and edit">⧉ Dupe Add</button>
+        <button class="btn btn-ghost btn-sm" onclick="addBlankRow()">+ Row</button>
+        <button class="btn btn-primary btn-sm" onclick="openQuickAdd()">+ Quick Add</button>
+        <button class="btn btn-ghost btn-sm" onclick="openDupeAdd()" id="dupe-add-btn">⧉ Dupe</button>
         <div class="col-picker-wrap">
           <button class="col-picker-btn" onclick="toggleColPicker(event)">Columns ▾</button>
           <div class="col-picker-popover" id="col-picker-popover"></div>
@@ -590,7 +1194,7 @@ CSV FORMAT:
         <thead>
           <tr>
             <th class="check-col"><input type="checkbox" class="row-check" id="select-all" onchange="toggleSelectAll(this.checked)"></th>
-            <th class="sortable" data-key="name" data-col="name">Name / S/N</th>
+            <th class="sortable" data-key="name" data-col="name">Name</th>
             <th class="sortable" data-key="_loc" data-col="loc">Location</th>
             <th data-col="qty">Qty</th>
             <th class="sortable" data-key="category" data-col="category">Category</th>
@@ -598,7 +1202,7 @@ CSV FORMAT:
             <th class="sortable" data-key="criticality" data-col="criticality">Criticality</th>
             <th class="sortable" data-key="replaceability" data-col="replaceability">Replaceability</th>
             <th class="sortable" data-key="condition" data-col="condition">Condition</th>
-            <th class="sortable" data-key="keep" data-col="keep">Keep?</th>
+            <th class="sortable" data-key="keep" data-col="keep">Keep</th>
             <th class="sortable" data-key="yearPurchased" data-col="year">Year</th>
             <th class="sortable" data-key="lastUsed" data-col="lastused">Last Used</th>
             <th data-col="estvalue">Est. $</th>
@@ -607,7 +1211,7 @@ CSV FORMAT:
             <th style="text-align:center" class="sortable" data-key="fillLevel" data-col="fill">Fill</th>
             <th data-col="notes">Notes</th>
             <th class="sortable" data-key="_score" style="text-align:center" data-col="score">Score</th>
-            <th style="text-align:center" data-col="misplaced">Misplaced</th>
+            <th style="text-align:center" data-col="misplaced">⚑</th>
             <th data-col="actions"></th>
           </tr>
         </thead>
@@ -617,29 +1221,90 @@ CSV FORMAT:
   </main>
 </div>
 
-<!-- QUICK SCORE -->
+<!-- ══ MOBILE LAYOUT ══ -->
+<div id="mobile-app" style="display:none;">
+  <!-- Page: Browse -->
+  <div class="mobile-page active" id="mob-page-browse">
+    <input type="text" class="mob-search" id="mob-search-input" placeholder="search…" oninput="renderMobile()">
+    <div id="mob-filter-row" style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-xs mob-active-filter" style="border-color:var(--rose);color:var(--rose)" onclick="mobSetView('all',this)">All</button>
+      <button class="btn btn-ghost btn-xs" onclick="mobSetView('misplaced',this)">Relocate</button>
+      <button class="btn btn-ghost btn-xs" onclick="mobSetView('purge',this)">Purge</button>
+    </div>
+    <div id="mob-item-list"></div>
+  </div>
+
+  <!-- Page: Stats -->
+  <div class="mobile-page" id="mob-page-stats">
+    <div class="stat-bar" style="flex-direction:column;gap:0;margin-bottom:12px;">
+      <div class="stat-cell" style="border-right:none;border-bottom:1px solid var(--border)">
+        <div class="stat-label">Total Items</div>
+        <div class="stat-val rose" id="mob-stat-total">—</div>
+      </div>
+      <div class="stat-cell" style="border-right:none;border-bottom:1px solid var(--border)">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-val" id="mob-stat-score">—</div>
+      </div>
+      <div class="stat-cell" style="border-right:none;border-bottom:1px solid var(--border)">
+        <div class="stat-label">Completeness</div>
+        <div class="stat-val" id="mob-stat-complete">—</div>
+      </div>
+      <div class="stat-cell" style="border-right:none">
+        <div class="stat-label">Purge Value</div>
+        <div class="stat-val amber" id="mob-stat-purge">—</div>
+      </div>
+    </div>
+    <div class="score-dist" id="mob-score-dist" style="height:6px;margin-bottom:16px;border-radius:3px;"></div>
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-align:center;padding:20px">Open desktop for full dashboard</div>
+  </div>
+
+  <!-- Page: Locations -->
+  <div class="mobile-page" id="mob-page-locs">
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-bottom:10px;letter-spacing:0.1em;text-transform:uppercase;">Filter by location</div>
+    <button class="filter-btn active" id="mob-loc-all" onclick="mobSetLoc(null,this)">All locations <span class="count" id="mob-cnt-all">0</span></button>
+    <div id="mob-loc-tree"></div>
+  </div>
+
+  <!-- Mobile tab bar -->
+  <div class="mobile-tabbar">
+    <button class="mob-tab active" id="mob-tab-browse" onclick="mobSwitchTab('browse',this)">
+      <span class="mob-tab-icon">≡</span>Browse
+    </button>
+    <button class="mob-tab" id="mob-tab-locs" onclick="mobSwitchTab('locs',this)">
+      <span class="mob-tab-icon">◎</span>Locations
+    </button>
+    <button class="mob-tab" id="mob-tab-stats" onclick="mobSwitchTab('stats',this)">
+      <span class="mob-tab-icon">◈</span>Stats
+    </button>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" onclick="openQuickAdd()">+</button>
+</div>
+
+<!-- ══ QUICK SCORE ══ -->
 <div class="qs-overlay" id="qs-overlay" onclick="closeQS(event)">
   <div class="qs-popover" id="qs-popover">
-    <div class="qs-title">/ Quick Score</div>
+    <div class="qs-title">Quick Score</div>
     <div class="qs-score-preview" id="qs-preview">--</div>
     <div class="qs-field"><div class="qs-label">Frequency</div><select class="qs-select" id="qs-freq" onchange="updateQSPreview()"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Rarely</option><option>Never</option></select></div>
     <div class="qs-field"><div class="qs-label">Criticality</div><select class="qs-select" id="qs-crit" onchange="updateQSPreview()"><option value="">--</option><option>Essential</option><option>Important</option><option>Nice to Have</option><option>Redundant</option></select></div>
     <div class="qs-field"><div class="qs-label">Replaceability</div><select class="qs-select" id="qs-repl" onchange="updateQSPreview()"><option value="">--</option><option>Irreplaceable</option><option>Hard/Expensive</option><option>Moderate</option><option>Easy/Cheap</option></select></div>
     <div class="qs-field"><div class="qs-label">Condition</div><select class="qs-select" id="qs-cond" onchange="updateQSPreview()"><option value="">--</option><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select></div>
-    <div class="qs-field"><div class="qs-label">Keep Decision</div><select class="qs-select" id="qs-keep" onchange="updateQSPreview()"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select></div>
-    <div class="qs-actions"><button class="btn btn-primary" style="flex:1" onclick="saveQS()">Save</button><button class="btn btn-ghost" onclick="closeQS()">Cancel</button></div>
+    <div class="qs-field"><div class="qs-label">Keep</div><select class="qs-select" id="qs-keep" onchange="updateQSPreview()"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select></div>
+    <div class="qs-actions"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveQS()">Save</button><button class="btn btn-ghost btn-sm" onclick="closeQS()">Cancel</button></div>
   </div>
 </div>
 
-<!-- QUICK ADD MODAL -->
+<!-- ══ QUICK ADD ══ -->
 <div class="qa-overlay" id="qa-overlay" onclick="qaOverlayClick(event)">
   <div class="qa-modal">
-    <div class="qa-title">⚡ Quick Add</div>
+    <div class="qa-title">Quick Add</div>
     <div class="qa-loc" id="qa-loc-display"><span>Location:</span> —</div>
     <div class="qa-row">
       <div class="qa-field qa-suggest-wrap" style="flex:2">
         <div class="qa-label">Name</div>
-        <input class="qa-input" id="qa-name" type="text" placeholder="Start typing..." autocomplete="off" oninput="qaNameInput()" onkeydown="qaNameKey(event)">
+        <input class="qa-input" id="qa-name" type="text" placeholder="Start typing…" autocomplete="off" oninput="qaNameInput()" onkeydown="qaNameKey(event)">
         <div class="qa-suggest" id="qa-suggest" style="display:none"></div>
       </div>
       <div class="qa-field" style="flex:0 0 60px">
@@ -661,19 +1326,43 @@ CSV FORMAT:
         <select class="qa-input" id="qa-keep"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select>
       </div>
     </div>
+
+    <!-- Claude Suggest -->
+    <div class="claude-suggest-wrap">
+      <button class="claude-suggest-btn" id="claude-suggest-btn" onclick="claudeSuggest()">
+        <span class="sparkle">✦</span>
+        <span id="claude-suggest-label">Suggest fields with AI</span>
+      </button>
+      <div class="claude-suggest-result" id="claude-suggest-result">
+        <div class="suggest-field" id="suggest-category-wrap" style="display:none">
+          <div class="suggest-field-label">Category</div>
+          <div id="suggest-category-chips"></div>
+        </div>
+        <div class="suggest-field" id="suggest-scoring-wrap" style="display:none">
+          <div class="suggest-field-label">Scoring Suggestions</div>
+          <div id="suggest-scoring-chips"></div>
+        </div>
+        <div class="suggest-field" id="suggest-tags-wrap" style="display:none">
+          <div class="suggest-field-label">Notes / Tags</div>
+          <div id="suggest-tags-chips"></div>
+        </div>
+        <div class="suggest-reasoning" id="suggest-reasoning"></div>
+      </div>
+    </div>
+
     <div class="qa-added" id="qa-added"></div>
     <div class="qa-actions">
       <button class="btn btn-primary btn-sm" onclick="qaSubmit(false)">Add + Close</button>
-      <button class="btn btn-orange btn-sm" onclick="qaSubmit(true)">Add + Another</button>
+      <button class="btn btn-steel btn-sm" onclick="qaSubmit(true)">Add + Another</button>
       <button class="btn btn-ghost btn-sm" onclick="closeQuickAdd()" style="margin-left:auto">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- DUPE ADD MODAL -->
+<!-- ══ DUPE ADD ══ -->
 <div class="qa-overlay" id="dupe-overlay" onclick="dupeOverlayClick(event)">
   <div class="qa-modal" style="width:420px">
-    <div class="qa-title">⧉ Dupe Add</div>
+    <div class="qa-title">Dupe Add</div>
     <div class="qa-loc" id="dupe-source-display"><span>Copying:</span> —</div>
     <div class="qa-row">
       <div class="qa-field qa-suggest-wrap" style="flex:2">
@@ -709,20 +1398,23 @@ CSV FORMAT:
     <div class="qa-added" id="dupe-added"></div>
     <div class="qa-actions">
       <button class="btn btn-primary btn-sm" onclick="dupeSubmit(false)">Add + Close</button>
-      <button class="btn btn-orange btn-sm" onclick="dupeSubmit(true)">Add + Another</button>
+      <button class="btn btn-steel btn-sm" onclick="dupeSubmit(true)">Add + Another</button>
       <button class="btn btn-ghost btn-sm" onclick="closeDupeAdd()" style="margin-left:auto">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- LOCATION MANAGER MODAL -->
+<!-- ══ LOCATION MANAGER ══ -->
 <div class="modal-overlay" id="locmgr-overlay">
   <div class="modal modal-sm">
-    <div class="modal-header"><div class="modal-title">Manage Locations</div><button class="modal-close" onclick="closeLocMgr()">x</button></div>
+    <div class="modal-header">
+      <div class="modal-title">Manage Locations</div>
+      <button class="modal-close" onclick="closeLocMgr()">✕</button>
+    </div>
     <div class="modal-body" id="locmgr-body" style="min-height:300px"></div>
     <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
       <div style="display:flex;gap:5px;align-items:center;width:100%">
-        <input type="text" id="new-loc-input" class="cell-editor" placeholder="New top-level location..." style="flex:1">
+        <input type="text" id="new-loc-input" class="cell-editor" placeholder="New top-level location…" style="flex:1">
         <button class="btn btn-primary btn-sm" onclick="addTopLevelLoc()">+ Add</button>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="closeLocMgr()">Done</button>
@@ -733,11 +1425,283 @@ CSV FORMAT:
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── RESPONSIVE LAYOUT SWITCH ────────────────────────────────────────────────
+function applyLayout(){
+  const mob=window.innerWidth<=768;
+  document.getElementById('desktop-app').style.display=mob?'none':'grid';
+  document.getElementById('mobile-app').style.display=mob?'block':'none';
+}
+applyLayout();
+window.addEventListener('resize',applyLayout);
+
+// ─── MOBILE UI HELPERS ───────────────────────────────────────────────────────
+let mobCurrentView='all', mobLocFilter=null;
+
+function mobSwitchTab(tab,btn){
+  document.querySelectorAll('.mob-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.mobile-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('mob-page-'+tab).classList.add('active');
+}
+
+function mobSetView(v,btn){
+  mobCurrentView=v;
+  document.querySelectorAll('#mob-filter-row .btn').forEach(b=>{
+    b.style.borderColor='';b.style.color='';b.classList.remove('mob-active-filter');
+  });
+  btn.style.borderColor='var(--rose)';btn.style.color='var(--rose)';
+  renderMobile();
+}
+
+function mobSetLoc(path,btn){
+  mobLocFilter=path;
+  document.querySelectorAll('#mob-loc-tree .filter-btn, #mob-loc-all').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMobile();
+}
+
+function renderMobile(){
+  if(window.innerWidth>768)return;
+  const q=(document.getElementById('mob-search-input')||{value:''}).value.toLowerCase();
+  let items=[...inventory];
+  if(mobCurrentView==='misplaced')items=items.filter(i=>i.misplaced);
+  else if(mobCurrentView==='purge')items=items.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
+  if(mobLocFilter)items=items.filter(i=>pathStartsWith(i.locationPath||[],mobLocFilter));
+  if(q)items=items.filter(i=>i.name.toLowerCase().includes(q)||pathToString(i.locationPath||[]).toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q));
+
+  const list=document.getElementById('mob-item-list');
+  if(!list)return;
+  if(!items.length){list.innerHTML='<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);padding:20px;text-align:center">No items match</div>';return;}
+
+  list.innerHTML=items.map(item=>{
+    const score=calcScore(item);
+    const sc=scoreColor(score);
+    const loc=pathToString(item.locationPath||[])||'—';
+    const keepColor=KEEP_COLORS[item.keep]||{color:'var(--text-dim)'};
+    return`<div class="mob-item-card">
+      <div class="mob-item-name">${esc(item.name)}</div>
+      <div class="mob-item-loc">${esc(loc)}</div>
+      <div class="mob-item-pills">
+        ${item.category?`<span class="mob-pill">${esc(item.category)}</span>`:''}
+        ${item.condition?`<span class="mob-pill" style="color:${COND_COLORS[item.condition]||'#888'}">${item.condition}</span>`:''}
+        ${item.keep?`<span class="mob-pill" style="color:${keepColor.color};border-color:${keepColor.color}40">${item.keep}</span>`:''}
+        <span class="mob-pill" style="color:${sc};border-color:${sc}40;margin-left:auto">${score}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Mobile stat updates
+  updateMobileStats();
+  renderMobileLocTree();
+}
+
+function updateMobileStats(){
+  const total=inventory.length;if(!total)return;
+  const scores=inventory.map(calcScore);
+  const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+  const purge=inventory.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
+  const purgeVal=purge.reduce((s,i)=>s+(parseFloat(i.estValue)||0),0);
+  const avgComp=Math.round(inventory.map(i=>completenessOf(i)/5*100).reduce((a,b)=>a+b,0)/total);
+  const el=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
+  el('mob-stat-total',total);el('mob-stat-score',avg);
+  el('mob-stat-complete',avgComp+'%');el('mob-stat-purge',purgeVal?'$'+purgeVal.toLocaleString():'--');
+  const cnt=document.getElementById('mob-cnt-all');if(cnt)cnt.textContent=total;
+
+  // score dist
+  const dist=document.getElementById('mob-score-dist');
+  if(dist){
+    const bands={green:0,yellow:0,orange:0,red:0};
+    scores.forEach(s=>{bands[scoreBand(s)]++;});
+    dist.innerHTML='';
+    [{key:'green',color:'var(--score-green)'},{key:'yellow',color:'var(--score-yellow)'},{key:'orange',color:'var(--score-orange)'},{key:'red',color:'var(--score-red)'}].forEach(({key,color})=>{
+      const pct=Math.round(bands[key]/total*100);if(!pct)return;
+      const seg=document.createElement('div');seg.className='score-dist-seg';
+      seg.style.cssText=`width:${pct}%;background:${color};`;dist.appendChild(seg);
+    });
+  }
+}
+
+function renderMobileLocTree(){
+  const tree=buildLocTree();
+  const el=document.getElementById('mob-loc-tree');if(!el)return;
+  el.innerHTML='';
+  function renderNode(children,parentPath,container){
+    Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
+      const path=[...parentPath,name];
+      const btn=document.createElement('button');
+      btn.className='filter-btn';btn.style.paddingLeft=(parentPath.length*10+8)+'px';
+      btn.innerHTML=`${esc(name)} <span class="count">${node.total}</span>`;
+      btn.onclick=()=>{mobSetLoc(path,btn);};
+      container.appendChild(btn);
+      if(Object.keys(node.children).length)renderNode(node.children,path,container);
+    });
+  }
+  renderNode(tree.children,[],el);
+}
+
+// ─── CLAUDE SUGGEST ──────────────────────────────────────────────────────────
+const CLAUDE_API_KEY = ''; // Leave blank — handled via Anthropic proxy in claude.ai artifacts
+
+async function claudeSuggest(){
+  const name=document.getElementById('qa-name').value.trim();
+  if(!name){toast('Enter an item name first');return;}
+
+  const btn=document.getElementById('claude-suggest-btn');
+  const lbl=document.getElementById('claude-suggest-label');
+  btn.classList.add('loading');
+  lbl.textContent='Thinking…';
+
+  // Build context from existing inventory (category distribution, existing locations)
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  const prompt=`You are helping categorize and score an item in a personal inventory system.
+
+Item name: "${name}"
+User's top categories: ${topCats}
+Available categories: Electronics, Cables & Charging, Camera/Photo Gear, Military, Firearms & Ammo, Clothing, Footwear, Accessories, Tools & Hardware, Office Supplies, Bags & Carry, Personal Care & Grooming, Health & Supplements, Cleaning & Home, Furniture, Identity Documents, Legal Documents, Vehicle Documents, Military Documents, Financial Documents, Books & Notebooks, Gym & Fitness, Automotive, Misc
+
+Respond ONLY with a JSON object, no markdown, no explanation outside the JSON:
+{
+  "category": "most likely category from the list above",
+  "frequency": "Daily|Weekly|Monthly|Rarely|Never",
+  "criticality": "Essential|Important|Nice to Have|Redundant",
+  "replaceability": "Irreplaceable|Hard/Expensive|Moderate|Easy/Cheap",
+  "keep": "Keep|Maybe|Donate|Trash",
+  "notes": "one short suggested note or tag if relevant, else empty string",
+  "reasoning": "one sentence explaining your category and scoring choices"
+}`;
+
+  if(!SUPABASE_ENABLED){toast('Supabase required for AI suggest');btn.classList.remove('loading');lbl.textContent='✦ Suggest fields with AI';return;}
+
+  try{
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+      method:'POST',
+      headers:{
+        'Authorization':`Bearer ${SUPABASE_KEY}`,
+        'Content-Type':'application/json',
+      },
+      body:JSON.stringify({name, topCats}),
+    });
+    if(!res.ok){
+      const errText=await res.text();
+      if(res.status===404){
+        toast('AI suggest not deployed yet — see README');
+        lbl.textContent='✦ Suggest fields with AI';
+        btn.classList.remove('loading');
+        return;
+      }
+      throw new Error(errText);
+    }
+    const parsed=await res.json();
+    showSuggestions(parsed);
+  }catch(e){
+    console.error('Claude suggest error:',e);
+    toast('AI suggest unavailable — fill manually');
+    lbl.textContent='✦ Suggest fields with AI';
+    btn.classList.remove('loading');
+  }
+}
+
+function showSuggestions(s){
+  const btn=document.getElementById('claude-suggest-btn');
+  const lbl=document.getElementById('claude-suggest-label');
+  btn.classList.remove('loading');
+  lbl.textContent='✦ Suggested — click chips to apply';
+
+  const result=document.getElementById('claude-suggest-result');
+  result.classList.add('visible');
+
+  // Category chip
+  const catWrap=document.getElementById('suggest-category-wrap');
+  const catChips=document.getElementById('suggest-category-chips');
+  if(s.category){
+    catWrap.style.display='block';
+    catChips.innerHTML=`<span class="suggest-chip" onclick="applySuggest('category','${esc(s.category)}',this)">${esc(s.category)}</span>`;
+  }
+
+  // Scoring chips
+  const scoringWrap=document.getElementById('suggest-scoring-wrap');
+  const scoringChips=document.getElementById('suggest-scoring-chips');
+  const scoring=[];
+  if(s.frequency)scoring.push({label:`Freq: ${s.frequency}`,field:'frequency',val:s.frequency});
+  if(s.criticality)scoring.push({label:`Crit: ${s.criticality}`,field:'criticality',val:s.criticality});
+  if(s.replaceability)scoring.push({label:`Repl: ${s.replaceability}`,field:'replaceability',val:s.replaceability});
+  if(s.keep)scoring.push({label:`Keep: ${s.keep}`,field:'keep',val:s.keep});
+  if(scoring.length){
+    scoringWrap.style.display='block';
+    scoringChips.innerHTML=scoring.map(({label,field,val})=>
+      `<span class="suggest-chip" onclick="applySuggest('${field}','${val}',this)">${label}</span>`
+    ).join('');
+    // One-click "Apply All Scoring"
+    scoringChips.innerHTML+=`<span class="suggest-chip" style="margin-left:4px;opacity:0.7" onclick="applyAllScoring(${JSON.stringify(scoring).replace(/"/g,'&quot;')},this)">Apply All</span>`;
+  }
+
+  // Notes chip
+  const tagsWrap=document.getElementById('suggest-tags-wrap');
+  const tagsChips=document.getElementById('suggest-tags-chips');
+  if(s.notes&&s.notes.trim()){
+    tagsWrap.style.display='block';
+    tagsChips.innerHTML=`<span class="suggest-chip" onclick="applySuggestNotes('${esc(s.notes)}',this)">${esc(s.notes)}</span>`;
+  }else{
+    tagsWrap.style.display='none';
+  }
+
+  document.getElementById('suggest-reasoning').textContent=s.reasoning||'';
+}
+
+function applySuggest(field,val,chip){
+  if(field==='category'){
+    const sel=document.getElementById('qa-category');
+    if(sel){sel.value=val;chip.classList.add('applied');}
+  } else {
+    // For scoring fields, store in a pending map applied at qaSubmit
+    if(!window._claudeSuggestPending)window._claudeSuggestPending={};
+    window._claudeSuggestPending[field]=val;
+    chip.classList.add('applied');
+    toast(`${field}: ${val} will be applied on add`);
+  }
+}
+
+function applyAllScoring(scoring,chip){
+  if(!window._claudeSuggestPending)window._claudeSuggestPending={};
+  scoring.forEach(({field,val})=>{
+    window._claudeSuggestPending[field]=val;
+  });
+  document.querySelectorAll('.suggest-chip').forEach(c=>c.classList.add('applied'));
+  toast('All scoring suggestions applied');
+}
+
+function applySuggestNotes(notes,chip){
+  if(!window._claudeSuggestPending)window._claudeSuggestPending={};
+  window._claudeSuggestPending.notes=notes;
+  chip.classList.add('applied');
+  toast('Note will be applied on add');
+}
+
+function resetClaudeSuggest(){
+  window._claudeSuggestPending={};
+  const result=document.getElementById('claude-suggest-result');
+  if(result)result.classList.remove('visible');
+  const lbl=document.getElementById('claude-suggest-label');
+  if(lbl)lbl.textContent='Suggest fields with AI';
+  const btn=document.getElementById('claude-suggest-btn');
+  if(btn)btn.classList.remove('loading');
+  ['suggest-category-wrap','suggest-scoring-wrap','suggest-tags-wrap'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  document.getElementById('suggest-reasoning').textContent='';
+}
+
+</script>
+<!-- FULL JS BLOCK FROM V2 (Supabase + all inventory logic) injected below -->
+<script>
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 // Fill these in after creating your Supabase project.
 // Settings → API → Project URL and anon/public key.
-const SUPABASE_URL = 'https://npdtjxjhepaqhrqtvueu.supabase.co';       // e.g. 'https://xyzxyz.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';       // your anon/public key
+const SUPABASE_URL = '';       // e.g. 'https://xyzxyz.supabase.co'
+const SUPABASE_KEY = '';       // your anon/public key
 const SUPABASE_TABLE = 'inventory';
 
 // If both values are filled, the app uses Supabase. Otherwise it falls back to
@@ -1098,13 +2062,16 @@ function buildLocTree(){
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
-function render(){updateDashboard();renderLocTree();updateSidebarFilters();renderTable();updateBulkBar();applyColPrefs();}
+function render(){updateDashboard();renderLocTree();updateSidebarFilters();renderTable();updateBulkBar();applyColPrefs();if(window.innerWidth<=768)renderMobile();}
 
 function toggleDash(){const b=document.getElementById('dash-body'),a=document.getElementById('dash-arrow');b.classList.toggle('open');a.textContent=b.classList.contains('open')?'-':'+';}
 function togglePanel(bid,aid){const b=document.getElementById(bid),a=document.getElementById(aid);b.classList.toggle('open');a.textContent=b.classList.contains('open')?'-':'+';}
 
 function updateDashboard(){
-  const total=inventory.length; if(!total){document.getElementById('dash-cards').innerHTML='';document.getElementById('score-dist-bar').innerHTML='';return;}
+  const total=inventory.length;
+  const dc=document.getElementById('dash-cards');
+  const sdb=document.getElementById('score-dist-bar');
+  if(!total){if(dc)dc.innerHTML='';if(sdb)sdb.innerHTML='';updateStatBar(0,0,0,0,0,0);return;}
   const scores=inventory.map(calcScore);
   const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
   const purge=inventory.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
@@ -1112,7 +2079,10 @@ function updateDashboard(){
   const mis=inventory.filter(i=>i.misplaced).length;
   const avgComp=Math.round(inventory.map(i=>completenessOf(i)/5*100).reduce((a,b)=>a+b,0)/total);
 
-  document.getElementById('dash-cards').innerHTML=[
+  // Update top stat bar
+  updateStatBar(total,avg,avgComp,purgeVal,mis,purge.length);
+
+  if(dc)dc.innerHTML=[
     {label:'Total Items',val:total,sub:'in inventory',cls:'accent'},
     {label:'Avg Score',val:avg,sub:'out of 100',cls:avg>=80?'green':avg>=50?'':'orange'},
     {label:'Value at Risk',val:purgeVal?'$'+purgeVal.toLocaleString():'--',sub:`${purge.length} purge items`,cls:'orange'},
@@ -1121,16 +2091,36 @@ function updateDashboard(){
 
   const bands={green:0,yellow:0,orange:0,red:0};
   scores.forEach(s=>{bands[scoreBand(s)]++;});
-  const distBar=document.getElementById('score-dist-bar'); distBar.innerHTML='';
-  [{key:'green',color:'var(--score-green)',label:'Core'},{key:'yellow',color:'var(--score-yellow)',label:'Sit.'},{key:'orange',color:'var(--score-orange)',label:'Low'},{key:'red',color:'var(--score-red)',label:'Rem.'}].forEach(({key,color,label})=>{
-    const pct=Math.round(bands[key]/total*100); if(!pct)return;
-    const seg=document.createElement('div');seg.className='score-dist-seg';seg.style.cssText=`width:${pct}%;background:${color};`;seg.title=`${label}: ${bands[key]} (${pct}%)`;seg.textContent=pct>8?`${bands[key]}`:'';distBar.appendChild(seg);
+
+  // Update both desktop and mobile score dist bars
+  ['score-dist-bar','mob-score-dist'].forEach(barId=>{
+    const distBar=document.getElementById(barId);if(!distBar)return;
+    distBar.innerHTML='';
+    [{key:'green',color:'var(--score-green)'},{key:'yellow',color:'var(--score-yellow)'},{key:'orange',color:'var(--score-orange)'},{key:'red',color:'var(--score-red)'}].forEach(({key,color})=>{
+      const pct=Math.round(bands[key]/total*100);if(!pct)return;
+      const seg=document.createElement('div');seg.className='score-dist-seg';
+      seg.style.cssText=`width:${pct}%;background:${color};`;distBar.appendChild(seg);
+    });
   });
 
-  document.getElementById('completeness-fill').style.width=avgComp+'%';
-  document.getElementById('completeness-label').textContent=avgComp+'%';
+  const cf=document.getElementById('completeness-fill');const cl=document.getElementById('completeness-label');const cd=document.getElementById('completeness-detail');
+  if(cf)cf.style.width=avgComp+'%';if(cl)cl.textContent=avgComp+'%';
   const incomplete=inventory.filter(i=>completenessOf(i)<5).length;
-  document.getElementById('completeness-detail').textContent=incomplete?`${incomplete} items missing scoring fields`:'All items fully scored';
+  if(cd)cd.textContent=incomplete?`${incomplete} items incomplete`:'All items scored';
+
+  // Mobile stats
+  updateMobileStats();
+}
+
+function updateStatBar(total,avg,avgComp,purgeVal,mis,purgeCount){
+  const el=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
+  el('stat-total',total||'—');
+  const scoreEl=document.getElementById('stat-score');
+  if(scoreEl){scoreEl.textContent=avg||'—';scoreEl.className='stat-val'+(avg>=80?' green':avg>=50?'':avg>0?' amber':'');}
+  el('stat-complete',avgComp?(avgComp+'%'):'—');
+  el('stat-purge',purgeVal?('$'+purgeVal.toLocaleString()):'—');
+  const misEl=document.getElementById('stat-misplaced');
+  if(misEl){misEl.textContent=mis||'0';misEl.className='stat-val'+(mis>0?' red':'');}
 }
 
 function updateSidebarFilters(){
@@ -1562,7 +2552,6 @@ function closeQS(e){if(!e||e.target===document.getElementById('qs-overlay')){doc
 let qaSuggestIndex=-1;
 
 function openQuickAdd(){
-  // Update location display from current tree selection
   const loc=locFilter?locFilter.join(' > '):'— (no location selected, click tree first)';
   document.getElementById('qa-loc-display').innerHTML='<span>Location:</span> '+loc;
   document.getElementById('qa-name').value='';
@@ -1572,6 +2561,7 @@ function openQuickAdd(){
   document.getElementById('qa-keep').value='Keep';
   document.getElementById('qa-added').textContent='';
   document.getElementById('qa-suggest').style.display='none';
+  resetClaudeSuggest();
   document.getElementById('qa-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('qa-name').focus(),60);
 }
@@ -1579,6 +2569,7 @@ function openQuickAdd(){
 function closeQuickAdd(){
   document.getElementById('qa-overlay').classList.remove('open');
   document.getElementById('qa-suggest').style.display='none';
+  resetClaudeSuggest();
 }
 
 function qaOverlayClick(e){if(e.target===document.getElementById('qa-overlay'))closeQuickAdd();}
@@ -1588,13 +2579,11 @@ function qaNameInput(){
   const box=document.getElementById('qa-suggest');
   qaSuggestIndex=-1;
   if(val.length<1){box.style.display='none';return;}
-  // Get unique names from inventory
   const names=[...new Set(inventory.map(i=>i.name).filter(Boolean))];
   const matches=names.filter(n=>n.toLowerCase().includes(val)).slice(0,10);
   if(!matches.length){box.style.display='none';return;}
   box.innerHTML=matches.map((n,i)=>`<div class="qa-suggest-item" data-idx="${i}" onmousedown="qaPick('${n.replace(/'/g,"\\'")}')">${n}</div>`).join('');
   box.style.display='block';
-  // Auto-fill category if exact match found
   const exact=inventory.find(i=>i.name.toLowerCase()===val);
   if(exact&&exact.category)document.getElementById('qa-category').value=exact.category;
 }
@@ -1612,7 +2601,6 @@ function qaNameKey(e){
 function qaPick(name){
   document.getElementById('qa-name').value=name;
   document.getElementById('qa-suggest').style.display='none';
-  // Auto-fill category from last matching item
   const match=inventory.find(i=>i.name===name);
   if(match&&match.category)document.getElementById('qa-category').value=match.category;
   if(match&&match.condition)document.getElementById('qa-condition').value=match.condition;
@@ -1622,15 +2610,20 @@ function qaSubmit(keepOpen){
   const name=document.getElementById('qa-name').value.trim();
   if(!name){document.getElementById('qa-name').focus();return;}
   const locationPath=locFilter?[...locFilter]:[];
+  const pending=window._claudeSuggestPending||{};
   snapshot();
   const item={
     id:nextId++,name,
-    category:document.getElementById('qa-category').value||'Misc',
+    category:document.getElementById('qa-category').value||pending.category||'Misc',
     locationPath,
     qty:document.getElementById('qa-qty').value||'1',
     condition:document.getElementById('qa-condition').value,
-    keep:document.getElementById('qa-keep').value,
-    frequency:'',criticality:'',replaceability:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false
+    keep:document.getElementById('qa-keep').value||pending.keep||'',
+    frequency:pending.frequency||'',
+    criticality:pending.criticality||'',
+    replaceability:pending.replaceability||'',
+    notes:pending.notes||'',
+    estValue:'',yearPurchased:'',lastUsed:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false
   };
   inventory.push(item);save();render();
   const locLabel=locationPath.length?locationPath.join(' > '):'(no location)';
@@ -1639,6 +2632,7 @@ function qaSubmit(keepOpen){
     document.getElementById('qa-name').value='';
     document.getElementById('qa-qty').value='1';
     document.getElementById('qa-suggest').style.display='none';
+    resetClaudeSuggest();
     setTimeout(()=>document.getElementById('qa-name').focus(),30);
   } else {
     closeQuickAdd();
@@ -2711,6 +3705,7 @@ function skipMigration() {
 
 document.getElementById('search-input').addEventListener('input', () => renderTable());
 boot();
+
 </script>
 </body>
 </html>
