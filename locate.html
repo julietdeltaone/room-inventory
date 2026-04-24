@@ -222,7 +222,14 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
   flex-shrink:0;padding:0 6px;line-height:1;
   align-self:center;
 }
-</style>
+/* Keyword match indicator */
+.kw-match-row{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;}
+.kw-match-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);flex-shrink:0;}
+.kw-match-pill{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
+  background:rgba(176,122,132,0.08);border:1px solid rgba(176,122,132,0.2);
+  border-radius:2px;padding:1px 7px;letter-spacing:0.03em;
+}</style>
 </head>
 <body>
 <div class="shell">
@@ -373,13 +380,39 @@ function renderStage(){
   // Search mode
   if(searchQuery){
     const q=searchQuery.toLowerCase();
-    const results=inventory.filter(i=>
-      i.name.toLowerCase().includes(q)||
-      (i.notes||'').toLowerCase().includes(q)||
-      (i.category||'').toLowerCase().includes(q)||
-      pathToString(i.locationPath).toLowerCase().includes(q)
-    );
-    const cards=results.map(i=>searchCardHTML(i)).join('');
+
+    // Compute match type per item
+    const results=[];
+    inventory.forEach(i=>{
+      const nameMatch = i.name.toLowerCase().includes(q);
+      const catMatch  = (i.category||'').toLowerCase().includes(q);
+      const locMatch  = pathToString(i.locationPath).toLowerCase().includes(q);
+      const rawNote   = i.notes||'';
+      const kwIdx     = rawNote.toLowerCase().indexOf('| keywords:');
+      const kwText    = kwIdx!==-1 ? rawNote.slice(kwIdx+11) : '';
+      const baseNote  = kwIdx!==-1 ? rawNote.slice(0,kwIdx) : rawNote;
+      const kwMatch   = kwText.toLowerCase().includes(q);
+      const noteMatch = baseNote.toLowerCase().includes(q);
+
+      if(nameMatch||catMatch||locMatch||kwMatch||noteMatch){
+        // Find which keyword(s) matched for display
+        let matchedKw = null;
+        if(kwMatch && !nameMatch){
+          const kwList = kwText.split(',').map(s=>s.trim()).filter(Boolean);
+          matchedKw = kwList.filter(k=>k.toLowerCase().includes(q));
+        }
+        results.push({item:i, nameMatch, catMatch, locMatch, kwMatch, noteMatch, matchedKw});
+      }
+    });
+
+    // Sort: name matches first, then keyword, then others
+    results.sort((a,b)=>{
+      const scoreA = a.nameMatch?3:a.kwMatch?2:1;
+      const scoreB = b.nameMatch?3:b.kwMatch?2:1;
+      return scoreB-scoreA;
+    });
+
+    const cards=results.map(r=>searchCardHTML(r.item, q, r.nameMatch, r.matchedKw)).join('');
     stage.innerHTML=`<div class="search-view"><div class="search-inner">
       <div class="search-title">Search</div>
       <div class="search-meta">${results.length} result${results.length!==1?'s':''} · "${esc(searchQuery)}"</div>
@@ -501,10 +534,20 @@ function itemCardHTML(item){
 }
 
 // ── SEARCH RESULT CARD ────────────────────────────────────────────────────────
-function searchCardHTML(item){
+function searchCardHTML(item, q, nameMatch, matchedKw){
   const cs=catC(item.category);
   const{primary,secondary}=splitName(item.name);
   const path=item.locationPath||[];
+
+  // Highlight matched text in name
+  function highlight(text){
+    if(!q||!nameMatch) return esc(text);
+    const idx=text.toLowerCase().indexOf(q);
+    if(idx===-1) return esc(text);
+    return esc(text.slice(0,idx))
+      +`<mark style="background:rgba(176,122,132,0.35);color:var(--text);border-radius:2px;padding:0 1px">${esc(text.slice(idx,idx+q.length))}</mark>`
+      +esc(text.slice(idx+q.length));
+  }
 
   // Full-width location path with depth-colored segments
   const DEPTH_HUES=[200,160,45,280,20,320];
@@ -524,17 +567,34 @@ function searchCardHTML(item){
     locPath+='</div>';
   }
 
+  // Keyword match indicator
+  let kwIndicator='';
+  if(matchedKw&&matchedKw.length){
+    const pills=matchedKw.slice(0,4).map(k=>{
+      const idx=k.toLowerCase().indexOf(q);
+      let display=esc(k);
+      if(idx!==-1){
+        display=esc(k.slice(0,idx))
+          +`<b style="color:var(--text)">${esc(k.slice(idx,idx+q.length))}</b>`
+          +esc(k.slice(idx+q.length));
+      }
+      return`<span class="kw-match-pill">${display}</span>`;
+    }).join('');
+    kwIndicator=`<div class="kw-match-row"><span class="kw-match-label">keyword match</span>${pills}</div>`;
+  }
+
   const qty=item.qty&&item.qty!=='1'?`<span class="sr-qty">×${esc(item.qty)}</span>`:'';
 
   return`<div class="sr-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
     <div class="sr-row1">
       <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
-        <span class="sr-name-primary">${esc(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${esc(secondary)}</span>`:''}
+        <span class="sr-name-primary">${highlight(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${highlight(secondary)}</span>`:''}
       </div>
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text};flex-shrink:0;align-self:center">${esc(item.category)}</span>
       ${qty}
     </div>
     ${locPath}
+    ${kwIndicator}
   </div>`;
 }
 
