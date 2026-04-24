@@ -188,7 +188,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 /* Search result card */
 .sr-card{
   background:var(--s1);border:1px solid var(--border);border-left:3px solid transparent;
-  border-radius:3px;padding:10px 14px;margin-bottom:6px;cursor:default;
+  border-radius:3px;padding:12px 16px;margin-bottom:6px;cursor:default;
   transition:background 0.15s;animation:itemIn 0.28s cubic-bezier(0.16,1,0.3,1) both;
 }
 .sr-card:hover{background:var(--s2);}
@@ -203,16 +203,25 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .sr-qty{font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--text);letter-spacing:0.02em;white-space:nowrap;flex-shrink:0;}
 
 /* Row 2: badge + loc path inline */
-.sr-row2{display:flex;align-items:center;gap:8px;overflow:hidden;}
-.sr-loc-path{display:flex;align-items:center;gap:4px;overflow:hidden;flex:1;}
+.sr-row2{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.sr-loc-path{
+  display:flex;align-items:center;gap:0;flex:1;
+  background:rgba(0,0,0,0.2);border:1px solid var(--border);
+  border-radius:3px;padding:6px 12px;overflow:hidden;
+}
 .sr-loc-seg{
-  font-family:var(--font-ui);font-size:10px;font-weight:500;
+  font-family:var(--font-ui);font-size:12px;font-weight:400;
   color:var(--text-mid);cursor:pointer;white-space:nowrap;
   transition:color 0.15s;flex-shrink:1;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:0.01em;
 }
 .sr-loc-seg:hover{color:var(--rose);}
-.sr-loc-seg.leaf{color:var(--text);font-weight:600;flex-shrink:0;}
-.sr-loc-sep{font-size:9px;color:var(--text-dim);flex-shrink:0;}
+.sr-loc-seg.leaf{color:var(--text);font-weight:700;flex-shrink:0;}
+.sr-loc-sep{
+  font-size:14px;color:var(--border2);
+  flex-shrink:0;padding:0 6px;line-height:1;
+  align-self:center;
+}
 </style>
 </head>
 <body>
@@ -497,14 +506,19 @@ function searchCardHTML(item){
   const{primary,secondary}=splitName(item.name);
   const path=item.locationPath||[];
 
-  // Compact inline location path — each segment clickable
+  // Full-width location path with depth-colored segments
+  const DEPTH_HUES=[200,160,45,280,20,320];
   let locPath='';
   if(path.length){
     locPath='<div class="sr-loc-path">';
     path.forEach((seg,i)=>{
       const isLeaf=i===path.length-1;
       const pid=regPath(path.slice(0,i+1));
-      locPath+=`<span class="sr-loc-seg${isLeaf?' leaf':''}" onclick="nav('${pid}')">${esc(seg)}</span>`;
+      const hue=DEPTH_HUES[Math.min(i,DEPTH_HUES.length-1)];
+      const col=isLeaf?`hsla(${hue},65%,72%,1)`:`hsla(${hue},55%,60%,0.7)`;
+      const weight=isLeaf?'700':'400';
+      const size=isLeaf?'13px':'12px';
+      locPath+=`<span class="sr-loc-seg${isLeaf?' leaf':''}" onclick="nav('${pid}')" style="color:${col};font-weight:${weight};font-size:${size}">${esc(seg)}</span>`;
       if(!isLeaf)locPath+=`<span class="sr-loc-sep">›</span>`;
     });
     locPath+='</div>';
@@ -517,12 +531,10 @@ function searchCardHTML(item){
       <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
         <span class="sr-name-primary">${esc(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${esc(secondary)}</span>`:''}
       </div>
+      <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text};flex-shrink:0;align-self:center">${esc(item.category)}</span>
       ${qty}
     </div>
-    <div class="sr-row2">
-      <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text};flex-shrink:0">${esc(item.category)}</span>
-      ${locPath}
-    </div>
+    ${locPath}
   </div>`;
 }
 
