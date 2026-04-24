@@ -1088,6 +1088,7 @@ tbody tr:hover .row-actions { opacity: 1; }
         <button class="ur-btn" id="redo-btn" onclick="redo()" disabled title="Ctrl+Y">↪</button>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openBulkEnrich()">Enrich</button>
+      <button class="btn btn-ghost btn-sm" onclick="openKeywordsEnrich()">Keywords</button>
 <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">CSV</button>
       <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
@@ -3376,6 +3377,119 @@ function applyEnrichResults(){
   save();render();
   closeBulkEnrich();
   toast(`Enrich complete — ${applied} fields updated across ${_enrichResults.length} items`);
+}
+
+// ─── KEYWORDS ENRICH ─────────────────────────────────────────────────────────
+// Runs on ALL items, only updates the keywords portion of notes
+let _kwResults = [];
+
+function openKeywordsEnrich(){
+  _kwResults = [];
+  const modal = document.getElementById('enrich-modal');
+  const body = document.getElementById('enrich-body');
+  const countEl = document.getElementById('enrich-count');
+  const footer = document.getElementById('enrich-footer-btns');
+  if(modal) modal.classList.add('open');
+  if(footer) footer.style.display = 'none';
+
+  // Show which items already have keywords vs which need them
+  const withKw = inventory.filter(i => i.notes && i.notes.toLowerCase().includes('| keywords:'));
+  const withoutKw = inventory.filter(i => !i.notes || !i.notes.toLowerCase().includes('| keywords:'));
+
+  countEl.textContent = `${withoutKw.length} items need keywords · ${withKw.length} already have them`;
+  body.innerHTML = `<div style="padding:16px">
+    <div style="font-family:var(--font-sans);font-size:13px;color:var(--text);margin-bottom:8px">
+      This will generate search keywords for <b style="color:var(--rose)">${inventory.length} items</b>.
+    </div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:16px;line-height:1.8">
+      Items without keywords: <span style="color:var(--rose)">${withoutKw.length}</span><br>
+      Items with existing keywords (will refresh): <span style="color:var(--text-mid)">${withKw.length}</span><br>
+      Keywords are appended to notes as: <span style="color:var(--steel)">| keywords: term1, term2, ...</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm" onclick="runKeywordsEnrich()">✦ Generate Keywords for All</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeBulkEnrich()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+async function runKeywordsEnrich(){
+  const body = document.getElementById('enrich-body');
+  const footer = document.getElementById('enrich-footer-btns');
+  if(footer) footer.style.display = 'none';
+
+  const catCounts = {};
+  inventory.forEach(i => { catCounts[i.category] = (catCounts[i.category]||0)+1; });
+  const topCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  const total = inventory.length;
+  let done = 0, applied = 0;
+  _kwResults = [];
+
+  body.innerHTML = `<div style="padding:20px 16px">
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-bottom:10px" id="kw-progress-label">Starting…</div>
+    <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:16px">
+      <div id="kw-progress-bar" style="height:100%;background:var(--rose);width:0%;transition:width 0.3s;border-radius:2px"></div>
+    </div>
+    <div id="kw-log" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);line-height:2;max-height:300px;overflow-y:auto"></div>
+  </div>`;
+
+  const BATCH = 3;
+  for(let i = 0; i < inventory.length; i += BATCH){
+    const chunk = inventory.slice(i, i + BATCH);
+    const promises = chunk.map(async item => {
+      try{
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: item.name, topCats, category: item.category, enrichMode: true }),
+        });
+        if(!res.ok) throw new Error(await res.text());
+        const s = await res.json();
+        return { item, keywords: s.keywords };
+      } catch(e) {
+        return { item, error: e.message };
+      }
+    });
+
+    const results = await Promise.all(promises);
+    results.forEach(r => {
+      done++;
+      const pct = Math.round(done/total*100);
+      const bar = document.getElementById('kw-progress-bar');
+      const lbl = document.getElementById('kw-progress-label');
+      const log = document.getElementById('kw-log');
+      if(bar) bar.style.width = pct + '%';
+      if(lbl) lbl.textContent = `${done} / ${total} processed…`;
+      if(r.error){
+        if(log) log.innerHTML += `<div style="color:var(--red)">✗ ${esc(r.item.name)}</div>`;
+      } else if(r.keywords && r.keywords.trim()){
+        // Apply keywords immediately
+        const inv = inventory.find(x => x.id === r.item.id);
+        if(inv){
+          const kwTag = '| keywords:';
+          const base = (inv.notes||'').replace(/\s*\|\s*keywords:.*$/i,'').trim();
+          inv.notes = (base ? base + ' ' : '') + kwTag + ' ' + r.keywords.trim();
+          applied++;
+        }
+        if(log) log.innerHTML += `<div><span style="color:var(--green)">✓</span> ${esc(r.item.name)}</div>`;
+        if(log) log.scrollTop = log.scrollHeight;
+      }
+    });
+
+    // Small delay to avoid hammering the edge function
+    await new Promise(res => setTimeout(res, 150));
+  }
+
+  // Save all at once
+  snapshot();
+  save();
+  render();
+
+  body.innerHTML += `<div style="padding:12px 16px;font-family:var(--font-mono);font-size:10px;color:var(--green)">
+    ✓ Done — ${applied} items updated with keywords
+    <button class="btn btn-ghost btn-sm" style="margin-left:12px" onclick="closeBulkEnrich()">Close</button>
+  </div>`;
 }
 
 function addTopLevelLoc(){
