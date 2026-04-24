@@ -1141,14 +1141,15 @@ tbody tr:hover .row-actions { opacity: 1; }
         </div>
         <div class="info-divider"></div>
         <div class="info-cell">
-          <div class="info-label">Total Est. Value</div>
+          <div class="info-label">Est. Value</div>
           <div class="info-val" style="color:var(--green)" id="stat-totalval">—</div>
+          <div class="info-sub" id="stat-totalval-sub"></div>
         </div>
         <div class="info-divider"></div>
         <div class="info-cell">
-          <div class="info-label">Purge Value</div>
-          <div class="info-val" style="color:var(--amber)" id="stat-purge">—</div>
-          <div class="info-sub" id="stat-purge-count"></div>
+          <div class="info-label">If Sold (40–60%)</div>
+          <div class="info-val" style="color:var(--amber)" id="stat-sellrange">—</div>
+          <div class="info-sub">estimated resale range</div>
         </div>
       </div>
 
@@ -2240,18 +2241,31 @@ function togglePanel(bid,aid){const b=document.getElementById(bid),a=document.ge
 function updateDashboard(){
   const total=inventory.length;
   const sdb=document.getElementById('score-dist-bar');
-  if(!total){if(sdb)sdb.innerHTML='';updateStatBar(0,0,0,0,0,0,0,0);return;}
+  if(!total){if(sdb)sdb.innerHTML='';updateStatBar(0,0,0,0,0,0,0,0,0,0,0,0);return;}
   const scores=inventory.map(calcScore);
   const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
   const purge=inventory.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
   const purgeVal=purge.reduce((s,i)=>s+(parseFloat(i.estValue)||0),0);
   const totalVal=inventory.reduce((s,i)=>s+(parseFloat(i.estValue)||0),0);
+
+  // Intelligent sell range — per-item rate based on condition/category/replaceability
+  let sellLow = 0, sellHigh = 0, valuedCount = 0, pricedCount = 0;
+  inventory.forEach(i => {
+    const val = parseFloat(i.estValue) || 0;
+    if(!val) return;
+    pricedCount++;
+    const rate = calcSellRate(i);
+    if(rate === null) return; // unsellable category
+    valuedCount++;
+    sellLow  += val * Math.max(0.30, rate - 0.06);
+    sellHigh += val * Math.min(0.65, rate + 0.06);
+  });
   const mis=inventory.filter(i=>i.misplaced).length;
   const nodigital=inventory.filter(i=>!i.digitalCopy).length;
   const avgComp=Math.round(inventory.map(i=>completenessOf(i)/5*100).reduce((a,b)=>a+b,0)/total);
   const incomplete=inventory.filter(i=>completenessOf(i)<5).length;
 
-  updateStatBar(total,avg,avgComp,purgeVal,mis,purge.length,totalVal,nodigital,incomplete);
+  updateStatBar(total,avg,avgComp,purgeVal,mis,purge.length,totalVal,nodigital,incomplete,sellLow,sellHigh,pricedCount);
 
   const bands={green:0,yellow:0,orange:0,red:0};
   scores.forEach(s=>{bands[scoreBand(s)]++;});
@@ -2281,12 +2295,56 @@ function updateDashboard(){
   renderCharts();
 }
 
-function updateStatBar(total,avg,avgComp,purgeVal,mis,purgeCount,totalVal,nodigital,incomplete){
+function calcSellRate(item) {
+  // Base rate from condition
+  let rate = { 'New': 0.60, 'Good': 0.55, 'Fair': 0.48, 'Poor': 0.38 }[item.condition] || 0.50;
+
+  // Replaceability modifier — rare/hard to find holds value better
+  const replMod = { 'Irreplaceable': +0.06, 'Hard/Expensive': +0.03, 'Moderate': 0, 'Easy/Cheap': -0.06 }[item.replaceability] || 0;
+  rate += replMod;
+
+  // Category modifier
+  const catMod = {
+    'Electronics':          -0.08, // depreciates fast
+    'Cables & Charging':    -0.10, // low resale
+    'Clothing':             -0.08,
+    'Footwear':             -0.05,
+    'Personal Care & Grooming': -0.12, // hard to resell
+    'Health & Supplements': -0.12,
+    'Office Supplies':      -0.08,
+    'Books & Notebooks':    -0.10,
+    'Camera/Photo Gear':    +0.05, // holds value well
+    'Firearms & Ammo':      +0.08, // strong resale
+    'Tools & Hardware':     +0.02,
+    'Automotive':           +0.02,
+    'Furniture':             0.00,
+    'Bags & Carry':         -0.03,
+    'Gym & Fitness':        -0.05,
+    'Military':             +0.04,
+    // Documents/IDs — not sellable, exclude
+    'Identity Documents':   null,
+    'Legal Documents':      null,
+    'Military Documents':   null,
+    'Vehicle Documents':    null,
+    'Financial Documents':  null,
+  }[item.category];
+
+  if(catMod === null) return null; // unsellable category
+  rate += (catMod || 0);
+
+  // Keep flagged as Trash → worth less
+  if(item.keep === 'Trash') rate -= 0.08;
+
+  return Math.min(0.65, Math.max(0.30, rate));
+}
+
+function updateStatBar(total,avg,avgComp,purgeVal,mis,purgeCount,totalVal,nodigital,incomplete,sellLow,sellHigh,pricedCount){
   const el=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
   el('stat-total', total||'—');
   el('stat-totalval', totalVal ? '$'+Math.round(totalVal).toLocaleString() : '—');
-  el('stat-purge', purgeVal ? '$'+Math.round(purgeVal).toLocaleString() : '—');
-  el('stat-purge-count', purgeCount ? `${purgeCount} items flagged` : '');
+  el('stat-totalval-sub', pricedCount ? `${pricedCount} of ${total} priced` : '');
+  const sellEl=document.getElementById('stat-sellrange');
+  if(sellEl) sellEl.textContent = sellLow ? '$'+Math.round(sellLow).toLocaleString()+' – $'+Math.round(sellHigh).toLocaleString() : '—';
   const scoreEl=document.getElementById('stat-score');
   if(scoreEl) scoreEl.textContent = avg ? `avg ${avg}` : '';
   el('stat-complete', avgComp ? avgComp+'%' : '—');
