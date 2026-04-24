@@ -166,18 +166,14 @@ header {
 
 /* ── LAYOUT ── */
 .app {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--sidebar-w, 220px) 4px 1fr;
   min-height: calc(100vh - 46px);
-  align-items: flex-start;
 }
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width: 220px;
-  min-width: 140px;
-  max-width: 400px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
+  border-right: none;
   padding: 10px 8px;
   position: sticky;
   top: 46px;
@@ -186,9 +182,10 @@ header {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  border-right: 1px solid var(--border);
 }
 
-main { flex: 1; min-width: 0; padding: 12px 16px; overflow-y: auto; height: calc(100vh - 46px); }
+main { padding: 12px 16px; overflow-y: auto; min-width: 0; }
 
 .sb-section { margin-bottom: 4px; }
 
@@ -953,9 +950,9 @@ tbody tr:hover .row-actions { opacity: 1; }
   .fab:active { transform: scale(0.94); box-shadow: 0 2px 8px rgba(183,110,121,0.3); }
 
   .app { display: block; }
-  .sidebar { display: none; }
+  .sidebar { display: none; position: static; height: auto; }
   .sidebar-resizer { display: none; }
-  main { display: none; height: auto; }
+  main { display: none; }
 
   /* Mobile Quick Add - full screen */
   .qa-modal { width: 100%; max-width: 100%; border-radius: 0; padding: 16px; min-height: 100vh; }
@@ -978,10 +975,33 @@ tbody tr:hover .row-actions { opacity: 1; }
 .chart-legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--font-sans); font-size: 9px; color: var(--text-mid); }
 .chart-legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-/* ── NOTES EXPAND ── */
-.notes-plain { font-size: 10px; color: var(--text-dim); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; cursor: pointer; }
-.notes-plain:hover { color: var(--text-mid); }
-.notes-expanded { font-size: 10px; color: var(--text-mid); max-width: 200px; white-space: normal; line-height: 1.5; cursor: pointer; word-break: break-word; }
+/* ── NOTES POPUP ── */
+.notes-plain { font-size: 10px; color: var(--text-dim); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; cursor: default; }
+.notes-popup {
+  position: fixed;
+  z-index: 9999;
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 9px 12px;
+  max-width: 280px;
+  min-width: 140px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  pointer-events: none;
+  word-break: break-word;
+  white-space: normal;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 0.08s ease, transform 0.08s ease;
+}
+.notes-popup.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
 
 /* ── SIDEBAR RESIZER ── */
 .sidebar-resizer {
@@ -1290,6 +1310,9 @@ CSV FORMAT:
     </div>
   </main>
 </div>
+
+<!-- Notes popup -->
+<div class="notes-popup" id="notes-popup"></div>
 
 <!-- ══ MOBILE LAYOUT ══ -->
 <div id="mobile-app" style="display:none;">
@@ -2060,7 +2083,7 @@ function parseNotes(raw){
 let locFilter=null;
 let currentView='all',currentCat='all',currentScoreFilter='all',currentTab='table';
 // Which tree nodes are expanded: Set of pathKey strings
-let expandedNodes=new Set(JSON.parse(localStorage.getItem('loc-expanded')||'[]'));
+let expandedNodes=new Set(); // default all closed
 let sortKey=null,sortDir=1,editingCell=null;
 let previewItems=[],selectedIds=new Set(),qsItemId=null;
 
@@ -2260,12 +2283,16 @@ function renderLocTree(){
 
       // Auto color coding by hierarchy
       const hue = getNodeHue(pk);
-      const nodeColor = hueToColor(hue, 0.85);
-      const nodeBg = `hsla(${hue}, 35%, 55%, 0.08)`;
-      row.style.borderLeft = `2px solid ${hueToColor(hue, 0.4)}`;
+      const nodeColor = hueToColor(hue, 1);
+      const nodeBg = `hsla(${hue}, 55%, 55%, 0.10)`;
+      row.style.borderLeft = `2px solid ${hueToColor(hue, 0.45)}`;
+      // Make label text use the hue color at high brightness
       if(isActive) {
         row.style.borderLeftColor = nodeColor;
         row.style.background = nodeBg;
+        row.style.color = nodeColor;
+      } else {
+        row.style.color = hueToColor(hue, 0.9);
       }
 
       // Expand toggle
@@ -2292,12 +2319,16 @@ function renderLocTree(){
 
       // Hover color
       row.addEventListener('mouseover', () => {
-        if(!isActive) row.style.background = nodeBg;
+        row.style.background = nodeBg;
         row.style.borderLeftColor = nodeColor;
+        row.style.color = nodeColor;
       });
       row.addEventListener('mouseout', () => {
-        if(!isActive) row.style.background = '';
-        row.style.borderLeftColor = hueToColor(hue, 0.4);
+        if(!isActive) {
+          row.style.background = '';
+          row.style.borderLeftColor = hueToColor(hue, 0.45);
+          row.style.color = hueToColor(hue, 0.9);
+        }
       });
 
       // Click row to filter
@@ -2437,7 +2468,7 @@ function buildRow(item,dupMap){
     ${etd('docType',item.docType?`<span class="doctype-badge">${esc(item.docType)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
     <td data-col="digital" style="text-align:center"><button class="digital-toggle-btn ${item.digitalCopy?'has-copy':''}" onclick="toggleDigital(${item.id})" title="${item.digitalCopy?'Has digital copy — click to unmark':'No digital copy — click to mark as digitized'}">${item.digitalCopy?'[+] yes':'[ ] no'}</button></td>
     ${etd('fillLevel',item.fillLevel?`<span class="fill-badge fill-${item.fillLevel.toLowerCase().replace('/','')}">${esc(item.fillLevel)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
-    ${etd('notes',`<span class="notes-plain" title="${esc(notes||item.notes||'')}" onclick="toggleNoteExpand(this)">${esc(notes||item.notes||'--')}</span>`)}
+    ${etd('notes',`<span class="notes-plain" data-full-note="${esc(notes||item.notes||'')}">${esc(notes||item.notes||'--')}</span>`)}
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="actions"><div class="row-actions"><button class="row-btn qs-btn" onclick="openQS(${item.id},event)" title="Quick Score">S</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
@@ -3994,11 +4025,13 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
 // ─── SIDEBAR RESIZER ──────────────────────────────────────────────────────────
 (function(){
   const resizer = document.getElementById('sidebar-resizer');
-  const sidebar = document.getElementById('main-sidebar');
-  if(!resizer || !sidebar) return;
+  const app = document.querySelector('.app');
+  if(!resizer || !app) return;
   let dragging = false, startX = 0, startW = 0;
   resizer.addEventListener('mousedown', e => {
-    dragging = true; startX = e.clientX; startW = sidebar.offsetWidth;
+    dragging = true;
+    startX = e.clientX;
+    startW = parseInt(getComputedStyle(app).gridTemplateColumns.split(' ')[0]) || 220;
     resizer.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
@@ -4006,9 +4039,7 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
   document.addEventListener('mousemove', e => {
     if(!dragging) return;
     const w = Math.min(400, Math.max(140, startW + (e.clientX - startX)));
-    sidebar.style.width = w + 'px';
-    // Adjust font sizes when sidebar is wide
-    sidebar.style.fontSize = w > 280 ? '14px' : '';
+    app.style.setProperty('--sidebar-w', w + 'px');
   });
   document.addEventListener('mouseup', () => {
     if(!dragging) return;
@@ -4019,18 +4050,46 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
   });
 })();
 
-// ─── NOTES EXPAND ─────────────────────────────────────────────────────────────
-function toggleNoteExpand(el) {
-  if(el.classList.contains('notes-expanded')) {
-    el.classList.remove('notes-expanded');
-    el.classList.add('notes-plain');
-    el.title = el.textContent;
-  } else {
-    el.classList.remove('notes-plain');
-    el.classList.add('notes-expanded');
-    el.title = '';
+// ─── NOTES HOVER POPUP ────────────────────────────────────────────────────────
+(function(){
+  const popup = document.getElementById('notes-popup');
+  if(!popup) return;
+  let hideTimer = null;
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('.notes-plain');
+    if(!el) return;
+    const text = el.dataset.fullNote || el.textContent;
+    if(!text || text === '--') return;
+    clearTimeout(hideTimer);
+    popup.textContent = text;
+    positionPopup(e);
+    popup.classList.add('visible');
+  });
+
+  document.addEventListener('mousemove', e => {
+    if(popup.classList.contains('visible') && e.target.closest('.notes-plain')) {
+      positionPopup(e);
+    }
+  });
+
+  document.addEventListener('mouseout', e => {
+    if(e.target.closest('.notes-plain')) {
+      hideTimer = setTimeout(() => popup.classList.remove('visible'), 80);
+    }
+  });
+
+  function positionPopup(e) {
+    const pw = 280, ph = 80;
+    let x = e.clientX - pw - 12; // left of cursor
+    let y = e.clientY - 20;
+    if(x < 8) x = e.clientX + 14; // flip right if no room
+    if(y + ph > window.innerHeight - 8) y = window.innerHeight - ph - 8;
+    if(y < 8) y = 8;
+    popup.style.left = x + 'px';
+    popup.style.top = y + 'px';
   }
-}
+})();
 
 // ─── TREE COLOR CODING ────────────────────────────────────────────────────────
 // Auto-assign a hue to each root node, children inherit + slightly shift
@@ -4044,10 +4103,10 @@ function getNodeHue(pathKey) {
     _hueIdx++;
   }
   const depth = pathKey.split(' > ').length - 1;
-  return (_treeHues[root] + depth * 18) % 360;
+  return (_treeHues[root] + depth * 22) % 360;
 }
 function hueToColor(hue, alpha = 1) {
-  return `hsla(${hue}, 35%, 62%, ${alpha})`;
+  return `hsla(${hue}, 70%, 68%, ${alpha})`;
 }
 
 // ─── CHARTS ───────────────────────────────────────────────────────────────────
