@@ -275,44 +275,83 @@ main { padding: 12px 16px; overflow-y: auto; min-width: 0; }
 /* ── MAIN ── */
 /* ── MAIN via flex above ── */
 
-/* ── STAT BAR ── */
-.stat-bar {
+/* ── INFO BAR ── */
+.info-bar {
   display: flex;
-  gap: 1px;
+  gap: 0;
   margin-bottom: 10px;
   background: var(--s1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
 }
-.stat-cell {
-  flex: 1;
+.info-cluster {
+  display: flex;
+  align-items: center;
   padding: 10px 14px;
+  gap: 0;
   border-right: 1px solid var(--border);
-  cursor: default;
 }
-.stat-cell:last-child { border-right: none; }
-.stat-label {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.15em;
+.info-cluster:last-child { border-right: none; }
+.info-cluster-center {
+  flex: 1;
+  padding: 10px 18px;
+}
+.info-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+  padding: 0 10px;
+}
+.info-cell:first-child { padding-left: 0; }
+.info-cell:last-child { padding-right: 0; }
+.info-label {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-dim);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
-.stat-val {
+.info-val {
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--text);
   line-height: 1;
 }
-.stat-val.rose { color: var(--rose); }
-.stat-val.steel { color: var(--steel); }
-.stat-val.green { color: var(--green); }
-.stat-val.red { color: var(--red); }
-.stat-val.amber { color: var(--amber); }
-.stat-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 3px; }
+.info-sub {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.info-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.info-score-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.info-score-track .score-dist {
+  height: 100%;
+  display: flex;
+  gap: 2px;
+}
+.info-band-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 500;
+}
 
 /* ── SCORE DIST ── */
 .score-dist-wrap { margin-bottom: 10px; }
@@ -959,7 +998,7 @@ tbody tr:hover .row-actions { opacity: 1; }
   .qa-overlay { align-items: flex-start; }
 }
 /* ── CHARTS ── */
-.charts-grid { display: grid; grid-template-columns: 1fr 1fr 140px 140px; gap: 10px; }
+.charts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .chart-card { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; min-width: 0; }
 .chart-card-narrow { }
 .chart-title { font-family: var(--font-sans); font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
@@ -1093,37 +1132,65 @@ tbody tr:hover .row-actions { opacity: 1; }
   <!-- MAIN -->
   <div class="sidebar-resizer" id="sidebar-resizer"></div>
   <main>
-    <!-- STAT BAR -->
-    <div class="stat-bar">
-      <div class="stat-cell">
-        <div class="stat-label">Items</div>
-        <div class="stat-val rose" id="stat-total">—</div>
+    <!-- UNIFIED INFO BAR -->
+    <div class="info-bar">
+      <div class="info-cluster">
+        <div class="info-cell">
+          <div class="info-label">Items</div>
+          <div class="info-val" style="color:var(--rose)" id="stat-total">—</div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-cell">
+          <div class="info-label">Total Est. Value</div>
+          <div class="info-val" style="color:var(--green)" id="stat-totalval">—</div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-cell">
+          <div class="info-label">Purge Value</div>
+          <div class="info-val" style="color:var(--amber)" id="stat-purge">—</div>
+          <div class="info-sub" id="stat-purge-count"></div>
+        </div>
       </div>
-      <div class="stat-cell">
-        <div class="stat-label">Avg Score</div>
-        <div class="stat-val" id="stat-score">—</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Completeness</div>
-        <div class="stat-val" id="stat-complete">—</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Purge Value</div>
-        <div class="stat-val amber" id="stat-purge">—</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Misplaced</div>
-        <div class="stat-val" id="stat-misplaced">—</div>
-      </div>
-    </div>
 
-    <!-- Score dist thin bar -->
-    <div class="score-dist-wrap">
-      <div class="score-dist" id="score-dist-bar"></div>
+      <div class="info-cluster info-cluster-center">
+        <div class="info-cell" style="width:100%">
+          <div class="info-label" style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span>Score Distribution</span>
+            <span id="stat-score" style="color:var(--text-mid);font-family:var(--font-mono);font-size:11px"></span>
+          </div>
+          <div class="info-score-track">
+            <div class="score-dist" id="score-dist-bar"></div>
+          </div>
+          <div class="info-band-labels">
+            <span id="lbl-core" style="color:var(--score-green)">—</span>
+            <span id="lbl-mid" style="color:var(--score-yellow)">—</span>
+            <span id="lbl-low" style="color:var(--score-orange)">—</span>
+            <span id="lbl-rem" style="color:var(--score-red)">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-cluster">
+        <div class="info-cell">
+          <div class="info-label">Completeness</div>
+          <div class="info-val" id="stat-complete">—</div>
+          <div class="info-sub" id="stat-incomplete-count"></div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-cell">
+          <div class="info-label">No Digital Copy</div>
+          <div class="info-val" style="color:var(--steel)" id="stat-nodigital">—</div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-cell">
+          <div class="info-label">Misplaced</div>
+          <div class="info-val" id="stat-misplaced">—</div>
+        </div>
+      </div>
     </div>
 
     <!-- COLLAPSIBLE PANELS -->
-    <!-- Dashboard / Charts -->
+    <!-- Analytics -->
     <div class="panel">
       <div class="panel-header" onclick="togglePanel('dash-body','dash-toggle')">
         <div class="panel-title"><div class="panel-dot"></div>Analytics</div>
@@ -1131,27 +1198,25 @@ tbody tr:hover .row-actions { opacity: 1; }
       </div>
       <div class="panel-body" id="dash-body">
         <div class="charts-grid">
-          <!-- Category chart -->
           <div class="chart-card">
-            <div class="chart-title">By Category</div>
+            <div class="chart-title">Items by Category</div>
             <div class="chart-bars" id="chart-cat"></div>
           </div>
-          <!-- Top Locations chart -->
           <div class="chart-card">
-            <div class="chart-title">Top Locations</div>
+            <div class="chart-title">Items by Location</div>
             <div class="chart-bars" id="chart-loc"></div>
           </div>
-          <!-- Score distribution donut -->
-          <div class="chart-card chart-card-narrow">
+          <div class="chart-card">
+            <div class="chart-title">Est. Value by Category</div>
+            <div class="chart-bars" id="chart-val"></div>
+          </div>
+          <div class="chart-card">
             <div class="chart-title">Score Bands</div>
             <div class="chart-donut-wrap">
               <svg id="chart-donut-svg" viewBox="0 0 80 80" width="80" height="80"></svg>
               <div class="chart-donut-legend" id="chart-donut-legend"></div>
             </div>
-          </div>
-          <!-- Condition breakdown -->
-          <div class="chart-card chart-card-narrow">
-            <div class="chart-title">Condition</div>
+            <div class="chart-title" style="margin-top:10px">Condition</div>
             <div class="chart-bars" id="chart-cond"></div>
           </div>
         </div>
@@ -2174,30 +2239,24 @@ function togglePanel(bid,aid){const b=document.getElementById(bid),a=document.ge
 
 function updateDashboard(){
   const total=inventory.length;
-  const dc=document.getElementById('dash-cards');
   const sdb=document.getElementById('score-dist-bar');
-  if(!total){if(dc)dc.innerHTML='';if(sdb)sdb.innerHTML='';updateStatBar(0,0,0,0,0,0);return;}
+  if(!total){if(sdb)sdb.innerHTML='';updateStatBar(0,0,0,0,0,0,0,0);return;}
   const scores=inventory.map(calcScore);
   const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
   const purge=inventory.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
   const purgeVal=purge.reduce((s,i)=>s+(parseFloat(i.estValue)||0),0);
+  const totalVal=inventory.reduce((s,i)=>s+(parseFloat(i.estValue)||0),0);
   const mis=inventory.filter(i=>i.misplaced).length;
+  const nodigital=inventory.filter(i=>!i.digitalCopy).length;
   const avgComp=Math.round(inventory.map(i=>completenessOf(i)/5*100).reduce((a,b)=>a+b,0)/total);
+  const incomplete=inventory.filter(i=>completenessOf(i)<5).length;
 
-  // Update top stat bar
-  updateStatBar(total,avg,avgComp,purgeVal,mis,purge.length);
-
-  if(dc)dc.innerHTML=[
-    {label:'Total Items',val:total,sub:'in inventory',cls:'accent'},
-    {label:'Avg Score',val:avg,sub:'out of 100',cls:avg>=80?'green':avg>=50?'':'orange'},
-    {label:'Value at Risk',val:purgeVal?'$'+purgeVal.toLocaleString():'--',sub:`${purge.length} purge items`,cls:'orange'},
-    {label:'Misplaced',val:mis,sub:'flagged to relocate',cls:mis?'red':''},
-  ].map(c=>`<div class="dash-card"><div class="dash-card-label">${c.label}</div><div class="dash-card-val ${c.cls}">${c.val}</div><div class="dash-card-sub">${c.sub}</div></div>`).join('');
+  updateStatBar(total,avg,avgComp,purgeVal,mis,purge.length,totalVal,nodigital,incomplete);
 
   const bands={green:0,yellow:0,orange:0,red:0};
   scores.forEach(s=>{bands[scoreBand(s)]++;});
 
-  // Update both desktop and mobile score dist bars
+  // Score dist bars
   ['score-dist-bar','mob-score-dist'].forEach(barId=>{
     const distBar=document.getElementById(barId);if(!distBar)return;
     distBar.innerHTML='';
@@ -2208,10 +2267,12 @@ function updateDashboard(){
     });
   });
 
-  const cf=document.getElementById('completeness-fill');const cl=document.getElementById('completeness-label');const cd=document.getElementById('completeness-detail');
-  if(cf)cf.style.width=avgComp+'%';if(cl)cl.textContent=avgComp+'%';
-  const incomplete=inventory.filter(i=>completenessOf(i)<5).length;
-  if(cd)cd.textContent=incomplete?`${incomplete} items incomplete`:'All items scored';
+  // Band labels in info bar
+  const el=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
+  el('lbl-core', `Core ${bands.green}`);
+  el('lbl-mid',  `Mid ${bands.yellow}`);
+  el('lbl-low',  `Low ${bands.orange}`);
+  el('lbl-rem',  `Remove ${bands.red}`);
 
   // Mobile stats
   updateMobileStats();
@@ -2220,15 +2281,19 @@ function updateDashboard(){
   renderCharts();
 }
 
-function updateStatBar(total,avg,avgComp,purgeVal,mis,purgeCount){
+function updateStatBar(total,avg,avgComp,purgeVal,mis,purgeCount,totalVal,nodigital,incomplete){
   const el=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
-  el('stat-total',total||'—');
+  el('stat-total', total||'—');
+  el('stat-totalval', totalVal ? '$'+Math.round(totalVal).toLocaleString() : '—');
+  el('stat-purge', purgeVal ? '$'+Math.round(purgeVal).toLocaleString() : '—');
+  el('stat-purge-count', purgeCount ? `${purgeCount} items flagged` : '');
   const scoreEl=document.getElementById('stat-score');
-  if(scoreEl){scoreEl.textContent=avg||'—';scoreEl.className='stat-val'+(avg>=80?' green':avg>=50?'':avg>0?' amber':'');}
-  el('stat-complete',avgComp?(avgComp+'%'):'—');
-  el('stat-purge',purgeVal?('$'+purgeVal.toLocaleString()):'—');
+  if(scoreEl) scoreEl.textContent = avg ? `avg ${avg}` : '';
+  el('stat-complete', avgComp ? avgComp+'%' : '—');
+  el('stat-incomplete-count', incomplete ? `${incomplete} missing fields` : 'all complete');
+  el('stat-nodigital', nodigital||'0');
   const misEl=document.getElementById('stat-misplaced');
-  if(misEl){misEl.textContent=mis||'0';misEl.className='stat-val'+(mis>0?' red':'');}
+  if(misEl){misEl.textContent=mis||'0';misEl.style.color=mis>0?'var(--red)':'var(--text)';}
 }
 
 function updateSidebarFilters(){
@@ -4179,6 +4244,27 @@ function renderCharts() {
   if(legendEl) legendEl.innerHTML = Object.entries(bands).map(([key, count]) =>
     `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${bandColors[key]}"></div>${bandLabels[key]} <span style="color:var(--text-dim);margin-left:2px">${count}</span></div>`
   ).join('');
+
+  // Value by category chart
+  const valCats = {};
+  inventory.forEach(i => {
+    if(parseFloat(i.estValue)) {
+      const c = i.category || 'Misc';
+      valCats[c] = (valCats[c]||0) + parseFloat(i.estValue);
+    }
+  });
+  const valSorted = Object.entries(valCats).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const valMax = valSorted[0]?.[1] || 1;
+  const valEl = document.getElementById('chart-val');
+  if(valEl) valEl.innerHTML = valSorted.map(([cat, val]) => {
+    const col = CAT_COLORS[cat]?.color || '#888';
+    const pct = Math.round(val/valMax*100);
+    return `<div class="chart-bar-row">
+      <span class="chart-bar-label" title="${cat}">${cat}</span>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <span class="chart-bar-count">$${Math.round(val).toLocaleString()}</span>
+    </div>`;
+  }).join('');
 
   // Condition chart
   const condCounts = {};
