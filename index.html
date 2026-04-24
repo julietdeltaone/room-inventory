@@ -896,6 +896,20 @@ tbody tr:hover .row-actions { opacity: 1; }
   background:var(--s3);border:1px solid var(--border2);border-radius:2px;
   font-size:9px;color:var(--text-mid);
 }
+
+/* ── ANOMALY SCAN ── */
+.anomaly-group { margin-bottom: 20px; }
+.anomaly-group-header { display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11px;font-weight:600;color:var(--text-mid);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);letter-spacing:0.02em; }
+.anomaly-group-icon { font-size:13px; }
+.anomaly-count { font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-left:auto; }
+.anomaly-item { display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s2);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;border-left:3px solid transparent; }
+.anomaly-name { font-family:var(--font-sans);font-size:12px;font-weight:500;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.anomaly-detail { font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap; }
+.anomaly-fix { font-family:var(--font-sans);font-size:10px;font-weight:500;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--text-mid);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.12s; }
+.anomaly-fix:hover { border-color:var(--rose);color:var(--rose); }
+.anomaly-select-btn { font-family:var(--font-sans);font-size:10px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;flex-shrink:0;transition:all 0.12s; }
+.anomaly-select-btn:hover { color:var(--text); }
+
 .toast {
   position: fixed; bottom: 16px; right: 16px;
   background: var(--s2); border: 1px solid var(--border2);
@@ -1137,6 +1151,7 @@ tbody tr:hover .row-actions { opacity: 1; }
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openBulkEnrich()">Enrich</button>
       <button class="btn btn-ghost btn-sm" onclick="openKeywordsEnrich()">Keywords</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--amber)" onclick="openAnomalyScan()">⚠ Scan</button>
 <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">CSV</button>
       <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
@@ -1323,6 +1338,8 @@ CSV FORMAT:
         <div class="bulk-group" style="margin-left:4px">
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(true)">Flag</button>
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(false)">Unflag</button>
+          <button class="btn btn-ghost btn-xs" style="color:var(--steel)" onclick="enrichSelected()">✦ Enrich</button>
+          <button class="btn btn-ghost btn-xs" style="color:var(--steel)" onclick="keywordsSelected()">🏷 Keywords</button>
           <button class="btn btn-danger btn-xs" onclick="bulkDelete()">Del</button>
           <button class="btn btn-ghost btn-xs" onclick="clearSelection()">✕ Clear</button>
         </div>
@@ -1430,6 +1447,24 @@ CSV FORMAT:
 
 <!-- Notes popup -->
 <div class="notes-popup" id="notes-popup"></div>
+
+<!-- Anomaly Scan Modal -->
+<div class="modal-overlay" id="anomaly-overlay" style="display:none;align-items:flex-start;padding-top:60px" onclick="closeAnomalyScan(event)">
+  <div class="modal" style="width:780px;max-height:82vh">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--amber)">⚠ Anomaly Scan</div>
+      <button class="modal-close" onclick="closeAnomalyScan()">×</button>
+    </div>
+    <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span id="anomaly-summary" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">Scanning…</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-ghost btn-xs" onclick="runAnomalyScan()">↺ Re-scan</button>
+        <button class="btn btn-ghost btn-xs" onclick="closeAnomalyScan()">Close</button>
+      </div>
+    </div>
+    <div id="anomaly-body" style="overflow-y:auto;flex:1;padding:12px 16px"></div>
+  </div>
+</div>
 
 <!-- Inspector popover -->
 <div class="inspector-overlay" id="inspector-overlay" onclick="closeInspector(event)">
@@ -3469,6 +3504,234 @@ function applyEnrichResults(){
   save();render();
   closeBulkEnrich();
   toast(`Enrich complete — ${applied} fields updated across ${_enrichResults.length} items`);
+}
+
+// ─── ANOMALY SCAN ────────────────────────────────────────────────────────────
+function openAnomalyScan(){
+  const overlay=document.getElementById('anomaly-overlay');
+  overlay.style.display='flex';
+  runAnomalyScan();
+}
+function closeAnomalyScan(e){
+  if(e&&document.querySelector('#anomaly-overlay .modal').contains(e.target))return;
+  document.getElementById('anomaly-overlay').style.display='none';
+}
+
+function runAnomalyScan(){
+  const body=document.getElementById('anomaly-body');
+  const summary=document.getElementById('anomaly-summary');
+  body.innerHTML='';
+
+  const groups=[];
+
+  // 1. Duplicates — same name + same location
+  const dupMap={};
+  inventory.forEach(i=>{
+    const key=(i.name||'').toLowerCase().trim()+'||'+(i.locationPath||[]).join('>');
+    if(!dupMap[key])dupMap[key]=[];
+    dupMap[key].push(i);
+  });
+  const dups=Object.values(dupMap).filter(g=>g.length>1).flat();
+  if(dups.length) groups.push({
+    icon:'👯', label:'Duplicate Items', color:'var(--rose)', items: dups,
+    detail: i=>`${(i.locationPath||[]).join(' > ')||'No location'} · qty ${i.qty||1}`,
+    fix: null,
+  });
+
+  // 2. Score/Keep conflict — score 60+ but marked Sell/Donate/Trash
+  const keepConflicts=inventory.filter(i=>{
+    const s=calcScore(i);
+    return s>=60&&['Sell','Donate','Trash'].includes(i.keep);
+  });
+  if(keepConflicts.length) groups.push({
+    icon:'⚡', label:'High Score but Flagged to Remove', color:'var(--amber)', items: keepConflicts,
+    detail: i=>`Score ${calcScore(i)} · Keep: ${i.keep}`,
+    fix: null,
+  });
+
+  // 3. Essential + Trash conflict
+  const essTrash=inventory.filter(i=>i.criticality==='Essential'&&['Trash','Donate'].includes(i.keep));
+  if(essTrash.length) groups.push({
+    icon:'🚨', label:'Essential but Marked to Discard', color:'var(--red)', items: essTrash,
+    detail: i=>`Criticality: ${i.criticality} · Keep: ${i.keep}`,
+    fix: (i)=>{snapshot();i.keep='Keep';save();render();runAnomalyScan();toast(`Fixed: ${i.name}`);},
+    fixLabel:'Fix → Keep',
+  });
+
+  // 4. Partial scoring — has some fields but missing others
+  const scoringFields=['frequency','criticality','replaceability'];
+  const partial=inventory.filter(i=>{
+    const filled=scoringFields.filter(f=>i[f]);
+    return filled.length>0&&filled.length<3;
+  });
+  if(partial.length) groups.push({
+    icon:'◑', label:'Partial Scoring (skews score)', color:'var(--text-dim)', items: partial,
+    detail: i=>{
+      const missing=scoringFields.filter(f=>!i[f]).map(f=>({frequency:'Freq',criticality:'Crit',replaceability:'Repl'}[f]));
+      return`Missing: ${missing.join(', ')}`;
+    },
+    fix: null,
+  });
+
+  // 5. No location
+  const noLoc=inventory.filter(i=>!i.locationPath||i.locationPath.length===0);
+  if(noLoc.length) groups.push({
+    icon:'📍', label:'No Location Set', color:'var(--text-dim)', items: noLoc,
+    detail: i=>`Category: ${i.category||'—'}`,
+    fix: null,
+  });
+
+  // 6. Stale frequency mismatch — Daily/Weekly but last used 2+ years ago
+  const now=new Date();
+  const staleMismatch=inventory.filter(i=>{
+    if(!['Daily','Weekly'].includes(i.frequency)||!i.lastUsed)return false;
+    const[mu,yu]=i.lastUsed.split('/');
+    if(!mu||!yu)return false;
+    const months=(now.getFullYear()-parseInt(yu))*12+(now.getMonth()+1-parseInt(mu));
+    return months>=24;
+  });
+  if(staleMismatch.length) groups.push({
+    icon:'🕰', label:'Frequency Mismatch (Daily/Weekly but unused 2+ yrs)', color:'var(--amber)', items: staleMismatch,
+    detail: i=>`Freq: ${i.frequency} · Last used: ${i.lastUsed}`,
+    fix: null,
+  });
+
+  // 7. Bad est value — contains non-numeric characters (text in value field)
+  const badValue=inventory.filter(i=>{
+    if(!i.estValue)return false;
+    const cleaned=String(i.estValue).replace(/[$,\s]/g,'');
+    return cleaned.length>0&&isNaN(parseFloat(cleaned));
+  });
+  if(badValue.length) groups.push({
+    icon:'💰', label:'Bad Est. Value (not a number)', color:'var(--rose)', items: badValue,
+    detail: i=>`Value: "${i.estValue}"`,
+    fix: (i)=>{snapshot();i.estValue='';save();render();runAnomalyScan();toast(`Cleared bad value for ${i.name}`);},
+    fixLabel:'Clear Value',
+  });
+
+  // 8. Very old items with no condition set
+  const noCondition=inventory.filter(i=>!i.condition&&i.yearPurchased&&(new Date().getFullYear()-parseInt(i.yearPurchased))>=3);
+  if(noCondition.length) groups.push({
+    icon:'🔍', label:'Old Items Missing Condition', color:'var(--text-dim)', items: noCondition,
+    detail: i=>`Purchased: ${i.yearPurchased}`,
+    fix: null,
+  });
+
+  const totalIssues=groups.reduce((s,g)=>s+g.items.length,0);
+  summary.textContent=totalIssues===0?'✓ No anomalies found':`${totalIssues} issue${totalIssues!==1?'s':''} found across ${groups.length} categor${groups.length!==1?'ies':'y'}`;
+
+  if(groups.length===0){
+    body.innerHTML=`<div style="text-align:center;padding:60px 0;font-family:var(--font-mono);font-size:11px;color:var(--green)">✓ All clear — no anomalies detected</div>`;
+    return;
+  }
+
+  groups.forEach(group=>{
+    const div=document.createElement('div');
+    div.className='anomaly-group';
+    const ids=group.items.map(i=>i.id);
+    div.innerHTML=`<div class="anomaly-group-header">
+      <span class="anomaly-group-icon">${group.icon}</span>
+      <span style="color:${group.color}">${group.label}</span>
+      <span class="anomaly-count">${group.items.length}</span>
+      <button class="anomaly-select-btn" onclick="selectAnomalyGroup([${ids.join(',')}])">Select All</button>
+    </div>`;
+    group.items.slice(0,20).forEach(item=>{
+      const row=document.createElement('div');
+      row.className='anomaly-item';
+      row.style.borderLeftColor=group.color;
+      row.innerHTML=`
+        <span class="anomaly-name" title="${esc(item.name)}">${esc(item.name)}</span>
+        <span class="anomaly-detail">${esc(typeof group.detail==='function'?group.detail(item):group.detail)}</span>
+        ${group.fix?`<button class="anomaly-fix" onclick="applyAnomalyFix(${item.id})">${group.fixLabel||'Fix'}</button>`:''}
+        <button class="anomaly-select-btn" onclick="selectAnomalyGroup([${item.id}]);closeAnomalyScan()">→ Select</button>
+      `;
+      // Store fix function
+      if(group.fix) row.querySelector('.anomaly-fix')._fix=()=>group.fix(item);
+      div.appendChild(row);
+    });
+    if(group.items.length>20){
+      const more=document.createElement('div');
+      more.style.cssText='font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:4px 10px';
+      more.textContent=`+ ${group.items.length-20} more`;
+      div.appendChild(more);
+    }
+    body.appendChild(div);
+  });
+}
+
+function applyAnomalyFix(id){
+  const btn=event.target;
+  if(btn._fix)btn._fix();
+}
+
+function selectAnomalyGroup(ids){
+  ids.forEach(id=>selectedIds.add(id));
+  updateBulkBar();renderTable();
+  toast(`${ids.length} item${ids.length!==1?'s':''} selected`);
+}
+
+// ─── SELECTIVE ENRICH ────────────────────────────────────────────────────────
+async function enrichSelected(){
+  const ids=[...selectedIds];
+  if(!ids.length){toast('No items selected');return;}
+  const items=inventory.filter(i=>ids.includes(i.id));
+  toast(`Enriching ${items.length} selected items…`);
+
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  let applied=0;
+  for(const item of items){
+    try{
+      const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+      });
+      if(!res.ok)continue;
+      const s=await res.json();
+      if(!item.frequency&&s.frequency){item.frequency=s.frequency;applied++;}
+      if(!item.criticality&&s.criticality){item.criticality=s.criticality;applied++;}
+      if(!item.replaceability&&s.replaceability){item.replaceability=s.replaceability;applied++;}
+      if(!item.keep&&s.keep){item.keep=s.keep;applied++;}
+      if(!item.estValue&&s.estimatedValue){item.estValue=s.estimatedValue;applied++;}
+      if(!item.notes&&s.notes&&s.notes.trim()){item.notes=s.notes;applied++;}
+      if(s.keywords&&s.keywords.trim()){item.keywords=s.keywords.trim();applied++;}
+      if(s.cleanedName&&s.cleanedName.trim()&&s.cleanedName!==item.name){item.name=s.cleanedName;applied++;}
+    }catch(e){console.warn('Enrich failed for',item.name,e);}
+    await new Promise(r=>setTimeout(r,200));
+  }
+  snapshot();save();render();
+  toast(`✓ Enrich done — ${applied} fields updated across ${items.length} items`);
+}
+
+async function keywordsSelected(){
+  const ids=[...selectedIds];
+  if(!ids.length){toast('No items selected');return;}
+  const items=inventory.filter(i=>ids.includes(i.id));
+  toast(`Generating keywords for ${items.length} items…`);
+
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  let applied=0;
+  for(const item of items){
+    try{
+      const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+      });
+      if(!res.ok)continue;
+      const s=await res.json();
+      if(s.keywords&&s.keywords.trim()){item.keywords=s.keywords.trim();applied++;}
+    }catch(e){console.warn('Keywords failed for',item.name,e);}
+    await new Promise(r=>setTimeout(r,150));
+  }
+  snapshot();save();render();
+  toast(`✓ Keywords done — ${applied} of ${items.length} items updated`);
 }
 
 // ─── KEYWORDS ENRICH ─────────────────────────────────────────────────────────
