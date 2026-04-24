@@ -246,6 +246,10 @@ const SUPABASE_URL='https://npdtjxjhepaqhrqtvueu.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
 
 let inventory=[], currentPath=[], expandedSb=new Set(), searchQuery='';
+// Path registry — maps numeric IDs to path arrays to avoid JSON-in-HTML issues
+const _paths={};let _pid=0;
+function regPath(arr){const id='p'+(++_pid);_paths[id]=arr;return id;}
+function nav(id){navigate(_paths[id]||[]);}
 
 const DEPTH_HUES=[200,160,45,280,20,320];
 function depthColor(d,a=1){const h=DEPTH_HUES[Math.min(d,DEPTH_HUES.length-1)];return`hsla(${h},65%,68%,${a})`;}
@@ -394,13 +398,15 @@ function renderStage(){
   const bc=['All',...path].map((seg,i)=>{
     const isCurrent=i===path.length;
     const p=i===0?[]:path.slice(0,i).concat(seg);
-    return`<span class="bc-item${isCurrent?' current':''}" onclick="navigate(${JSON.stringify(i===0?[]:p)})">${esc(seg)}</span>${!isCurrent?'<span class="bc-sep">›</span>':''}`;
+    const pid=regPath(p);
+    return`<span class="bc-item${isCurrent?' current':''}" onclick="nav('${pid}')">${esc(seg)}</span>${!isCurrent?'<span class="bc-sep">›</span>':''}`;
   }).join('');
 
-  // Back button
-  const backBtn=path.length>0?`<button class="back-btn" onclick="navigate(${JSON.stringify(path.slice(0,-1))})">
-    <span class="back-arrow">←</span>
-    <span>${path.length>1?esc(path[path.length-2]):'All Items'}</span>
+  const backPath=path.slice(0,-1);
+  const backPid=regPath(backPath);
+  const backLabel=path.length>1?esc(path[path.length-2]):'All Items';
+  const backBtn=path.length>0?`<button class="back-btn" onclick="nav('${backPid}')">
+    <span class="back-arrow">←</span><span>${backLabel}</span>
   </button>`:
   `<button class="back-btn" style="opacity:0.35;pointer-events:none">
     <span class="back-arrow">←</span><span>All Items</span>
@@ -424,7 +430,8 @@ function renderStage(){
     html+=`<div class="boxes-wrap"><div class="boxes-grid">`;
     children.forEach(([name,count])=>{
       const childPath=[...path,name];
-      html+=`<div class="box" onclick="navigate(${JSON.stringify(childPath)})">
+      const pid=regPath(childPath);
+      html+=`<div class="box" onclick="nav('${pid}')">
         <div class="box-line" style="background:${childColorDim}"></div>
         <div class="box-name" style="color:${childColor}">${esc(name)}</div>
         <div class="box-count">${count} item${count!==1?'s':''}</div>
@@ -482,23 +489,21 @@ function searchCardHTML(item){
   // Build tree path visual
   let locTree='';
   if(path.length){
-    // Root node
-    const rootPath=JSON.stringify([path[0]]);
+    const rootPid=regPath([path[0]]);
     locTree+=`<div class="sr-loc-tree">
       <div class="sr-loc-root">
         <span class="sr-loc-icon">⬡</span>
-        <span class="sr-loc-node" onclick="navigate(${rootPath})">${esc(path[0])}</span>
+        <span class="sr-loc-node" onclick="nav('${rootPid}')">${esc(path[0])}</span>
       </div>`;
     for(let i=1;i<path.length;i++){
-      const childPath=JSON.stringify(path.slice(0,i+1));
+      const childPid=regPath(path.slice(0,i+1));
       const isLeaf=i===path.length-1;
-      const indent='  '.repeat(i);
       locTree+=`<div class="sr-loc-connector">
         <div class="sr-loc-vline"></div>
         <div class="sr-loc-child">
           <div class="sr-loc-hline"></div>
           <span class="sr-loc-icon">${isLeaf?'◆':'◇'}</span>
-          <span class="sr-loc-node${isLeaf?' leaf':''}" onclick="navigate(${childPath})">${esc(path[i])}</span>
+          <span class="sr-loc-node${isLeaf?' leaf':''}" onclick="nav('${childPid}')">${esc(path[i])}</span>
         </div>
       </div>`;
     }
