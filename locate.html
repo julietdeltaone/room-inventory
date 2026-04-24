@@ -313,6 +313,7 @@ function rowToItem(row){
     notes:row.notes,qty:row.qty,condition:row.condition,keep:row.keep,
     yearPurchased:row.year_purchased,estValue:row.est_value,
     fillLevel:row.fill_level,digitalCopy:row.digital_copy,
+    keywords:row.keywords||'',
     locationPath:stringToPath(row.location||'')};
 }
 
@@ -387,12 +388,9 @@ function renderStage(){
       const nameMatch = i.name.toLowerCase().includes(q);
       const catMatch  = (i.category||'').toLowerCase().includes(q);
       const locMatch  = pathToString(i.locationPath).toLowerCase().includes(q);
-      const rawNote   = i.notes||'';
-      const kwIdx     = rawNote.toLowerCase().indexOf('| keywords:');
-      const kwText    = kwIdx!==-1 ? rawNote.slice(kwIdx+11) : '';
-      const baseNote  = kwIdx!==-1 ? rawNote.slice(0,kwIdx) : rawNote;
+      const noteMatch = (i.notes||'').toLowerCase().includes(q);
+      const kwText    = i.keywords || '';
       const kwMatch   = kwText.toLowerCase().includes(q);
-      const noteMatch = baseNote.toLowerCase().includes(q);
 
       if(nameMatch||catMatch||locMatch||kwMatch||noteMatch){
         // Find which keyword(s) matched for display
