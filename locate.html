@@ -171,11 +171,19 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .item-price-label{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-right:4px;}
 
 /* Meta pills */
-.item-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.item-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:0;}
 .item-pill{font-family:var(--font-ui);font-size:11px;font-weight:500;color:var(--text-mid);display:flex;align-items:center;gap:5px;}
 .pill-lbl{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);}
 
-/* Notes inline */
+/* Indicators — fill level + digital copy */
+.item-indicators{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.indicator-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--font-ui);font-size:10px;font-weight:500;
+  padding:2px 8px;border-radius:2px;border:1px solid;
+  letter-spacing:0.03em;white-space:nowrap;
+}
+.ind-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 .item-notes{font-family:var(--font-ui);font-size:12px;color:var(--text-mid);line-height:1.55;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 
 /* ── SEARCH RESULTS ── */
@@ -298,6 +306,7 @@ function rowToItem(row){
   return{id:row.id,name:row.name||'',category:row.category||'Misc',
     notes:row.notes,qty:row.qty,condition:row.condition,keep:row.keep,
     yearPurchased:row.year_purchased,estValue:row.est_value,
+    fillLevel:row.fill_level,digitalCopy:row.digital_copy,
     locationPath:stringToPath(row.location||'')};
 }
 
@@ -467,6 +476,25 @@ function itemCardHTML(item){
   if(item.keep&&item.keep!=='Keep')parts.push({l:'Keep',v:item.keep});
   if(item.qty&&item.qty!=='1')parts.push({l:'Qty',v:'× '+item.qty});
 
+  // Fill indicator
+  const fillMap={
+    'Full':  {label:'Full',  color:'#4d8f6a'},
+    'Most':  {label:'Most',  color:'#7a9e64'},
+    'Half':  {label:'Half',  color:'#9e7a32'},
+    'Low':   {label:'Low',   color:'#8f5530'},
+    'Empty': {label:'Empty', color:'#8f3838'},
+  };
+  const fillInfo=item.fillLevel?fillMap[item.fillLevel]:null;
+  const fillBadge=fillInfo?`<span class="indicator-badge" style="color:${fillInfo.color};border-color:${fillInfo.color}30">
+    <span class="ind-dot" style="background:${fillInfo.color}"></span>${fillInfo.label}
+  </span>`:'';
+
+  const digitalBadge=item.digitalCopy?`<span class="indicator-badge" style="color:#6e8fa8;border-color:#6e8fa820">
+    <span class="ind-dot" style="background:#6e8fa8"></span>Digital Copy
+  </span>`:'';
+
+  const indicators=fillBadge||digitalBadge?`<div class="item-indicators">${fillBadge}${digitalBadge}</div>`:'';
+
   return`<div class="item-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
     <div class="item-name-wrap">
       <span class="item-name-primary">${esc(primary)}</span>${secondary?` <span class="item-name-secondary">— ${esc(secondary)}</span>`:''}
@@ -475,7 +503,10 @@ function itemCardHTML(item){
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text}">${esc(item.category)}</span>
       ${item.estValue?`<span class="item-price"><span class="item-price-label">est.</span>$${esc(item.estValue)}</span>`:''}
     </div>
-    ${parts.length?`<div class="item-meta">${parts.map(p=>`<span class="item-pill"><span class="pill-lbl">${p.l}</span>${esc(p.v)}</span>`).join('')}</div>`:''}
+    ${parts.length||indicators?`<div class="item-meta">
+      ${parts.map(p=>`<span class="item-pill"><span class="pill-lbl">${p.l}</span>${esc(p.v)}</span>`).join('')}
+      ${indicators}
+    </div>`:''}
     ${item.notes?`<div class="item-notes">${esc(item.notes)}</div>`:''}
   </div>`;
 }
