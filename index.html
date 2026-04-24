@@ -4135,7 +4135,7 @@ function renderCharts() {
   const locMax = locSorted[0]?.[1] || 1;
   const locEl = document.getElementById('chart-loc');
   if(locEl) locEl.innerHTML = locSorted.map(([loc, count]) => {
-    const hue = getNodeHue(loc);
+    const hue = getDepthHue(loc);
     const col = hueToColor(hue);
     const pct = Math.round(count/locMax*100);
     return `<div class="chart-bar-row">
