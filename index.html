@@ -1670,6 +1670,13 @@ function applySuggest(field,val,chip){
   }
 }
 
+function applySuggestNotes(val,chip){
+  if(!window._claudeSuggestPending)window._claudeSuggestPending={};
+  window._claudeSuggestPending.notes=val;
+  chip.classList.add('applied');
+  toast('Note will be applied on add');
+}
+
 function applyAllScoring(scoring,chip){
   if(!window._claudeSuggestPending)window._claudeSuggestPending={};
   scoring.forEach(({field,val})=>{
@@ -2290,6 +2297,16 @@ function strSim(a,b){
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
   return 1-dp[m][n]/Math.max(m,n);
 }
+// ─── MISPLACED TOGGLE ─────────────────────────────────────────────────────────
+function toggleMisplaced(id){
+  const item=inventory.find(i=>i.id===id);
+  if(!item)return;
+  snapshot();
+  item.misplaced=!item.misplaced;
+  save();
+  render();
+}
+
 // ─── BUILD ROW ────────────────────────────────────────────────────────────────
 function buildRow(item,dupMap){
   dupMap=dupMap||{};
