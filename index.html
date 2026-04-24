@@ -567,7 +567,7 @@ td.editable-td.active-edit { background: var(--s3); border-left-color: var(--ros
   outline: none; width: 100%;
 }
 .cell-editor-select option { background: var(--s2); }
-.key-hint { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+.key-hint { display: none; }
 .key-hint b { color: var(--rose); }
 
 /* ── BADGES & PILLS ── */
@@ -996,7 +996,7 @@ tbody tr:hover .row-actions { opacity: 1; }
   white-space: normal;
   opacity: 0;
   transform: translateX(4px);
-  transition: opacity 0.08s ease, transform 0.08s ease;
+  transition: opacity 0.05s ease, transform 0.05s ease;
 }
 .notes-popup.visible {
   opacity: 1;
@@ -1246,7 +1246,7 @@ CSV FORMAT:
             <th class="sortable" data-key="keep" data-col="keep">Keep</th>
             <th class="sortable" data-key="yearPurchased" data-col="year">Year</th>
             <th class="sortable" data-key="lastUsed" data-col="lastused">Last Used</th>
-            <th data-col="estvalue">Est. $</th>
+            <th class="sortable" data-key="estValue" data-col="estvalue">Est. $</th>
             <th class="sortable" data-key="docType" data-col="doctype">Doc Type</th>
             <th style="text-align:center" class="sortable" data-key="digitalCopy" data-col="digital">Digital</th>
             <th style="text-align:center" class="sortable" data-key="fillLevel" data-col="fill">Fill</th>
@@ -2281,12 +2281,11 @@ function renderLocTree(){
       row.className='loc-node-row'+(isActive?' active':'');
       row.dataset.pk=pk;
 
-      // Auto color coding by hierarchy
-      const hue = getNodeHue(pk);
+      // Color by depth — all nodes at same depth share same color
+      const hue = getDepthHue(pk);
       const nodeColor = hueToColor(hue, 1);
       const nodeBg = `hsla(${hue}, 55%, 55%, 0.10)`;
       row.style.borderLeft = `2px solid ${hueToColor(hue, 0.45)}`;
-      // Make label text use the hue color at high brightness
       if(isActive) {
         row.style.borderLeftColor = nodeColor;
         row.style.background = nodeBg;
@@ -2330,8 +2329,6 @@ function renderLocTree(){
           row.style.color = hueToColor(hue, 0.9);
         }
       });
-
-      // Click row to filter
       row.onclick=()=>setLocFilter(path,row);
       nodeEl.appendChild(row);
 
@@ -2378,6 +2375,7 @@ function getFiltered(){
   if(sortKey)items.sort((a,b)=>{
     if(sortKey==='_score')return(calcScore(a)-calcScore(b))*sortDir;
     if(sortKey==='_loc'){const av=pathToString(a.locationPath||[]),bv=pathToString(b.locationPath||[]);return av<bv?-sortDir:av>bv?sortDir:0;}
+    if(sortKey==='estValue'){return((parseFloat(a.estValue)||0)-(parseFloat(b.estValue)||0))*sortDir;}
     const av=(a[sortKey]||'').toString().toLowerCase(),bv=(b[sortKey]||'').toString().toLowerCase();return av<bv?-sortDir:av>bv?sortDir:0;
   });
   return items;
@@ -2448,7 +2446,7 @@ function buildRow(item,dupMap){
   function etd(field,innerHTML,extraStyle=''){
     const colMap={name:'name',_loc:'loc',category:'category',frequency:'frequency',criticality:'criticality',replaceability:'replaceability',condition:'condition',keep:'keep',yearPurchased:'year',lastUsed:'lastused',estValue:'estvalue',docType:'doctype',fillLevel:'fill',notes:'notes'};
     const col=colMap[field]||field;
-    return`<td class="editable-td" data-col="${col}" data-id="${item.id}" data-field="${field}" onclick="startInlineEdit(${item.id},'${field}',this)" title="Click to edit" style="${extraStyle}">${innerHTML}</td>`;
+    return`<td class="editable-td" data-col="${col}" data-id="${item.id}" data-field="${field}" onclick="startInlineEdit(${item.id},'${field}',this)" style="${extraStyle}">${innerHTML}</td>`;
   }
 
   tr.innerHTML=`
@@ -4055,36 +4053,39 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
   const popup = document.getElementById('notes-popup');
   if(!popup) return;
   let hideTimer = null;
+  let currentTd = null;
 
   document.addEventListener('mouseover', e => {
-    const el = e.target.closest('.notes-plain');
-    if(!el) return;
-    const text = el.dataset.fullNote || el.textContent;
+    const td = e.target.closest('td[data-col="notes"]');
+    if(!td) return;
+    const span = td.querySelector('.notes-plain');
+    const text = span ? (span.dataset.fullNote || span.textContent) : '';
     if(!text || text === '--') return;
     clearTimeout(hideTimer);
+    currentTd = td;
     popup.textContent = text;
     positionPopup(e);
     popup.classList.add('visible');
   });
 
   document.addEventListener('mousemove', e => {
-    if(popup.classList.contains('visible') && e.target.closest('.notes-plain')) {
-      positionPopup(e);
-    }
+    if(!popup.classList.contains('visible')) return;
+    if(e.target.closest('td[data-col="notes"]')) positionPopup(e);
   });
 
   document.addEventListener('mouseout', e => {
-    if(e.target.closest('.notes-plain')) {
-      hideTimer = setTimeout(() => popup.classList.remove('visible'), 80);
+    const td = e.target.closest('td[data-col="notes"]');
+    if(td && !td.contains(e.relatedTarget)) {
+      hideTimer = setTimeout(() => { popup.classList.remove('visible'); currentTd = null; }, 60);
     }
   });
 
   function positionPopup(e) {
-    const pw = 280, ph = 80;
-    let x = e.clientX - pw - 12; // left of cursor
-    let y = e.clientY - 20;
-    if(x < 8) x = e.clientX + 14; // flip right if no room
-    if(y + ph > window.innerHeight - 8) y = window.innerHeight - ph - 8;
+    const pw = 280;
+    let x = e.clientX - pw - 14;
+    let y = e.clientY - 16;
+    if(x < 8) x = e.clientX + 14;
+    if(y + 100 > window.innerHeight - 8) y = window.innerHeight - 108;
     if(y < 8) y = 8;
     popup.style.left = x + 'px';
     popup.style.top = y + 'px';
@@ -4092,21 +4093,16 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
 })();
 
 // ─── TREE COLOR CODING ────────────────────────────────────────────────────────
-// Auto-assign a hue to each root node, children inherit + slightly shift
-const _treeHues = {};
-const _ROOT_HUES = [210, 280, 150, 30, 190, 330, 60, 240, 90, 350, 170, 10];
-let _hueIdx = 0;
-function getNodeHue(pathKey) {
-  const root = pathKey.split(' > ')[0];
-  if(!_treeHues[root]) {
-    _treeHues[root] = _ROOT_HUES[_hueIdx % _ROOT_HUES.length];
-    _hueIdx++;
-  }
+// Color is determined purely by DEPTH — all nodes at same depth share same color
+// depth 0 = top parents, depth 1 = children, depth 2 = grandchildren, etc.
+const DEPTH_HUES = [200, 160, 45, 280, 20, 320, 90, 260]; // one hue per depth level
+
+function getDepthHue(pathKey) {
   const depth = pathKey.split(' > ').length - 1;
-  return (_treeHues[root] + depth * 22) % 360;
+  return DEPTH_HUES[depth % DEPTH_HUES.length];
 }
 function hueToColor(hue, alpha = 1) {
-  return `hsla(${hue}, 70%, 68%, ${alpha})`;
+  return `hsla(${hue}, 72%, 68%, ${alpha})`;
 }
 
 // ─── CHARTS ───────────────────────────────────────────────────────────────────
