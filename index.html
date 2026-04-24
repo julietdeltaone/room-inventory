@@ -16,24 +16,24 @@
   --border:   #2c2c31;
   --border2:  #383840;
 
-  --rose:     #C17884;
-  --rose-dim: rgba(193,120,132,0.16);
-  --rose-glow:rgba(193,120,132,0.07);
-  --steel:    #7B9AB5;
-  --steel-dim:rgba(123,154,181,0.14);
+  --rose:     #b07a84;
+  --rose-dim: rgba(176,122,132,0.14);
+  --rose-glow:rgba(176,122,132,0.06);
+  --steel:    #6e8fa8;
+  --steel-dim:rgba(110,143,168,0.12);
 
-  --text:     #ededef;
-  --text-mid: #80808a;
-  --text-dim: #45454f;
+  --text:     #e8e8ea;
+  --text-mid: #909098;
+  --text-dim: #565660;
 
-  --green:    #5fa876;
-  --red:      #b05555;
-  --amber:    #c09040;
+  --green:    #4d8f6a;
+  --red:      #8f4848;
+  --amber:    #9e7a32;
 
-  --score-green:  #5fa876;
-  --score-yellow: #c09040;
-  --score-orange: #b06040;
-  --score-red:    #a04040;
+  --score-green:  #4d8f6a;
+  --score-yellow: #9e7a32;
+  --score-orange: #8f5530;
+  --score-red:    #8f3838;
 
   --radius:   6px;
   --font-mono: 'DM Mono', monospace;
@@ -514,7 +514,7 @@ th { position: relative; white-space: nowrap; }
 
 /* ── TABLE ── */
 .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 600px; table-layout: fixed; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; table-layout: auto; }
 thead tr { background: var(--s1); border-bottom: 1px solid var(--border); }
 th {
   padding: 7px 8px; text-align: left;
@@ -584,7 +584,18 @@ td.editable-td.active-edit { background: var(--s3); border-left-color: var(--ros
   border-radius: 3px; padding: 1px 4px;
   display: inline-block; margin-top: 2px;
 }
-.notes-plain { font-size: 10px; color: var(--text-dim); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-plain { font-size: 10px; color: var(--text-dim); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+/* Column width constraints */
+td[data-col="name"], th[data-col="name"] { min-width: 140px; max-width: 220px; }
+td[data-col="location"], th[data-col="location"] { min-width: 120px; max-width: 180px; }
+td[data-col="notes"], th[data-col="notes"] { min-width: 100px; max-width: 180px; }
+td[data-col="category"], th[data-col="category"] { min-width: 90px; white-space: nowrap; }
+td[data-col="frequency"], td[data-col="criticality"], td[data-col="replaceability"], td[data-col="keep"] { white-space: nowrap; min-width: 70px; }
+td[data-col="score"], th[data-col="score"] { min-width: 54px; white-space: nowrap; }
+td[data-col="est_value"], th[data-col="est_value"] { min-width: 54px; white-space: nowrap; }
+td[data-col="condition"], th[data-col="condition"] { min-width: 60px; white-space: nowrap; }
+td[data-col="year"], th[data-col="year"] { min-width: 64px; white-space: nowrap; }
+td { max-width: 200px; }
 .qty-ctrl { display: flex; align-items: center; gap: 2px; }
 .qty-btn {
   width: 16px; height: 16px; border-radius: 3px;
@@ -984,6 +995,12 @@ tbody tr:hover .row-actions { opacity: 1; }
   <!-- SIDEBAR -->
   <div class="sidebar" id="main-sidebar">
     <div class="sb-section">
+      <div class="sb-label">Location</div>
+      <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)">All <span class="count" id="cnt-loc-all">0</span></button>
+      <div id="loc-tree"></div>
+    </div>
+
+    <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
       <div class="sb-label">View</div>
       <button class="filter-btn active" data-view="all" onclick="setView('all',this)">All Items <span class="count" id="cnt-all">0</span></button>
       <button class="filter-btn" data-view="misplaced" onclick="setView('misplaced',this)" style="color:var(--amber)">To Relocate <span class="count" id="cnt-mis">0</span></button>
@@ -991,7 +1008,7 @@ tbody tr:hover .row-actions { opacity: 1; }
       <button class="filter-btn" data-view="nodigital" onclick="setView('nodigital',this)" style="color:var(--steel)">No Digital Copy <span class="count" id="cnt-nodigital">0</span></button>
     </div>
 
-    <div class="sb-section">
+    <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
       <div class="sb-label">Score</div>
       <button class="filter-btn active" data-score="all" onclick="setScoreFilter('all',this)">All <span class="count" id="cnt-score-all">0</span></button>
       <button class="filter-btn" data-score="green" onclick="setScoreFilter('green',this)"><span style="color:var(--score-green)">Core 80+</span><span class="count" id="cnt-score-green">0</span></button>
@@ -1000,16 +1017,10 @@ tbody tr:hover .row-actions { opacity: 1; }
       <button class="filter-btn" data-score="red" onclick="setScoreFilter('red',this)"><span style="color:var(--score-red)">Remove 0+</span><span class="count" id="cnt-score-red">0</span></button>
     </div>
 
-    <div class="sb-section">
+    <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
       <div class="sb-label">Category</div>
       <button class="filter-btn active" data-cat="all" onclick="setCat('all',this)">All <span class="count" id="cnt-cat-all">0</span></button>
       <div id="cat-filters"></div>
-    </div>
-
-    <div class="sb-section">
-      <div class="sb-label">Location</div>
-      <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)">All <span class="count" id="cnt-loc-all">0</span></button>
-      <div id="loc-tree"></div>
     </div>
   </div>
 
@@ -1101,56 +1112,6 @@ CSV FORMAT:
       </div>
     </div>
 
-    <!-- Voice + Guide side by side, both collapsed -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <div class="panel" style="margin-bottom:0">
-        <div class="panel-header" onclick="togglePanel('voice-body','voice-toggle')">
-          <div class="panel-title"><div class="panel-dot"></div>Voice Guide</div>
-          <span class="panel-toggle" id="voice-toggle">+</span>
-        </div>
-        <div class="panel-body" id="voice-body">
-          <div class="voice-guide">
-            <div style="margin-bottom:8px;font-size:9px;color:var(--text-dim)">Each item on one line, fields separated by commas. Say "right angle bracket" for location levels.</div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px;font-size:10px;line-height:2;margin-bottom:8px;">
-              <span style="color:var(--rose)">[type spec]</span>, <span style="color:var(--steel)">[location path]</span>, <span style="color:var(--text-mid)">[qty]</span>, <span style="color:var(--green)">[condition]</span>, <span style="color:var(--text)">[freq, crit, repl, keep, year]</span>
-            </div>
-            <div style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-size:9px;line-height:2;color:var(--text-dim)">
-              <div><b style="color:var(--text-mid)">FREQ</b>  daily / weekly / monthly / rarely / never</div>
-              <div><b style="color:var(--text-mid)">CRIT</b>  essential / important / nice to have / redundant</div>
-              <div><b style="color:var(--text-mid)">REPL</b>  irreplaceable / hard expensive / moderate / easy cheap</div>
-              <div><b style="color:var(--text-mid)">KEEP</b>  keep / maybe / sell / donate / trash</div>
-            </div>
-            <div style="display:flex;gap:5px;margin-top:8px;">
-              <button class="btn btn-ghost btn-sm" onclick="copyCheatCard()">Copy Cheat Card</button>
-              <button class="btn btn-ghost btn-sm" onclick="copyVoiceTemplate()">Template</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-bottom:0">
-        <div class="panel-header" onclick="togglePanel('guide-body','guide-toggle')">
-          <div class="panel-title"><div class="panel-dot"></div>User Guide</div>
-          <span class="panel-toggle" id="guide-toggle">+</span>
-        </div>
-        <div class="panel-body" id="guide-body">
-          <div class="guide-grid">
-            <div class="guide-section">
-              <div class="guide-section-title">Location System</div>
-              <div class="guide-item"><div class="guide-item-label">Path hierarchy</div><div class="guide-item-desc">Locations use > separator. No depth limit. Click tree to filter.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Manage Locations</div><div class="guide-item-desc">Header button: Rename, Move Under, Wrap in Parent. All paths update.</div></div>
-            </div>
-            <div class="guide-section">
-              <div class="guide-section-title">Editing</div>
-              <div class="guide-item"><div class="guide-item-label">Click-to-edit</div><div class="guide-item-desc">Click any cell. Tab / Shift+Tab moves. Shortcut keys open dropdowns.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Bulk ops</div><div class="guide-item-desc">Check rows → bar appears. Set location, category, scoring fields in bulk.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Undo / Redo</div><div class="guide-item-desc">Ctrl+Z / Ctrl+Y. 50 steps.</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- BULK BAR -->
     <div class="bulk-bar" id="bulk-bar">
       <span class="bulk-bar-label" id="bulk-label">0 selected</span>
@@ -1221,6 +1182,55 @@ CSV FORMAT:
         </thead>
         <tbody id="inventory-body"></tbody>
       </table>
+    </div>
+
+    <!-- GUIDES (collapsed, at bottom) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header" onclick="togglePanel('voice-body','voice-toggle')">
+          <div class="panel-title"><div class="panel-dot"></div>Voice Guide</div>
+          <span class="panel-toggle" id="voice-toggle">+</span>
+        </div>
+        <div class="panel-body" id="voice-body">
+          <div class="voice-guide">
+            <div style="margin-bottom:8px;font-size:9px;color:var(--text-dim)">Each item on one line, fields separated by commas. Say "right angle bracket" for location levels.</div>
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px;font-size:10px;line-height:2;margin-bottom:8px;">
+              <span style="color:var(--rose)">[type spec]</span>, <span style="color:var(--steel)">[location path]</span>, <span style="color:var(--text-mid)">[qty]</span>, <span style="color:var(--green)">[condition]</span>, <span style="color:var(--text)">[freq, crit, repl, keep, year]</span>
+            </div>
+            <div style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-size:9px;line-height:2;color:var(--text-dim)">
+              <div><b style="color:var(--text-mid)">FREQ</b>  daily / weekly / monthly / rarely / never</div>
+              <div><b style="color:var(--text-mid)">CRIT</b>  essential / important / nice to have / redundant</div>
+              <div><b style="color:var(--text-mid)">REPL</b>  irreplaceable / hard expensive / moderate / easy cheap</div>
+              <div><b style="color:var(--text-mid)">KEEP</b>  keep / maybe / sell / donate / trash</div>
+            </div>
+            <div style="display:flex;gap:5px;margin-top:8px;">
+              <button class="btn btn-ghost btn-sm" onclick="copyCheatCard()">Copy Cheat Card</button>
+              <button class="btn btn-ghost btn-sm" onclick="copyVoiceTemplate()">Template</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <div class="panel-header" onclick="togglePanel('guide-body','guide-toggle')">
+          <div class="panel-title"><div class="panel-dot"></div>User Guide</div>
+          <span class="panel-toggle" id="guide-toggle">+</span>
+        </div>
+        <div class="panel-body" id="guide-body">
+          <div class="guide-grid">
+            <div class="guide-section">
+              <div class="guide-section-title">Location System</div>
+              <div class="guide-item"><div class="guide-item-label">Path hierarchy</div><div class="guide-item-desc">Locations use > separator. No depth limit. Click tree to filter.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Manage Locations</div><div class="guide-item-desc">Header button: Rename, Move Under, Wrap in Parent. All paths update.</div></div>
+            </div>
+            <div class="guide-section">
+              <div class="guide-section-title">Editing</div>
+              <div class="guide-item"><div class="guide-item-label">Click-to-edit</div><div class="guide-item-desc">Click any cell. Tab / Shift+Tab moves. Shortcut keys open dropdowns.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Bulk ops</div><div class="guide-item-desc">Check rows → bar appears. Set location, category, scoring fields in bulk.</div></div>
+              <div class="guide-item"><div class="guide-item-label">Undo / Redo</div><div class="guide-item-desc">Ctrl+Z / Ctrl+Y. 50 steps.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -1863,30 +1873,30 @@ const CATEGORIES=[
 ];
 
 const CAT_COLORS={
-  'Electronics':{bg:'rgba(100,180,255,0.14)',color:'#64b4ff'},
-  'Cables & Charging':{bg:'rgba(80,160,240,0.14)',color:'#50a0f0'},
-  'Camera/Photo Gear':{bg:'rgba(180,100,255,0.14)',color:'#b464ff'},
-  'Military':{bg:'rgba(120,180,80,0.14)',color:'#78b450'},
-  'Firearms & Ammo':{bg:'rgba(255,60,60,0.14)',color:'#ff5050'},
-  'Clothing':{bg:'rgba(255,180,80,0.14)',color:'#ffb450'},
-  'Footwear':{bg:'rgba(200,120,20,0.14)',color:'#c87814'},
-  'Accessories':{bg:'rgba(255,210,100,0.14)',color:'#ffd264'},
-  'Tools & Hardware':{bg:'rgba(255,120,80,0.14)',color:'#ff7850'},
-  'Office Supplies':{bg:'rgba(200,220,255,0.14)',color:'#c8dcff'},
-  'Bags & Carry':{bg:'rgba(160,200,255,0.14)',color:'#a0c8ff'},
-  'Personal Care & Grooming':{bg:'rgba(255,160,200,0.14)',color:'#ffa0c8'},
-  'Health & Supplements':{bg:'rgba(100,220,160,0.14)',color:'#64dca0'},
-  'Cleaning & Home':{bg:'rgba(180,230,255,0.14)',color:'#b4e6ff'},
-  'Furniture':{bg:'rgba(180,140,100,0.14)',color:'#b48c64'},
-  'Identity Documents':{bg:'rgba(255,230,60,0.14)',color:'#ffe63c'},
-  'Legal Documents':{bg:'rgba(240,180,60,0.14)',color:'#f0b43c'},
-  'Vehicle Documents':{bg:'rgba(200,160,100,0.14)',color:'#c8a064'},
-  'Military Documents':{bg:'rgba(140,200,80,0.14)',color:'#8cc850'},
-  'Financial Documents':{bg:'rgba(80,200,160,0.14)',color:'#50c8a0'},
-  'Books & Notebooks':{bg:'rgba(255,230,100,0.14)',color:'#ffe664'},
-  'Gym & Fitness':{bg:'rgba(80,255,160,0.14)',color:'#50ffa0'},
-  'Automotive':{bg:'rgba(160,140,120,0.14)',color:'#a08c78'},
-  'Misc':{bg:'rgba(120,120,120,0.14)',color:'#888'},
+  'Electronics':{bg:'rgba(90,130,170,0.12)',color:'#7a9db8'},
+  'Cables & Charging':{bg:'rgba(75,115,155,0.12)',color:'#6e92b0'},
+  'Camera/Photo Gear':{bg:'rgba(130,90,165,0.12)',color:'#9e7ab8'},
+  'Military':{bg:'rgba(95,135,75,0.12)',color:'#7a9e64'},
+  'Firearms & Ammo':{bg:'rgba(160,80,80,0.12)',color:'#a86868'},
+  'Clothing':{bg:'rgba(175,135,75,0.12)',color:'#b89060'},
+  'Footwear':{bg:'rgba(155,105,60,0.12)',color:'#a07848'},
+  'Accessories':{bg:'rgba(165,145,80,0.12)',color:'#b0a060'},
+  'Tools & Hardware':{bg:'rgba(165,100,70,0.12)',color:'#a87858'},
+  'Office Supplies':{bg:'rgba(140,155,175,0.12)',color:'#9aacbe'},
+  'Bags & Carry':{bg:'rgba(110,145,175,0.12)',color:'#82a4be'},
+  'Personal Care & Grooming':{bg:'rgba(175,110,145,0.12)',color:'#b882a0'},
+  'Health & Supplements':{bg:'rgba(75,155,120,0.12)',color:'#5a9e8a'},
+  'Cleaning & Home':{bg:'rgba(110,165,185,0.12)',color:'#7aaeba'},
+  'Furniture':{bg:'rgba(145,115,85,0.12)',color:'#9a8268'},
+  'Identity Documents':{bg:'rgba(175,160,70,0.12)',color:'#b8a848'},
+  'Legal Documents':{bg:'rgba(165,130,60,0.12)',color:'#b09048'},
+  'Vehicle Documents':{bg:'rgba(145,120,85,0.12)',color:'#9a8868'},
+  'Military Documents':{bg:'rgba(105,155,70,0.12)',color:'#789e50'},
+  'Financial Documents':{bg:'rgba(65,145,120,0.12)',color:'#509e88'},
+  'Books & Notebooks':{bg:'rgba(170,155,80,0.12)',color:'#b4a458'},
+  'Gym & Fitness':{bg:'rgba(70,175,115,0.12)',color:'#50b880'},
+  'Automotive':{bg:'rgba(125,115,100,0.12)',color:'#8a8070'},
+  'Misc':{bg:'rgba(100,100,100,0.10)',color:'#787878'},
 };
 
 // Migration map: old category name → new category name
