@@ -1016,6 +1016,7 @@ tbody tr:hover .row-actions { opacity: 1; }
 
 /* ── NOTES POPUP ── */
 .notes-plain { font-size: 10px; color: var(--text-dim); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; cursor: default; }
+.notes-keywords { font-size: 9px; color: var(--text-dim); opacity: 0.55; letter-spacing: 0.02em; display: block; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .notes-popup {
   position: fixed;
   z-index: 9999;
@@ -2590,7 +2591,15 @@ function buildRow(item,dupMap){
     ${etd('docType',item.docType?`<span class="doctype-badge">${esc(item.docType)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
     <td data-col="digital" style="text-align:center"><button class="digital-toggle-btn ${item.digitalCopy?'has-copy':''}" onclick="toggleDigital(${item.id})" title="${item.digitalCopy?'Has digital copy — click to unmark':'No digital copy — click to mark as digitized'}">${item.digitalCopy?'[+] yes':'[ ] no'}</button></td>
     ${etd('fillLevel',item.fillLevel?`<span class="fill-badge fill-${item.fillLevel.toLowerCase().replace('/','')}">${esc(item.fillLevel)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
-    ${etd('notes',`<span class="notes-plain" data-full-note="${esc(notes||item.notes||'')}">${esc(notes||item.notes||'--')}</span>`)}
+    ${etd('notes',(()=>{
+      const raw=notes||item.notes||'';
+      if(!raw)return'<span style="color:var(--text-dim);font-size:10px">--</span>';
+      const kwIdx=raw.toLowerCase().indexOf('| keywords:');
+      if(kwIdx===-1)return`<span class="notes-plain" data-full-note="${esc(raw)}">${esc(raw)}</span>`;
+      const base=raw.slice(0,kwIdx).trim();
+      const kw=raw.slice(kwIdx+11).trim();
+      return`<span class="notes-plain" data-full-note="${esc(raw)}">${base?esc(base):'—'}</span><span class="notes-keywords" title="${esc(kw)}">🏷 ${esc(kw)}</span>`;
+    })())}
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="actions"><div class="row-actions"><button class="row-btn qs-btn" onclick="openQS(${item.id},event)" title="Quick Score">S</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
@@ -3351,8 +3360,18 @@ function applyEnrichResults(){
     if(!inv.replaceability&&s.replaceability){inv.replaceability=s.replaceability;applied++;}
     if(!inv.keep&&s.keep)              {inv.keep=s.keep;applied++;}
     if(!inv.estValue&&s.estimatedValue){inv.estValue=s.estimatedValue;applied++;}
-    if(!inv.notes&&s.notes&&s.notes.trim()){inv.notes=s.notes;applied++;}
     if(s.cleanedName&&s.cleanedName.trim()&&s.cleanedName!==inv.name){inv.name=s.cleanedName;applied++;}
+
+    // Notes: write base note if empty, then append/update keywords
+    if(!inv.notes&&s.notes&&s.notes.trim()){inv.notes=s.notes;applied++;}
+
+    // Keywords — append or replace keyword block
+    if(s.keywords&&s.keywords.trim()){
+      const kwTag='| keywords:';
+      const base=inv.notes?inv.notes.replace(/\s*\|\s*keywords:.*$/i,'').trim():(s.notes||'').trim();
+      const newNote=(base?base+' ':'')+kwTag+' '+s.keywords.trim();
+      if(newNote!==inv.notes){inv.notes=newNote;applied++;}
+    }
   });
   save();render();
   closeBulkEnrich();
@@ -4187,7 +4206,15 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
     if(!text || text === '--') return;
     clearTimeout(hideTimer);
     currentTd = td;
-    popup.textContent = text;
+    // Split note and keywords for popup display
+    const kwIdx = text.toLowerCase().indexOf('| keywords:');
+    if(kwIdx !== -1){
+      const base = text.slice(0, kwIdx).trim();
+      const kw = text.slice(kwIdx + 11).trim();
+      popup.innerHTML = `<div style="margin-bottom:6px">${base||'—'}</div><div style="font-size:9px;opacity:0.55;letter-spacing:0.03em">🏷 ${kw}</div>`;
+    } else {
+      popup.textContent = text;
+    }
     positionPopup(e);
     popup.classList.add('visible');
   });
