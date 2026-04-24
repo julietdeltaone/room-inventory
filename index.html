@@ -1573,22 +1573,6 @@ async function claudeSuggest(){
   inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
   const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
 
-  const prompt=`You are helping categorize and score an item in a personal inventory system.
-
-Item name: "${name}"
-User's top categories: ${topCats}
-Available categories: Electronics, Cables & Charging, Camera/Photo Gear, Military, Firearms & Ammo, Clothing, Footwear, Accessories, Tools & Hardware, Office Supplies, Bags & Carry, Personal Care & Grooming, Health & Supplements, Cleaning & Home, Furniture, Identity Documents, Legal Documents, Vehicle Documents, Military Documents, Financial Documents, Books & Notebooks, Gym & Fitness, Automotive, Misc
-
-Respond ONLY with a JSON object, no markdown, no explanation outside the JSON:
-{
-  "category": "most likely category from the list above",
-  "frequency": "Daily|Weekly|Monthly|Rarely|Never",
-  "criticality": "Essential|Important|Nice to Have|Redundant",
-  "replaceability": "Irreplaceable|Hard/Expensive|Moderate|Easy/Cheap",
-  "keep": "Keep|Maybe|Donate|Trash",
-  "notes": "one short suggested note or tag if relevant, else empty string",
-  "reasoning": "one sentence explaining your category and scoring choices"
-}`;
 
   if(!SUPABASE_ENABLED){toast('Supabase required for AI suggest');btn.classList.remove('loading');lbl.textContent='✦ Suggest fields with AI';return;}
 
@@ -2998,7 +2982,7 @@ async function runBulkEnrich(){
   inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
   const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
 
-  const BATCH=5;
+  const BATCH=2;
   let done=0;
   _enrichResults=[];
 
@@ -3017,7 +3001,7 @@ async function runBulkEnrich(){
         const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
           method:'POST',
           headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-          body:JSON.stringify({name:item.name,topCats}),
+          body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
         });
         if(!res.ok)throw new Error(await res.text());
         const s=await res.json();
@@ -3059,7 +3043,7 @@ function showEnrichPreview(){
 
   body.innerHTML=`<table style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:10px;">
     <thead><tr style="border-bottom:1px solid var(--border);color:var(--text-dim);background:var(--s2);">
-      <th style="padding:6px 8px;text-align:left;">Name</th>
+      <th style="padding:6px 8px;text-align:left;">Current Name → Cleaned</th>
       <th style="padding:6px 8px;text-align:center;">Freq</th>
       <th style="padding:6px 8px;text-align:center;">Crit</th>
       <th style="padding:6px 8px;text-align:center;">Repl</th>
@@ -3073,7 +3057,7 @@ function showEnrichPreview(){
         ?`<td style="padding:5px 8px;text-align:center;color:var(--text-dim)">${esc(cur)}</td>`
         :`<td style="padding:5px 8px;text-align:center;color:var(--rose)">${esc(sug||'—')}</td>`;
       return`<tr style="border-bottom:1px solid var(--border)" title="${esc(s.reasoning||'')}">
-        <td style="padding:5px 8px;color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.name)}</td>
+        <td style="padding:5px 8px;color:var(--text);max-width:200px">${esc(i.name)}${s.cleanedName&&s.cleanedName!==i.name?`<div style="color:var(--rose);font-size:9px;margin-top:2px">→ ${esc(s.cleanedName)}</div>`:''}</td>
         ${td(i.frequency,s.frequency)}
         ${td(i.criticality,s.criticality)}
         ${td(i.replaceability,s.replaceability)}
@@ -3100,11 +3084,13 @@ function applyEnrichResults(){
   _enrichResults.forEach(({item,suggestion:s})=>{
     const inv=inventory.find(i=>i.id===item.id);
     if(!inv)return;
-    if(!inv.frequency&&s.frequency)  {inv.frequency=s.frequency;applied++;}
+    if(!inv.frequency&&s.frequency)    {inv.frequency=s.frequency;applied++;}
     if(!inv.criticality&&s.criticality){inv.criticality=s.criticality;applied++;}
     if(!inv.replaceability&&s.replaceability){inv.replaceability=s.replaceability;applied++;}
-    if(!inv.keep&&s.keep)            {inv.keep=s.keep;applied++;}
+    if(!inv.keep&&s.keep)              {inv.keep=s.keep;applied++;}
     if(!inv.estValue&&s.estimatedValue){inv.estValue=s.estimatedValue;applied++;}
+    if(!inv.notes&&s.notes&&s.notes.trim()){inv.notes=s.notes;applied++;}
+    if(s.cleanedName&&s.cleanedName.trim()&&s.cleanedName!==inv.name){inv.name=s.cleanedName;applied++;}
   });
   save();render();
   closeBulkEnrich();
