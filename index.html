@@ -4097,8 +4097,8 @@ document.getElementById('search-input').addEventListener('input', () => renderTa
 // depth 0 = top parents, depth 1 = children, depth 2 = grandchildren, etc.
 const DEPTH_HUES = [200, 160, 45, 280, 20, 320, 90, 260]; // one hue per depth level
 
-function getDepthHue(pathKey) {
-  const depth = pathKey.split(' > ').length - 1;
+function getDepthHue(pk) {
+  const depth = pk.split('::').length - 1;
   return DEPTH_HUES[depth % DEPTH_HUES.length];
 }
 function hueToColor(hue, alpha = 1) {
