@@ -967,7 +967,8 @@ tbody tr:hover .row-actions { opacity: 1; }
         <button class="ur-btn" id="undo-btn" onclick="undo()" disabled title="Ctrl+Z">↩</button>
         <button class="ur-btn" id="redo-btn" onclick="redo()" disabled title="Ctrl+Y">↪</button>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
+      <button class="btn btn-ghost btn-sm" onclick="openBulkEnrich()">Enrich</button>
+<button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">CSV</button>
       <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
       <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
@@ -1400,6 +1401,22 @@ CSV FORMAT:
       <button class="btn btn-primary btn-sm" onclick="dupeSubmit(false)">Add + Close</button>
       <button class="btn btn-steel btn-sm" onclick="dupeSubmit(true)">Add + Another</button>
       <button class="btn btn-ghost btn-sm" onclick="closeDupeAdd()" style="margin-left:auto">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BULK ENRICH ══ -->
+<div class="modal-overlay" id="enrich-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Bulk Enrich — Items Missing Scoring</div>
+      <button class="modal-close" onclick="closeBulkEnrich()">✕</button>
+    </div>
+    <div class="modal-body" id="enrich-body" style="min-height:300px"></div>
+   <div class="modal-footer" id="enrich-footer-btns" style="display:none">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)" id="enrich-count"></span>
+      <button class="btn btn-ghost btn-sm" onclick="closeBulkEnrich()" style="margin-left:auto">Close</button>
+      <button class="btn btn-primary btn-sm" onclick="runBulkEnrich()">✦ Run Enrich</button>
     </div>
   </div>
 </div>
@@ -2925,6 +2942,175 @@ function addChildLocModal(parentPath){
   row.insertAdjacentElement('afterend',wrap);
   inp.focus();
 }
+// ─── BULK ENRICH ─────────────────────────────────────────────────────────────
+let _enrichResults=[];
+
+function openBulkEnrich(){
+  _enrichResults=[];
+  const missing=inventory.filter(i=>!i.frequency||!i.criticality||!i.replaceability||!i.estValue);
+  const body=document.getElementById('enrich-body');
+  const countEl=document.getElementById('enrich-count');
+  const footer=document.getElementById('enrich-footer-btns');
+  countEl.textContent=`${missing.length} items need enrichment`;
+  if(footer)footer.style.display='none';
+  if(!missing.length){
+    body.innerHTML='<div style="padding:40px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">All items are fully scored ✓</div>';
+  } else {
+    body.innerHTML=`<table style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:10px;">
+      <thead><tr style="border-bottom:1px solid var(--border);color:var(--text-dim);">
+        <th style="padding:6px 8px;text-align:left;">Name</th>
+        <th style="padding:6px 8px;text-align:left;">Location</th>
+        <th style="padding:6px 8px;text-align:center;">Freq</th>
+        <th style="padding:6px 8px;text-align:center;">Crit</th>
+        <th style="padding:6px 8px;text-align:center;">Repl</th>
+        <th style="padding:6px 8px;text-align:center;">Est $</th>
+      </tr></thead>
+      <tbody>${missing.map(i=>`<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:6px 8px;color:var(--text)">${esc(i.name)}</td>
+        <td style="padding:6px 8px;color:var(--text-dim)">${esc(pathToString(i.locationPath||[]))}</td>
+        <td style="padding:6px 8px;text-align:center">${i.frequency?'✓':'<span style="color:var(--red)">✗</span>'}</td>
+        <td style="padding:6px 8px;text-align:center">${i.criticality?'✓':'<span style="color:var(--red)">✗</span>'}</td>
+        <td style="padding:6px 8px;text-align:center">${i.replaceability?'✓':'<span style="color:var(--red)">✗</span>'}</td>
+        <td style="padding:6px 8px;text-align:center">${i.estValue?'✓':'<span style="color:var(--red)">✗</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+    if(footer)footer.style.display='flex';
+  }
+  document.getElementById('enrich-overlay').classList.add('open');
+}
+
+function closeBulkEnrich(){
+  document.getElementById('enrich-overlay').classList.remove('open');
+  _enrichResults=[];
+}
+
+async function runBulkEnrich(){
+  if(!SUPABASE_ENABLED){toast('Supabase required for AI enrich');return;}
+  const missing=inventory.filter(i=>!i.frequency||!i.criticality||!i.replaceability||!i.estValue);
+  if(!missing.length){toast('Nothing to enrich');return;}
+
+  const body=document.getElementById('enrich-body');
+  const countEl=document.getElementById('enrich-count');
+  const footer=document.getElementById('enrich-footer-btns');
+  if(footer)footer.style.display='none';
+
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  const BATCH=5;
+  let done=0;
+  _enrichResults=[];
+
+  body.innerHTML=`<div style="padding:20px 16px">
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-bottom:10px" id="enrich-progress-label">Starting…</div>
+    <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:16px">
+      <div id="enrich-progress-bar" style="height:100%;background:var(--rose);width:0%;transition:width 0.3s;border-radius:2px"></div>
+    </div>
+    <div id="enrich-log" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);line-height:2;max-height:300px;overflow-y:auto"></div>
+  </div>`;
+
+  for(let i=0;i<missing.length;i+=BATCH){
+    const chunk=missing.slice(i,i+BATCH);
+    const promises=chunk.map(async item=>{
+      try{
+        const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+          method:'POST',
+          headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+          body:JSON.stringify({name:item.name,topCats}),
+        });
+        if(!res.ok)throw new Error(await res.text());
+        const s=await res.json();
+        return{item,suggestion:s};
+      }catch(e){
+        return{item,error:e.message};
+      }
+    });
+
+    const results=await Promise.all(promises);
+    results.forEach(r=>{
+      done++;
+      const pct=Math.round(done/missing.length*100);
+      const bar=document.getElementById('enrich-progress-bar');
+      const lbl=document.getElementById('enrich-progress-label');
+      const log=document.getElementById('enrich-log');
+      if(bar)bar.style.width=pct+'%';
+      if(lbl)lbl.textContent=`${done} / ${missing.length} processed…`;
+      if(r.error){
+        if(log)log.innerHTML+=`<div style="color:var(--red)">✗ ${esc(r.item.name)} — error</div>`;
+      } else {
+        _enrichResults.push(r);
+        if(log)log.innerHTML+=`<div><span style="color:var(--green)">✓</span> ${esc(r.item.name)}</div>`;
+        if(log)log.scrollTop=log.scrollHeight;
+      }
+    });
+  }
+
+  // Show preview table
+  showEnrichPreview();
+}
+
+function showEnrichPreview(){
+  if(!_enrichResults.length){toast('No suggestions returned');return;}
+  const body=document.getElementById('enrich-body');
+  const countEl=document.getElementById('enrich-count');
+  const footer=document.getElementById('enrich-footer-btns');
+  countEl.textContent=`${_enrichResults.length} suggestions ready — review and apply`;
+
+  body.innerHTML=`<table style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:10px;">
+    <thead><tr style="border-bottom:1px solid var(--border);color:var(--text-dim);background:var(--s2);">
+      <th style="padding:6px 8px;text-align:left;">Name</th>
+      <th style="padding:6px 8px;text-align:center;">Freq</th>
+      <th style="padding:6px 8px;text-align:center;">Crit</th>
+      <th style="padding:6px 8px;text-align:center;">Repl</th>
+      <th style="padding:6px 8px;text-align:center;">Keep</th>
+      <th style="padding:6px 8px;text-align:center;">Est $</th>
+    </tr></thead>
+    <tbody>${_enrichResults.map((r,idx)=>{
+      const s=r.suggestion;
+      const i=r.item;
+      const td=(cur,sug)=>cur
+        ?`<td style="padding:5px 8px;text-align:center;color:var(--text-dim)">${esc(cur)}</td>`
+        :`<td style="padding:5px 8px;text-align:center;color:var(--rose)">${esc(sug||'—')}</td>`;
+      return`<tr style="border-bottom:1px solid var(--border)" title="${esc(s.reasoning||'')}">
+        <td style="padding:5px 8px;color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.name)}</td>
+        ${td(i.frequency,s.frequency)}
+        ${td(i.criticality,s.criticality)}
+        ${td(i.replaceability,s.replaceability)}
+        ${td(i.keep,s.keep)}
+        ${td(i.estValue,s.estimatedValue)}
+      </tr>`;
+    }).join('')}</tbody>
+  </table>
+  <div style="padding:8px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Rose = AI suggestion for missing field · Grey = existing value kept · Hover row for reasoning</div>`;
+
+  if(footer){
+    footer.style.display='flex';
+    footer.innerHTML=`
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)" id="enrich-count">${_enrichResults.length} suggestions ready</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeBulkEnrich()" style="margin-left:auto">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="applyEnrichResults()">Apply All →</button>`;
+  }
+}
+
+function applyEnrichResults(){
+  if(!_enrichResults.length)return;
+  snapshot();
+  let applied=0;
+  _enrichResults.forEach(({item,suggestion:s})=>{
+    const inv=inventory.find(i=>i.id===item.id);
+    if(!inv)return;
+    if(!inv.frequency&&s.frequency)  {inv.frequency=s.frequency;applied++;}
+    if(!inv.criticality&&s.criticality){inv.criticality=s.criticality;applied++;}
+    if(!inv.replaceability&&s.replaceability){inv.replaceability=s.replaceability;applied++;}
+    if(!inv.keep&&s.keep)            {inv.keep=s.keep;applied++;}
+    if(!inv.estValue&&s.estimatedValue){inv.estValue=s.estimatedValue;applied++;}
+  });
+  save();render();
+  closeBulkEnrich();
+  toast(`Enrich complete — ${applied} fields updated across ${_enrichResults.length} items`);
+}
+
 function addTopLevelLoc(){
   const name=document.getElementById('new-loc-input').value.trim();if(!name)return;
   document.getElementById('new-loc-input').value='';
