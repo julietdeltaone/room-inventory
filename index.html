@@ -847,7 +847,55 @@ tbody tr:hover .row-actions { opacity: 1; }
 .merge-custom-input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 3px 6px; color: var(--text); font-family: var(--font-mono); font-size: 10px; outline: none; width: 100%; }
 .merge-custom-input:focus { border-color: var(--rose); }
 
-/* ── TOAST ── */
+.row-btn.insp-btn { color: var(--text-mid); border-color: var(--border2); }
+.row-btn.insp-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+/* ── INSPECTOR POPOVER ── */
+.inspector-overlay { display:none; position:fixed; inset:0; z-index:450; }
+.inspector-overlay.open { display:block; }
+.inspector-pop {
+  position:absolute;
+  width:340px;
+  background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.6);
+  overflow:hidden;
+  font-family:var(--font-sans);
+}
+.insp-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:1px solid var(--border);
+}
+.insp-title { font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin-right:8px; }
+.insp-close { background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;line-height:1;padding:2px; }
+.insp-close:hover { color:var(--text); }
+.insp-body { padding:12px 14px;max-height:440px;overflow-y:auto; }
+.insp-section { margin-bottom:14px; }
+.insp-section:last-child { margin-bottom:0; }
+.insp-label { font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px; }
+.insp-date-row { display:flex;gap:16px;margin-bottom:4px; }
+.insp-date { font-family:var(--font-mono);font-size:10px;color:var(--text-mid); }
+.insp-date span { color:var(--text-dim);margin-right:4px; }
+.insp-log { display:flex;flex-direction:column;gap:3px; }
+.insp-log-entry {
+  display:grid;grid-template-columns:70px 1fr;gap:6px;
+  font-family:var(--font-mono);font-size:9px;padding:4px 6px;
+  background:var(--s3);border-radius:3px;align-items:start;
+}
+.insp-log-time { color:var(--text-dim); }
+.insp-log-change { color:var(--text-mid);line-height:1.5; }
+.insp-log-field { color:var(--rose);margin-right:3px; }
+.insp-empty { font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-style:italic; }
+.insp-keywords {
+  font-family:var(--font-mono);font-size:10px;color:var(--text-mid);
+  line-height:1.8;word-break:break-word;
+}
+.insp-kw-tag {
+  display:inline-block;padding:1px 6px;margin:2px 2px 0;
+  background:var(--s3);border:1px solid var(--border2);border-radius:2px;
+  font-size:9px;color:var(--text-mid);
+}
 .toast {
   position: fixed; bottom: 16px; right: 16px;
   background: var(--s2); border: 1px solid var(--border2);
@@ -1382,6 +1430,17 @@ CSV FORMAT:
 
 <!-- Notes popup -->
 <div class="notes-popup" id="notes-popup"></div>
+
+<!-- Inspector popover -->
+<div class="inspector-overlay" id="inspector-overlay" onclick="closeInspector(event)">
+  <div class="inspector-pop" id="inspector-pop">
+    <div class="insp-header">
+      <div class="insp-title" id="insp-title"></div>
+      <button class="insp-close" onclick="closeInspector()">×</button>
+    </div>
+    <div class="insp-body" id="insp-body"></div>
+  </div>
+</div>
 
 <!-- ══ MOBILE LAYOUT ══ -->
 <div id="mobile-app" style="display:none;">
@@ -1960,6 +2019,9 @@ function itemToRow(item) {
     notes: item.notes || '',
     misplaced: item.misplaced ? true : false,
     last_modified: new Date().toISOString(),
+    keywords: item.keywords || '',
+    change_log: item.changeLog ? JSON.stringify(item.changeLog) : '[]',
+    created_at: item.createdAt || null,
   };
 }
 
@@ -1969,7 +2031,7 @@ function rowToItem(row) {
     name: row.name,
     sn: row.sn,
     category: row.category,
-    location: row.location,        // migrateItem will parse this into locationPath
+    location: row.location,
     docType: row.doc_type,
     digitalCopy: row.digital_copy,
     fillLevel: row.fill_level,
@@ -1984,6 +2046,10 @@ function rowToItem(row) {
     estValue: row.est_value,
     notes: row.notes,
     misplaced: row.misplaced,
+    keywords: row.keywords || '',
+    changeLog: row.change_log ? (typeof row.change_log === 'string' ? JSON.parse(row.change_log) : row.change_log) : [],
+    createdAt: row.created_at || null,
+    lastModified: row.last_modified || null,
   });
 }
 
@@ -2594,16 +2660,14 @@ function buildRow(item,dupMap){
     ${etd('fillLevel',item.fillLevel?`<span class="fill-badge fill-${item.fillLevel.toLowerCase().replace('/','')}">${esc(item.fillLevel)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
     ${etd('notes',(()=>{
       const raw=notes||item.notes||'';
-      if(!raw)return'<span style="color:var(--text-dim);font-size:10px">--</span>';
-      const kwIdx=raw.toLowerCase().indexOf('| keywords:');
-      if(kwIdx===-1)return`<span class="notes-plain" data-full-note="${esc(raw)}">${esc(raw)}</span>`;
-      const base=raw.slice(0,kwIdx).trim();
-      const kw=raw.slice(kwIdx+11).trim();
-      return`<span class="notes-plain" data-full-note="${esc(raw)}">${base?esc(base):'—'}</span><span class="notes-keywords" title="${esc(kw)}">🏷 ${esc(kw)}</span>`;
+      // Strip any legacy keywords from notes display
+      const clean=raw.replace(/\s*\|\s*keywords:.*$/i,'').trim();
+      if(!clean)return'<span style="color:var(--text-dim);font-size:10px">--</span>';
+      return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)}</span>`;
     })())}
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
-    <td data-col="actions"><div class="row-actions"><button class="row-btn qs-btn" onclick="openQS(${item.id},event)" title="Quick Score">S</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
+    <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn qs-btn" onclick="openQS(${item.id},event)" title="Quick Score">S</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
   return tr;
 }
 
@@ -2715,6 +2779,27 @@ function navigateCell(itemId,currentField,dir){
   if(nextTd)startInlineEdit(parseInt(nextTd.dataset.id),nextTd.dataset.field,nextTd);
 }
 
+function logChange(item, field, oldVal, newVal) {
+  if(oldVal === newVal) return;
+  if(!item.changeLog) item.changeLog = [];
+  const FIELD_LABELS = {
+    name:'Name', category:'Category', frequency:'Frequency', criticality:'Criticality',
+    replaceability:'Replaceability', condition:'Condition', keep:'Keep', qty:'Qty',
+    estValue:'Est. Value', yearPurchased:'Year', lastUsed:'Last Used', notes:'Notes',
+    fillLevel:'Fill', docType:'Doc Type', _loc:'Location',
+  };
+  item.changeLog.unshift({
+    field: FIELD_LABELS[field] || field,
+    from: oldVal || '—',
+    to: newVal || '—',
+    at: new Date().toISOString(),
+  });
+  // Keep last 50 changes
+  if(item.changeLog.length > 50) item.changeLog = item.changeLog.slice(0, 50);
+  // Set createdAt on first save if not set
+  if(!item.createdAt) item.createdAt = new Date().toISOString();
+}
+
 function commitInlineEdit(doRender=true){
   if(!editingCell)return;
   const{id,field,tdEl}=editingCell;
@@ -2727,13 +2812,22 @@ function commitInlineEdit(doRender=true){
     if(field==='_loc'){
       const newPath=stringToPath(val);
       if(pathToString(newPath)!==pathToString(item.locationPath||[])){
-        snapshot();item.locationPath=newPath;save();
+        const oldVal=pathToString(item.locationPath||[]);
+        snapshot();item.locationPath=newPath;
+        logChange(item,'_loc',oldVal,val);
+        save();
       }
     } else if(field==='notes'){
       const{sn,notes}=parseNotes(val);
-      if(notes!==item.notes||sn!==item.sn){snapshot();item.sn=sn||item.sn;item.notes=notes;save();}
+      if(notes!==item.notes||sn!==item.sn){
+        logChange(item,'notes',item.notes,notes);
+        snapshot();item.sn=sn||item.sn;item.notes=notes;save();
+      }
     } else {
-      if(item[field]!==val){snapshot();item[field]=val;save();}
+      if(item[field]!==val){
+        logChange(item,field,item[field],val);
+        snapshot();item[field]=val;save();
+      }
     }
   }
   editingCell=null;
@@ -2788,8 +2882,8 @@ function bulkDelete(){
 }
 
 // ─── ITEM ACTIONS ─────────────────────────────────────────────────────────────
-function adjustQty(id,delta){const item=inventory.find(i=>i.id===id);if(!item)return;snapshot();item.qty=String(Math.max(1,(parseInt(item.qty)||1)+delta));save();renderTable();}
-function toggleDigital(id){const item=inventory.find(i=>i.id===id);if(!item)return;snapshot();item.digitalCopy=!item.digitalCopy;save();render();toast(item.digitalCopy?'Marked as digitized':'Digital copy removed');}
+function adjustQty(id,delta){const item=inventory.find(i=>i.id===id);if(!item)return;const oldQty=item.qty;snapshot();item.qty=String(Math.max(1,(parseInt(item.qty)||1)+delta));logChange(item,'qty',oldQty,item.qty);save();renderTable();}
+function toggleDigital(id){const item=inventory.find(i=>i.id===id);if(!item)return;snapshot();const old=item.digitalCopy;item.digitalCopy=!item.digitalCopy;logChange(item,'Digital Copy',old?'Yes':'No',item.digitalCopy?'Yes':'No');save();render();toast(item.digitalCopy?'Marked as digitized':'Digital copy removed');}
 
 function bulkSetDigital(val){
   const count=selectedIds.size;if(!count)return;
@@ -3366,12 +3460,10 @@ function applyEnrichResults(){
     // Notes: write base note if empty, then append/update keywords
     if(!inv.notes&&s.notes&&s.notes.trim()){inv.notes=s.notes;applied++;}
 
-    // Keywords — append or replace keyword block
+    // Keywords — write to dedicated keywords field, keep notes clean
     if(s.keywords&&s.keywords.trim()){
-      const kwTag='| keywords:';
-      const base=inv.notes?inv.notes.replace(/\s*\|\s*keywords:.*$/i,'').trim():(s.notes||'').trim();
-      const newNote=(base?base+' ':'')+kwTag+' '+s.keywords.trim();
-      if(newNote!==inv.notes){inv.notes=newNote;applied++;}
+      inv.keywords = s.keywords.trim();
+      applied++;
     }
   });
   save();render();
@@ -3464,12 +3556,10 @@ async function runKeywordsEnrich(){
       if(r.error){
         if(log) log.innerHTML += `<div style="color:var(--red)">✗ ${esc(r.item.name)}</div>`;
       } else if(r.keywords && r.keywords.trim()){
-        // Apply keywords immediately
+        // Write to dedicated keywords field
         const inv = inventory.find(x => x.id === r.item.id);
         if(inv){
-          const kwTag = '| keywords:';
-          const base = (inv.notes||'').replace(/\s*\|\s*keywords:.*$/i,'').trim();
-          inv.notes = (base ? base + ' ' : '') + kwTag + ' ' + r.keywords.trim();
+          inv.keywords = r.keywords.trim();
           applied++;
         }
         if(log) log.innerHTML += `<div><span style="color:var(--green)">✓</span> ${esc(r.item.name)}</div>`;
@@ -4276,6 +4366,77 @@ function skipMigration() {
 }
 
 document.getElementById('search-input').addEventListener('input', () => renderTable());
+
+// ─── INSPECTOR ────────────────────────────────────────────────────────────────
+function openInspector(id, e){
+  e && e.stopPropagation();
+  const item = inventory.find(i=>i.id===id);
+  if(!item) return;
+
+  const overlay = document.getElementById('inspector-overlay');
+  const pop = document.getElementById('inspector-pop');
+  const title = document.getElementById('insp-title');
+  const body = document.getElementById('insp-body');
+
+  title.textContent = item.name;
+
+  // Dates
+  const fmt = iso => {
+    if(!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  };
+
+  // Keywords — extracted from notes or keywords field
+  const kwField = item.keywords || '';
+  const kwFromNotes = (item.notes||'').match(/\|\s*keywords:\s*(.+)$/i)?.[1]?.trim() || '';
+  const allKw = kwField || kwFromNotes;
+  const kwTags = allKw ? allKw.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span class="insp-kw-tag">${esc(k)}</span>`).join('') : '';
+
+  // Change log
+  const log = item.changeLog || [];
+  const logHTML = log.length ? log.map(entry => {
+    const d = new Date(entry.at);
+    const time = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return `<div class="insp-log-entry">
+      <span class="insp-log-time">${time}</span>
+      <span class="insp-log-change"><span class="insp-log-field">${esc(entry.field)}</span>${esc(entry.from)} → ${esc(entry.to)}</span>
+    </div>`;
+  }).join('') : '<div class="insp-empty">No changes recorded yet</div>';
+
+  body.innerHTML = `
+    <div class="insp-section">
+      <div class="insp-label">Dates</div>
+      <div class="insp-date"><span>Created</span>${fmt(item.createdAt)}</div>
+      <div class="insp-date"><span>Modified</span>${fmt(item.lastModified)}</div>
+    </div>
+    ${allKw ? `<div class="insp-section">
+      <div class="insp-label">Keywords</div>
+      <div>${kwTags}</div>
+    </div>` : ''}
+    <div class="insp-section">
+      <div class="insp-label">Change History</div>
+      <div class="insp-log">${logHTML}</div>
+    </div>`;
+
+  // Position near the button
+  overlay.classList.add('open');
+  if(e){
+    const rect = e.target.getBoundingClientRect();
+    let top = rect.bottom + 6;
+    let left = rect.right - 340;
+    if(left < 8) left = 8;
+    if(top + 480 > window.innerHeight) top = rect.top - 480;
+    if(top < 8) top = 8;
+    pop.style.top = top + 'px';
+    pop.style.left = left + 'px';
+  }
+}
+
+function closeInspector(e){
+  if(e && document.getElementById('inspector-pop').contains(e.target)) return;
+  document.getElementById('inspector-overlay').classList.remove('open');
+}
 
 // ─── SIDEBAR RESIZER ──────────────────────────────────────────────────────────
 (function(){
