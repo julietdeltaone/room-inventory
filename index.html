@@ -683,6 +683,20 @@ tbody tr:hover .row-actions { opacity: 1; }
 .row-btn.delete:hover { border-color: var(--red); color: var(--red); }
 .row-btn.qs-btn { color: var(--steel); border-color: rgba(123,143,168,0.25); }
 .row-btn.qs-btn:hover { border-color: var(--steel); background: var(--steel-dim); }
+.row-btn.enrich-btn { color: var(--steel); border-color: rgba(123,143,168,0.25); }
+.row-btn.enrich-btn:hover { border-color: var(--steel); background: var(--steel-dim); }
+
+/* ── ENRICH LEVEL POPOVER ── */
+.el-overlay { display:none; position:fixed; inset:0; z-index:300; }
+.el-overlay.open { display:block; }
+.el-popover { position:absolute; background:var(--s2); border:1px solid var(--border2); border-radius:6px; padding:12px; width:230px; z-index:301; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+.el-title { font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--steel); margin-bottom:10px; font-weight:500; }
+.el-levels { display:flex; flex-direction:column; gap:3px; }
+.el-level-btn { display:flex; align-items:flex-start; gap:8px; padding:7px 10px; background:var(--s3); border:1px solid var(--border); border-radius:4px; cursor:pointer; transition:all 0.12s; text-align:left; width:100%; }
+.el-level-btn:hover { border-color:var(--steel); background:var(--steel-dim); }
+.el-level-num { font-family:var(--font-mono); font-size:11px; font-weight:500; color:var(--steel); min-width:14px; margin-top:1px; }
+.el-level-desc { font-family:var(--font-sans); font-size:10px; color:var(--text-mid); line-height:1.4; }
+.el-level-btn:hover .el-level-desc { color:var(--text); }
 
 .dup-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; cursor: pointer; margin-right: 3px; flex-shrink: 0; vertical-align: middle; border: 1px solid transparent; transition: transform 0.1s; }
 .dup-dot:hover { transform: scale(1.4); }
@@ -705,19 +719,6 @@ tbody tr:hover .row-actions { opacity: 1; }
 
 .empty-state { padding: 40px 20px; text-align: center; color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; }
 .empty-icon { font-size: 18px; margin-bottom: 8px; }
-
-/* ── QUICK SCORE ── */
-.qs-overlay { display: none; position: fixed; inset: 0; z-index: 300; }
-.qs-overlay.open { display: block; }
-.qs-popover { position: absolute; background: var(--s2); border: 1px solid var(--border2); border-radius: 6px; padding: 13px; width: 250px; z-index: 301; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-.qs-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--steel); margin-bottom: 9px; font-weight: 500; }
-.qs-field { margin-bottom: 6px; }
-.qs-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 3px; }
-.qs-select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 7px; color: var(--text); font-family: var(--font-mono); font-size: 11px; outline: none; }
-.qs-select:focus { border-color: var(--rose); }
-.qs-select option { background: var(--s2); }
-.qs-actions { display: flex; gap: 6px; margin-top: 9px; }
-.qs-score-preview { font-family: var(--font-mono); font-size: 20px; font-weight: 500; text-align: center; margin: 7px 0; padding: 5px; background: var(--bg); border-radius: var(--radius); }
 
 /* ── MODALS ── */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 500; align-items: center; justify-content: center; }
@@ -1338,8 +1339,14 @@ CSV FORMAT:
         <div class="bulk-group" style="margin-left:4px">
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(true)">Flag</button>
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(false)">Unflag</button>
-          <button class="btn btn-ghost btn-xs" style="color:var(--steel)" onclick="enrichSelected()">✦ Enrich</button>
-          <button class="btn btn-ghost btn-xs" style="color:var(--steel)" onclick="keywordsSelected()">🏷 Keywords</button>
+          <select class="bulk-select" id="bulk-enrich-level" style="width:56px;font-size:10px">
+            <option value="1">L1</option>
+            <option value="2">L2</option>
+            <option value="3" selected>L3</option>
+            <option value="4">L4</option>
+            <option value="5">L5</option>
+          </select>
+          <button class="btn btn-ghost btn-xs" style="color:var(--steel)" onclick="enrichSelectedLevel()">✦ Enrich</button>
           <button class="btn btn-danger btn-xs" onclick="bulkDelete()">Del</button>
           <button class="btn btn-ghost btn-xs" onclick="clearSelection()">✕ Clear</button>
         </div>
@@ -1538,17 +1545,17 @@ CSV FORMAT:
   <button class="fab" onclick="openQuickAdd()">+</button>
 </div>
 
-<!-- ══ QUICK SCORE ══ -->
-<div class="qs-overlay" id="qs-overlay" onclick="closeQS(event)">
-  <div class="qs-popover" id="qs-popover">
-    <div class="qs-title">Quick Score</div>
-    <div class="qs-score-preview" id="qs-preview">--</div>
-    <div class="qs-field"><div class="qs-label">Frequency</div><select class="qs-select" id="qs-freq" onchange="updateQSPreview()"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Rarely</option><option>Never</option></select></div>
-    <div class="qs-field"><div class="qs-label">Criticality</div><select class="qs-select" id="qs-crit" onchange="updateQSPreview()"><option value="">--</option><option>Essential</option><option>Important</option><option>Nice to Have</option><option>Redundant</option></select></div>
-    <div class="qs-field"><div class="qs-label">Replaceability</div><select class="qs-select" id="qs-repl" onchange="updateQSPreview()"><option value="">--</option><option>Irreplaceable</option><option>Hard/Expensive</option><option>Moderate</option><option>Easy/Cheap</option></select></div>
-    <div class="qs-field"><div class="qs-label">Condition</div><select class="qs-select" id="qs-cond" onchange="updateQSPreview()"><option value="">--</option><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select></div>
-    <div class="qs-field"><div class="qs-label">Keep</div><select class="qs-select" id="qs-keep" onchange="updateQSPreview()"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select></div>
-    <div class="qs-actions"><button class="btn btn-primary btn-sm" style="flex:1" onclick="saveQS()">Save</button><button class="btn btn-ghost btn-sm" onclick="closeQS()">Cancel</button></div>
+<!-- ══ ENRICH LEVEL ══ -->
+<div class="el-overlay" id="el-overlay" onclick="closeEnrichLevel(event)">
+  <div class="el-popover" id="el-popover">
+    <div class="el-title">✦ Enrich — Select Level</div>
+    <div class="el-levels">
+      <button class="el-level-btn" onclick="runEnrichLevel(1)"><span class="el-level-num">1</span><span class="el-level-desc">Fill blanks only — safe, additive</span></button>
+      <button class="el-level-btn" onclick="runEnrichLevel(2)"><span class="el-level-num">2</span><span class="el-level-desc">Fill blanks + refresh keywords</span></button>
+      <button class="el-level-btn" onclick="runEnrichLevel(3)"><span class="el-level-num">3</span><span class="el-level-desc">Overwrite scoring fields + keywords</span></button>
+      <button class="el-level-btn" onclick="runEnrichLevel(4)"><span class="el-level-num">4</span><span class="el-level-desc">Overwrite scoring + clean name + keywords</span></button>
+      <button class="el-level-btn" onclick="runEnrichLevel(5)"><span class="el-level-num">5</span><span class="el-level-desc">Full overwrite — everything including notes, value, category</span></button>
+    </div>
   </div>
 </div>
 
@@ -2702,7 +2709,7 @@ function buildRow(item,dupMap){
     })())}
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
-    <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn qs-btn" onclick="openQS(${item.id},event)" title="Quick Score">S</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
+    <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
   return tr;
 }
 
@@ -2935,26 +2942,151 @@ function addBlankRow(){
 }
 
 // ─── QUICK SCORE ──────────────────────────────────────────────────────────────
-function openQS(id,e){
-  e.stopPropagation();qsItemId=id;const item=inventory.find(i=>i.id===id);if(!item)return;
-  ['freq','crit','repl','cond','keep'].forEach(k=>{const fm={freq:'frequency',crit:'criticality',repl:'replaceability',cond:'condition',keep:'keep'};document.getElementById('qs-'+k).value=item[fm[k]]||'';});
+// ─── ENRICH LEVEL ─────────────────────────────────────────────────────────────
+let _elItemId = null;
+
+function openEnrichLevel(id, e){
+  e.stopPropagation();
+  _elItemId = id;
+  const overlay = document.getElementById('el-overlay');
+  const pop = document.getElementById('el-popover');
+  overlay.classList.add('open');
+  const rect = e.target.getBoundingClientRect();
+  let top = rect.bottom + 4;
+  let left = rect.right - 230;
+  if(left < 8) left = 8;
+  if(top + 220 > window.innerHeight) top = rect.top - 222;
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+}
+
+function closeEnrichLevel(e){
+  if(e && document.getElementById('el-popover').contains(e.target)) return;
+  document.getElementById('el-overlay').classList.remove('open');
+  _elItemId = null;
+}
+
+async function runEnrichLevel(level){
+  document.getElementById('el-overlay').classList.remove('open');
+  const item = inventory.find(i=>i.id===_elItemId);
+  _elItemId = null;
+  if(!item) return;
+
+  toast(`Enriching "${item.name}" at Level ${level}…`);
+
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  try{
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+    });
+    if(!res.ok) throw new Error(await res.text());
+    const s = await res.json();
+
+    snapshot();
+
+    // L1 — fill blanks only
+    if(level>=1){
+      if(!item.frequency&&s.frequency)    item.frequency=s.frequency;
+      if(!item.criticality&&s.criticality)item.criticality=s.criticality;
+      if(!item.replaceability&&s.replaceability)item.replaceability=s.replaceability;
+      if(!item.keep&&s.keep)              item.keep=s.keep;
+      if(!item.estValue&&s.estimatedValue)item.estValue=s.estimatedValue;
+      if(!item.notes&&s.notes&&s.notes.trim())item.notes=s.notes;
+      if(!item.category&&s.category)      item.category=s.category;
+    }
+    // L2 — always refresh keywords
+    if(level>=2){
+      if(s.keywords&&s.keywords.trim())   item.keywords=s.keywords.trim();
+    }
+    // L3 — overwrite scoring fields + keywords
+    if(level>=3){
+      if(s.frequency)     item.frequency=s.frequency;
+      if(s.criticality)   item.criticality=s.criticality;
+      if(s.replaceability)item.replaceability=s.replaceability;
+      if(s.keep)          item.keep=s.keep;
+      if(s.keywords&&s.keywords.trim())item.keywords=s.keywords.trim();
+    }
+    // L4 — overwrite scoring + clean name + category
+    if(level>=4){
+      if(s.cleanedName&&s.cleanedName.trim())item.name=s.cleanedName.trim();
+      if(s.category)      item.category=s.category;
+    }
+    // L5 — full overwrite
+    if(level>=5){
+      if(s.estimatedValue)item.estValue=s.estimatedValue;
+      if(s.notes&&s.notes.trim())item.notes=s.notes.trim();
+    }
+
+    logChange(item,'Enrich','—',`Level ${level}`);
+    save();render();
+    toast(`✓ Level ${level} enrich done for "${item.name}"`);
+  }catch(err){
+    toast(`✗ Enrich failed: ${err.message}`);
+  }
+}
+
+async function enrichSelectedLevel(){
+  const level = parseInt(document.getElementById('bulk-enrich-level')?.value||'3');
+  const ids=[...selectedIds];
+  if(!ids.length){toast('No items selected');return;}
+  const items=inventory.filter(i=>ids.includes(i.id));
+  toast(`Enriching ${items.length} items at Level ${level}…`);
+
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  let done=0;
+  for(const item of items){
+    try{
+      const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+      });
+      if(!res.ok)continue;
+      const s=await res.json();
+      if(level>=1){
+        if(!item.frequency&&s.frequency)    item.frequency=s.frequency;
+        if(!item.criticality&&s.criticality)item.criticality=s.criticality;
+        if(!item.replaceability&&s.replaceability)item.replaceability=s.replaceability;
+        if(!item.keep&&s.keep)              item.keep=s.keep;
+        if(!item.estValue&&s.estimatedValue)item.estValue=s.estimatedValue;
+        if(!item.notes&&s.notes&&s.notes.trim())item.notes=s.notes;
+        if(!item.category&&s.category)      item.category=s.category;
+      }
+      if(level>=2&&s.keywords&&s.keywords.trim())item.keywords=s.keywords.trim();
+      if(level>=3){
+        if(s.frequency)     item.frequency=s.frequency;
+        if(s.criticality)   item.criticality=s.criticality;
+        if(s.replaceability)item.replaceability=s.replaceability;
+        if(s.keep)          item.keep=s.keep;
+        if(s.keywords&&s.keywords.trim())item.keywords=s.keywords.trim();
+      }
+      if(level>=4){
+        if(s.cleanedName&&s.cleanedName.trim())item.name=s.cleanedName.trim();
+        if(s.category)item.category=s.category;
+      }
+      if(level>=5){
+        if(s.estimatedValue)item.estValue=s.estimatedValue;
+        if(s.notes&&s.notes.trim())item.notes=s.notes.trim();
+      }
+      logChange(item,'Enrich','—',`Level ${level}`);
+      done++;
+    }catch(e){console.warn('Enrich failed for',item.name,e);}
+    await new Promise(r=>setTimeout(r,200));
+  }
+  snapshot();save();render();
+  toast(`✓ Level ${level} enrich done — ${done}/${items.length} items updated`);
+}  ['freq','crit','repl','cond','keep'].forEach(k=>{const fm={freq:'frequency',crit:'criticality',repl:'replaceability',cond:'condition',keep:'keep'};document.getElementById('qs-'+k).value=item[fm[k]]||'';});
   updateQSPreview();
   const pop=document.getElementById('qs-popover');const rect=e.target.getBoundingClientRect();
   pop.style.top=(rect.bottom+6)+'px';pop.style.left=Math.min(rect.left,window.innerWidth-270)+'px';
-  document.getElementById('qs-overlay').classList.add('open');
-}
-function updateQSPreview(){
-  const fake={frequency:document.getElementById('qs-freq').value,criticality:document.getElementById('qs-crit').value,replaceability:document.getElementById('qs-repl').value,condition:document.getElementById('qs-cond').value,keep:document.getElementById('qs-keep').value};
-  const s=calcScore(fake);const el=document.getElementById('qs-preview');el.textContent=s;el.style.color=scoreColor(s);
-}
-function saveQS(){
-  if(!qsItemId)return;const item=inventory.find(i=>i.id===qsItemId);if(!item)return;snapshot();
-  item.frequency=document.getElementById('qs-freq').value;item.criticality=document.getElementById('qs-crit').value;
-  item.replaceability=document.getElementById('qs-repl').value;item.condition=document.getElementById('qs-cond').value;item.keep=document.getElementById('qs-keep').value;
-  save();render();document.getElementById('qs-overlay').classList.remove('open');qsItemId=null;toast('Score saved');
-}
-function closeQS(e){if(!e||e.target===document.getElementById('qs-overlay')){document.getElementById('qs-overlay').classList.remove('open');qsItemId=null;}}
-
 // ─── QUICK ADD ────────────────────────────────────────────────────────────────
 let qaSuggestIndex=-1;
 
