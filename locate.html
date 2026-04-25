@@ -55,6 +55,11 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .sb-all.active{color:var(--text);border-color:var(--rose);background:rgba(176,122,132,0.08);}
 .sb-all-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
 .sb-all.active .sb-all-count{color:var(--rose);}
+.sb-inuse{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:5px;border:1px solid var(--border1);background:transparent;cursor:pointer;font-family:var(--font-ui);font-size:12px;color:var(--text-mid);gap:8px;margin-bottom:6px;transition:border-color 0.15s,background 0.15s;}
+.sb-inuse:hover{color:var(--text);border-color:var(--border2);background:var(--s1);}
+.sb-inuse.active{color:#4d8f6a;border-color:#4d8f6a80;background:rgba(77,143,106,0.08);}
+.sb-inuse-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.sb-inuse.active .sb-inuse-count{color:#4d8f6a;}
 
 .sb-row{
   display:flex;align-items:center;padding:7px 16px 7px 0;
@@ -178,6 +183,11 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .item-indicators{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .indicator-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-ui);font-size:9px;font-weight:500;padding:1px 6px;border-radius:2px;border:1px solid;letter-spacing:0.03em;white-space:nowrap;}
 .ind-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
+@keyframes inUsePulse {
+  0%,100% { box-shadow: 0 0 4px rgba(77,143,106,0.6); }
+  50%      { box-shadow: 0 0 10px rgba(77,143,106,0.9); }
+}
+.inuse-dot{width:6px;height:6px;border-radius:50%;background:#4d8f6a;flex-shrink:0;animation:inUsePulse 2s ease infinite;}
 
 /* ── SEARCH RESULTS ── */
 .search-view{min-height:100%;padding:44px 60px 80px;display:flex;flex-direction:column;align-items:center;animation:fadeUp 0.24s cubic-bezier(0.16,1,0.3,1) both;}
@@ -247,6 +257,10 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
         <span>All Items</span>
         <span class="sb-all-count" id="sb-all-count"></span>
       </div>
+      <div class="sb-inuse" id="sb-inuse" onclick="setInUseView()">
+        <span style="display:flex;align-items:center;gap:6px"><span class="inuse-dot" style="animation:none;box-shadow:0 0 5px rgba(77,143,106,0.7)"></span>In Use</span>
+        <span class="sb-inuse-count" id="sb-inuse-count">0</span>
+      </div>
       <div id="sb-tree"></div>
     </div>
     <div class="stage" id="stage">
@@ -259,7 +273,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 const SUPABASE_URL='https://npdtjxjhepaqhrqtvueu.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
 
-let inventory=[], currentPath=[], expandedSb=new Set(), searchQuery='';
+let inventory=[], currentPath=[], expandedSb=new Set(), searchQuery='', inUseView=false;
 // Path registry — maps numeric IDs to path arrays to avoid JSON-in-HTML issues
 const _paths={};let _pid=0;
 function regPath(arr){const id='p'+(++_pid);_paths[id]=arr;return id;}
@@ -313,6 +327,7 @@ function rowToItem(row){
     notes:row.notes,qty:row.qty,condition:row.condition,keep:row.keep,
     yearPurchased:row.year_purchased,estValue:row.est_value,
     fillLevel:row.fill_level,digitalCopy:row.digital_copy,
+    inUse:row.in_use?true:false,
     keywords:row.keywords||'',
     locationPath:stringToPath(row.location||'')};
 }
@@ -332,8 +347,11 @@ function buildTree(){
 // ── SIDEBAR ──────────────────────────────────────────────────────────────────
 function renderSidebar(){
   const tree=buildTree();
+  const inUseCount=inventory.filter(i=>i.inUse).length;
   document.getElementById('sb-all-count').textContent=tree.total;
-  document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery);
+  document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery&&!inUseView);
+  document.getElementById('sb-inuse-count').textContent=inUseCount;
+  document.getElementById('sb-inuse').classList.toggle('active',inUseView);
   const container=document.getElementById('sb-tree');container.innerHTML='';
   function rNode(children,parentPath,container,depth){
     Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
@@ -367,9 +385,16 @@ function renderSidebar(){
 
 // ── NAVIGATE ─────────────────────────────────────────────────────────────────
 function navigate(path){
-  currentPath=path;searchQuery='';
+  currentPath=path;searchQuery='';inUseView=false;
   document.getElementById('search-input').value='';
   for(let i=1;i<=path.length;i++)expandedSb.add(path.slice(0,i).join('::'));
+  renderSidebar();renderStage();
+  document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
+}
+
+function setInUseView(){
+  inUseView=true;currentPath=[];searchQuery='';
+  document.getElementById('search-input').value='';
   renderSidebar();renderStage();
   document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
 }
@@ -377,6 +402,22 @@ function navigate(path){
 // ── RENDER STAGE ─────────────────────────────────────────────────────────────
 function renderStage(){
   const stage=document.getElementById('stage');
+
+  // In Use mode
+  if(inUseView){
+    const items=inventory.filter(i=>i.inUse).sort((a,b)=>a.name.localeCompare(b.name));
+    const cards=items.map(item=>itemCardHTML(item)).join('');
+    stage.innerHTML=`<div class="view"><div class="view-inner">
+      <div class="loc-title-wrap">
+        <div class="loc-title" style="color:#4d8f6a;display:flex;align-items:center;gap:8px">
+          <span class="inuse-dot"></span>In Use
+        </div>
+        <div class="loc-subtitle"><span>${items.length} item${items.length!==1?'s':''} currently in use</span></div>
+      </div>
+      <div class="items-list">${cards||'<div style="color:var(--text-dim);font-size:13px;padding:24px 0">No items currently marked as in use.</div>'}</div>
+    </div></div>`;
+    return;
+  }
 
   // Search mode
   if(searchQuery){
@@ -514,6 +555,7 @@ function itemCardHTML(item){
   const fillInfo=item.fillLevel?fillMap[item.fillLevel]:null;
   const fillBadge=fillInfo?`<span class="indicator-badge" style="color:${fillInfo.color};border-color:${fillInfo.color}40"><span class="ind-dot" style="background:${fillInfo.color}"></span>${fillInfo.label}</span>`:'';
   const digitalBadge=item.digitalCopy?`<span class="indicator-badge" style="color:#6e8fa8;border-color:#6e8fa840"><span class="ind-dot" style="background:#6e8fa8"></span>Digital</span>`:'';
+  const inUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
 
   return`<div class="item-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
     <div class="item-row1">
@@ -525,7 +567,7 @@ function itemCardHTML(item){
     <div class="item-row2">
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text}">${esc(item.category)}</span>
       ${parts.length?`<div class="item-meta-inline">${parts.map(p=>`<span class="item-pill"><span class="pill-lbl">${p.l}</span>${esc(p.v)}</span>`).join('')}</div>`:''}
-      ${fillBadge||digitalBadge?`<div class="item-indicators">${fillBadge}${digitalBadge}</div>`:''}
+      ${fillBadge||digitalBadge||inUseBadge?`<div class="item-indicators">${inUseBadge}${fillBadge}${digitalBadge}</div>`:''}
       ${displayNote?`<span class="item-notes-inline">${esc(displayNote)}</span>`:''}
     </div>
   </div>`;
@@ -582,6 +624,7 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
   }
 
   const qty=item.qty&&item.qty!=='1'?`<span class="sr-qty">×${esc(item.qty)}</span>`:'';
+  const srInUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40;margin-left:4px"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
 
   return`<div class="sr-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
     <div class="sr-row1">
@@ -589,7 +632,7 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
         <span class="sr-name-primary">${highlight(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${highlight(secondary)}</span>`:''}
       </div>
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text};flex-shrink:0;align-self:center">${esc(item.category)}</span>
-      ${qty}
+      ${qty}${srInUseBadge}
     </div>
     ${locPath}
     ${kwIndicator}
@@ -598,7 +641,7 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
 
 // Search
 document.getElementById('search-input').addEventListener('input',e=>{
-  searchQuery=e.target.value.trim();renderSidebar();renderStage();
+  searchQuery=e.target.value.trim();inUseView=false;renderSidebar();renderStage();
   document.getElementById('stage').scrollTo({top:0});
 });
 
