@@ -3070,7 +3070,7 @@ async function runEnrichLevel(level){
     const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
       method:'POST',
       headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-      body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+      body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:buildItemContext(item)}),
     });
     if(!res.ok) throw new Error(await res.text());
     const s = await res.json();
@@ -3135,7 +3135,7 @@ async function enrichSelectedLevel(){
       const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
         method:'POST',
         headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:buildItemContext(item)}),
       });
       if(!res.ok)continue;
       const s=await res.json();
@@ -3620,7 +3620,7 @@ async function runBulkEnrich(){
         const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
           method:'POST',
           headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-          body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+          body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:buildItemContext(item)}),
         });
         if(!res.ok)throw new Error(await res.text());
         const s=await res.json();
@@ -3722,6 +3722,20 @@ function applyEnrichResults(){
   save();render();
   closeBulkEnrich();
   toast(`Enrich complete — ${applied} fields updated across ${_enrichResults.length} items`);
+}
+
+function buildItemContext(item){
+  return {
+    frequency:    item.frequency    || '',
+    criticality:  item.criticality  || '',
+    replaceability:item.replaceability||'',
+    condition:    item.condition    || '',
+    keep:         item.keep         || '',
+    location:     (item.locationPath||[]).join(' > '),
+    yearPurchased:item.yearPurchased || '',
+    estValue:     item.estValue     || '',
+    qty:          item.qty          || '1',
+  };
 }
 
 // ─── CUSTOM ENRICH ────────────────────────────────────────────────────────────
@@ -3899,7 +3913,7 @@ async function runCustomEnrich(){
         const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
           method:'POST',
           headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-          body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+          body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:buildItemContext(item)}),
         });
         if(!res.ok) throw new Error(`HTTP ${res.status}`);
         const s=await res.json();
@@ -4137,7 +4151,7 @@ async function enrichSelected(){
       const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
         method:'POST',
         headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:buildItemContext(item)}),
       });
       if(!res.ok)continue;
       const s=await res.json();
@@ -4172,7 +4186,7 @@ async function keywordsSelected(){
       const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
         method:'POST',
         headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
-        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+        body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:buildItemContext(item)}),
       });
       if(!res.ok)continue;
       const s=await res.json();
