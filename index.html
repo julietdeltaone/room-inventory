@@ -3083,10 +3083,8 @@ async function enrichSelectedLevel(){
   }
   snapshot();save();render();
   toast(`✓ Level ${level} enrich done — ${done}/${items.length} items updated`);
-}  ['freq','crit','repl','cond','keep'].forEach(k=>{const fm={freq:'frequency',crit:'criticality',repl:'replaceability',cond:'condition',keep:'keep'};document.getElementById('qs-'+k).value=item[fm[k]]||'';});
-  updateQSPreview();
-  const pop=document.getElementById('qs-popover');const rect=e.target.getBoundingClientRect();
-  pop.style.top=(rect.bottom+6)+'px';pop.style.left=Math.min(rect.left,window.innerWidth-270)+'px';
+}
+
 // ─── QUICK ADD ────────────────────────────────────────────────────────────────
 let qaSuggestIndex=-1;
 
