@@ -898,6 +898,26 @@ tbody tr:hover .row-actions { opacity: 1; }
   font-size:9px;color:var(--text-mid);
 }
 
+/* ── CUSTOM ENRICH ── */
+.ce-field-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:4px; cursor:pointer; transition:background 0.1s; }
+.ce-field-row:hover { background:var(--s3); }
+.ce-field-row input[type=checkbox] { accent-color:var(--steel); width:13px; height:13px; flex-shrink:0; cursor:pointer; }
+.ce-field-label { font-family:var(--font-sans); font-size:12px; color:var(--text-mid); flex:1; }
+.ce-field-desc { font-family:var(--font-mono); font-size:9px; color:var(--text-dim); }
+.ce-preset-btn { font-family:var(--font-sans); font-size:10px; font-weight:500; padding:3px 10px; border-radius:3px; border:1px solid var(--border2); background:var(--s2); color:var(--text-mid); cursor:pointer; transition:all 0.12s; display:flex; align-items:center; gap:5px; }
+.ce-preset-btn:hover { border-color:var(--steel); color:var(--text); }
+.ce-preset-btn.active { border-color:var(--steel); background:var(--steel-dim); color:var(--text); }
+.ce-preset-del { font-size:10px; color:var(--text-dim); opacity:0.6; margin-left:2px; }
+.ce-preset-del:hover { color:var(--red); opacity:1; }
+.ce-log-item { display:flex; align-items:center; gap:8px; padding:4px 8px; border-radius:3px; background:var(--s2); font-family:var(--font-mono); font-size:9px; }
+.ce-log-item.pending { color:var(--text-dim); }
+.ce-log-item.running { color:var(--steel); background:var(--steel-dim); }
+.ce-log-item.done { color:var(--green); }
+.ce-log-item.error { color:var(--red); }
+.ce-log-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ce-log-fields { color:var(--text-dim); font-size:8px; flex-shrink:0; }
+.ce-spin { display:inline-block; animation:spin 0.7s linear infinite; }
+
 /* ── ANOMALY SCAN ── */
 .anomaly-group { margin-bottom: 20px; }
 .anomaly-group-header { display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11px;font-weight:600;color:var(--text-mid);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);letter-spacing:0.02em; }
@@ -1153,6 +1173,7 @@ tbody tr:hover .row-actions { opacity: 1; }
       <button class="btn btn-ghost btn-sm" onclick="openBulkEnrich()">Enrich</button>
       <button class="btn btn-ghost btn-sm" onclick="openKeywordsEnrich()">Keywords</button>
       <button class="btn btn-ghost btn-sm" style="color:var(--amber)" onclick="openAnomalyScan()">⚠ Scan</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--steel)" onclick="openCustomEnrich()">✦ Custom</button>
 <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">CSV</button>
       <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
@@ -1454,6 +1475,73 @@ CSV FORMAT:
 
 <!-- Notes popup -->
 <div class="notes-popup" id="notes-popup"></div>
+
+<!-- Custom Enrich Modal -->
+<div class="modal-overlay" id="ce-overlay" style="align-items:flex-start;padding-top:48px" onclick="closeCE(event)">
+  <div class="modal" style="width:680px;max-height:88vh" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--steel)">✦ Custom Enrich</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <span id="ce-status" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"></span>
+        <button class="modal-close" onclick="closeCE()">×</button>
+      </div>
+    </div>
+
+    <!-- Presets row -->
+    <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;margin-right:4px">Presets</span>
+      <div id="ce-presets" style="display:flex;gap:5px;flex-wrap:wrap;flex:1"></div>
+      <button class="btn btn-ghost btn-xs" onclick="savePreset()" style="flex-shrink:0">+ Save</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1;overflow:hidden">
+      <!-- Left: field selector -->
+      <div style="padding:14px 16px;border-right:1px solid var(--border);overflow-y:auto">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px">Fields to Update</div>
+        <div id="ce-fields" style="display:flex;flex-direction:column;gap:4px"></div>
+
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Scope</div>
+          <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;color:var(--text-mid);cursor:pointer;margin-bottom:5px">
+            <input type="radio" name="ce-scope" value="selected" id="ce-scope-sel"> <span>Selected items only</span> <span id="ce-sel-count" style="color:var(--text-dim);font-family:var(--font-mono);font-size:10px"></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;color:var(--text-mid);cursor:pointer">
+            <input type="radio" name="ce-scope" value="all" id="ce-scope-all" checked> <span>All items</span> <span style="color:var(--text-dim);font-family:var(--font-mono);font-size:10px" id="ce-all-count"></span>
+          </label>
+        </div>
+
+        <div style="margin-top:12px">
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Write Mode</div>
+          <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;color:var(--text-mid);cursor:pointer;margin-bottom:5px">
+            <input type="radio" name="ce-mode" value="blanks" id="ce-mode-blanks"> <span>Fill blanks only</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;color:var(--text-mid);cursor:pointer">
+            <input type="radio" name="ce-mode" value="overwrite" id="ce-mode-overwrite" checked> <span>Overwrite existing values</span>
+          </label>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:6px">
+          <button class="btn btn-primary btn-sm" id="ce-run-btn" onclick="runCustomEnrich()" style="flex:1">Run Enrich</button>
+          <button class="btn btn-ghost btn-sm" id="ce-cancel-btn" onclick="cancelCustomEnrich()" style="display:none">■ Stop</button>
+        </div>
+      </div>
+
+      <!-- Right: live progress log -->
+      <div style="display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase">Progress</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="ce-progress-bar-wrap" style="width:120px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;display:none">
+              <div id="ce-progress-bar" style="height:100%;background:var(--steel);width:0%;transition:width 0.3s;border-radius:2px"></div>
+            </div>
+            <span id="ce-progress-text" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)"></span>
+          </div>
+        </div>
+        <div id="ce-log" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:2px;min-height:200px;max-height:400px"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Anomaly Scan Modal -->
 <div class="modal-overlay" id="anomaly-overlay" style="display:none;align-items:flex-start;padding-top:60px" onclick="closeAnomalyScan(event)">
@@ -3635,6 +3723,238 @@ function applyEnrichResults(){
   closeBulkEnrich();
   toast(`Enrich complete — ${applied} fields updated across ${_enrichResults.length} items`);
 }
+
+// ─── CUSTOM ENRICH ────────────────────────────────────────────────────────────
+const CE_FIELDS = [
+  { id:'keywords',      label:'Keywords',           desc:'search terms',        default:true  },
+  { id:'frequency',     label:'Frequency',          desc:'daily/weekly/…',      default:true  },
+  { id:'criticality',   label:'Criticality',        desc:'essential/important/…',default:true },
+  { id:'replaceability',label:'Replaceability',     desc:'irreplaceable/…',     default:true  },
+  { id:'keep',          label:'Keep',               desc:'keep/sell/donate/…',  default:false },
+  { id:'condition',     label:'Condition',          desc:'new/good/fair/poor',  default:false },
+  { id:'cleanedName',   label:'Name Cleanup',       desc:'standardize format',  default:false },
+  { id:'category',      label:'Category',           desc:'reclassify item',     default:false },
+  { id:'estValue',      label:'Est. Value',         desc:'dollar estimate',     default:false },
+  { id:'notes',         label:'Notes',              desc:'usage/storage tips',  default:false },
+];
+
+const CE_STORAGE_KEY = 'ce-settings';
+const CE_PRESETS_KEY = 'ce-presets';
+let _ceRunning = false;
+let _ceCancel = false;
+
+function openCustomEnrich(){
+  const overlay = document.getElementById('ce-overlay');
+  overlay.classList.add('open');
+  buildCEFields();
+  buildCEPresets();
+  updateCECounts();
+}
+
+function closeCE(e){
+  if(e && document.querySelector('#ce-overlay .modal').contains(e.target)) return;
+  if(_ceRunning){ if(!confirm('Enrich is running. Stop it?')) return; _ceCancel = true; }
+  document.getElementById('ce-overlay').classList.remove('open');
+}
+
+function buildCEFields(){
+  const saved = JSON.parse(localStorage.getItem(CE_STORAGE_KEY)||'{}');
+  const container = document.getElementById('ce-fields');
+  container.innerHTML = CE_FIELDS.map(f => {
+    const checked = f.id in saved ? saved[f.id] : f.default;
+    return `<label class="ce-field-row">
+      <input type="checkbox" id="cef-${f.id}" ${checked?'checked':''} onchange="saveCESettings()">
+      <span class="ce-field-label">${f.label}</span>
+      <span class="ce-field-desc">${f.desc}</span>
+    </label>`;
+  }).join('');
+
+  // Write mode
+  const savedMode = localStorage.getItem('ce-mode')||'overwrite';
+  document.getElementById('ce-mode-'+savedMode).checked = true;
+  document.getElementById('ce-mode-blanks').addEventListener('change', saveCESettings);
+  document.getElementById('ce-mode-overwrite').addEventListener('change', saveCESettings);
+}
+
+function saveCESettings(){
+  const settings = {};
+  CE_FIELDS.forEach(f => { settings[f.id] = document.getElementById('cef-'+f.id)?.checked; });
+  localStorage.setItem(CE_STORAGE_KEY, JSON.stringify(settings));
+  const mode = document.querySelector('input[name="ce-mode"]:checked')?.value||'overwrite';
+  localStorage.setItem('ce-mode', mode);
+}
+
+function updateCECounts(){
+  const selCount = selectedIds.size;
+  document.getElementById('ce-sel-count').textContent = selCount ? `(${selCount})` : '(none)';
+  document.getElementById('ce-all-count').textContent = `(${inventory.length})`;
+  if(!selCount) document.getElementById('ce-scope-all').checked = true;
+  document.getElementById('ce-scope-sel').disabled = !selCount;
+}
+
+// ── PRESETS ──
+function buildCEPresets(){
+  const presets = JSON.parse(localStorage.getItem(CE_PRESETS_KEY)||'[]');
+  const container = document.getElementById('ce-presets');
+  if(!presets.length){ container.innerHTML = '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">No saved presets</span>'; return; }
+  container.innerHTML = presets.map((p,i) =>
+    `<button class="ce-preset-btn" onclick="loadPreset(${i})">
+      ${esc(p.name)}
+      <span class="ce-preset-del" onclick="deletePreset(event,${i})">×</span>
+    </button>`
+  ).join('');
+}
+
+function savePreset(){
+  const name = prompt('Preset name:');
+  if(!name) return;
+  const settings = {};
+  CE_FIELDS.forEach(f => { settings[f.id] = document.getElementById('cef-'+f.id)?.checked; });
+  const mode = document.querySelector('input[name="ce-mode"]:checked')?.value||'overwrite';
+  const presets = JSON.parse(localStorage.getItem(CE_PRESETS_KEY)||'[]');
+  presets.push({ name, fields: settings, mode });
+  localStorage.setItem(CE_PRESETS_KEY, JSON.stringify(presets));
+  buildCEPresets();
+}
+
+function loadPreset(idx){
+  const presets = JSON.parse(localStorage.getItem(CE_PRESETS_KEY)||'[]');
+  const p = presets[idx];
+  if(!p) return;
+  CE_FIELDS.forEach(f => {
+    const el = document.getElementById('cef-'+f.id);
+    if(el) el.checked = !!p.fields[f.id];
+  });
+  const modeEl = document.getElementById('ce-mode-'+(p.mode||'overwrite'));
+  if(modeEl) modeEl.checked = true;
+  saveCESettings();
+  // highlight active preset
+  document.querySelectorAll('.ce-preset-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+}
+
+function deletePreset(e, idx){
+  e.stopPropagation();
+  const presets = JSON.parse(localStorage.getItem(CE_PRESETS_KEY)||'[]');
+  presets.splice(idx, 1);
+  localStorage.setItem(CE_PRESETS_KEY, JSON.stringify(presets));
+  buildCEPresets();
+}
+
+// ── RUN ──
+async function runCustomEnrich(){
+  if(_ceRunning) return;
+
+  const selectedFields = CE_FIELDS.filter(f => document.getElementById('cef-'+f.id)?.checked).map(f=>f.id);
+  if(!selectedFields.length){ toast('Select at least one field'); return; }
+
+  const mode = document.querySelector('input[name="ce-mode"]:checked')?.value||'overwrite';
+  const scope = document.querySelector('input[name="ce-scope"]:checked')?.value||'all';
+  const items = scope==='selected'
+    ? inventory.filter(i=>selectedIds.has(i.id))
+    : [...inventory];
+
+  if(!items.length){ toast('No items to enrich'); return; }
+
+  _ceRunning = true; _ceCancel = false;
+  document.getElementById('ce-run-btn').style.display = 'none';
+  document.getElementById('ce-cancel-btn').style.display = 'inline-flex';
+  document.getElementById('ce-progress-bar-wrap').style.display = 'block';
+
+  const catCounts={};
+  inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  const log = document.getElementById('ce-log');
+  const bar = document.getElementById('ce-progress-bar');
+  const progText = document.getElementById('ce-progress-text');
+  const status = document.getElementById('ce-status');
+  log.innerHTML = '';
+
+  // Build log entries
+  const logEls = {};
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'ce-log-item pending';
+    div.innerHTML = `<span class="ce-log-name">${esc(item.name)}</span><span class="ce-log-fields">pending</span>`;
+    log.appendChild(div);
+    logEls[item.id] = div;
+  });
+
+  let done=0, applied=0, failed=0;
+  const BATCH=3;
+
+  for(let i=0;i<items.length;i+=BATCH){
+    if(_ceCancel) break;
+    const chunk=items.slice(i,i+BATCH);
+
+    // Mark as running
+    chunk.forEach(item=>{
+      const el=logEls[item.id];
+      if(el){ el.className='ce-log-item running'; el.querySelector('.ce-log-fields').textContent='⟳'; }
+    });
+
+    await Promise.all(chunk.map(async item=>{
+      const el=logEls[item.id];
+      try{
+        const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+          method:'POST',
+          headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+          body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true}),
+        });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const s=await res.json();
+        let fieldsApplied=[];
+
+        const set=(field,val)=>{
+          if(!val||!val.toString().trim()) return;
+          if(mode==='blanks'&&item[field]) return;
+          if(item[field]===val) return;
+          item[field]=val; fieldsApplied.push(field);
+        };
+
+        if(selectedFields.includes('keywords')&&s.keywords?.trim()) { if(mode==='overwrite'||!item.keywords){item.keywords=s.keywords.trim();fieldsApplied.push('keywords');} }
+        if(selectedFields.includes('frequency'))    set('frequency',s.frequency);
+        if(selectedFields.includes('criticality'))  set('criticality',s.criticality);
+        if(selectedFields.includes('replaceability'))set('replaceability',s.replaceability);
+        if(selectedFields.includes('keep'))         set('keep',s.keep);
+        if(selectedFields.includes('condition'))    set('condition',s.condition);
+        if(selectedFields.includes('cleanedName')&&s.cleanedName?.trim()&&s.cleanedName!==item.name){ if(mode==='overwrite'||!item.name){item.name=s.cleanedName.trim();fieldsApplied.push('name');} }
+        if(selectedFields.includes('category'))     set('category',s.category);
+        if(selectedFields.includes('estValue'))     set('estValue',s.estimatedValue);
+        if(selectedFields.includes('notes')&&s.notes?.trim()) { if(mode==='overwrite'||!item.notes){item.notes=s.notes.trim();fieldsApplied.push('notes');} }
+
+        if(fieldsApplied.length) logChange(item,'Custom Enrich','—',fieldsApplied.join(', '));
+        applied+=fieldsApplied.length;
+        done++;
+        if(el){
+          el.className='ce-log-item done';
+          el.querySelector('.ce-log-fields').textContent = fieldsApplied.length ? `✓ ${fieldsApplied.join(', ')}` : '— no change';
+          el.scrollIntoView({block:'nearest'});
+        }
+      }catch(err){
+        failed++; done++;
+        if(el){ el.className='ce-log-item error'; el.querySelector('.ce-log-fields').textContent=`✗ ${err.message.slice(0,30)}`; }
+      }
+      const pct=Math.round(done/items.length*100);
+      if(bar) bar.style.width=pct+'%';
+      if(progText) progText.textContent=`${done}/${items.length}`;
+      if(status) status.textContent=`${applied} fields · ${failed} errors`;
+    }));
+
+    await new Promise(r=>setTimeout(r,120));
+  }
+
+  snapshot(); save(); render();
+  _ceRunning=false;
+  document.getElementById('ce-run-btn').style.display='inline-flex';
+  document.getElementById('ce-cancel-btn').style.display='none';
+  const finalMsg=_ceCancel?`Stopped — ${done}/${items.length} processed, ${applied} fields updated`:`Done — ${applied} fields updated across ${done} items`;
+  if(status) status.textContent=finalMsg;
+  toast(finalMsg);
+  _ceCancel=false;
+}
+
+function cancelCustomEnrich(){ _ceCancel=true; toast('Stopping after current batch…'); }
 
 // ─── ANOMALY SCAN ────────────────────────────────────────────────────────────
 function openAnomalyScan(){
