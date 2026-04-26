@@ -1366,16 +1366,16 @@ CSV FORMAT:
     <div class="bulk-bar" id="bulk-bar">
       <span class="bulk-bar-label" id="bulk-label">0 selected</span>
       <div class="bulk-fields">
-        <div class="bulk-group"><span class="bulk-field-label">Loc</span><input type="text" class="bulk-text-input" id="bulk-loc" placeholder="path or Org > Shelf"><button class="btn btn-rose btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSetLoc()">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Cat</span><select class="bulk-select" id="bulk-cat"><option value="">--</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('category','bulk-cat','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Freq</span><select class="bulk-select" id="bulk-freq"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Rarely</option><option>Never</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('frequency','bulk-freq','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Crit</span><select class="bulk-select" id="bulk-crit"><option value="">--</option><option>Essential</option><option>Important</option><option>Nice to Have</option><option>Redundant</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('criticality','bulk-crit','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Repl</span><select class="bulk-select" id="bulk-repl"><option value="">--</option><option>Irreplaceable</option><option>Hard/Expensive</option><option>Moderate</option><option>Easy/Cheap</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('replaceability','bulk-repl','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Keep</span><select class="bulk-select" id="bulk-keep"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('keep','bulk-keep','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Cond</span><select class="bulk-select" id="bulk-cond"><option value="">--</option><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('condition','bulk-cond','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Year</span><input type="text" class="bulk-text-input" id="bulk-year" placeholder="2020" style="width:54px"><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('yearPurchased','bulk-year','text')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Fill</span><select class="bulk-select" id="bulk-filllevel"><option value="">--</option><option>Full</option><option>Most</option><option>Half</option><option>Low</option><option>Empty</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('fillLevel','bulk-filllevel','select')">Set</button></div>
-        <div class="bulk-group"><span class="bulk-field-label">Doc</span><select class="bulk-select" id="bulk-doctype"><option value="">--</option><option>Certificate</option><option>Title</option><option>Receipt</option><option>Permit</option><option>Application</option><option>ID</option><option>License</option><option>Insurance</option><option>Registration</option><option>Contract</option><option>Letter</option><option>Notes/Handouts</option><option>Financial</option><option>Book</option><option>Other</option></select><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSet('docType','bulk-doctype','select')">Set</button></div>
+        <div class="bulk-group"><span class="bulk-field-label">Loc</span><input type="text" class="bulk-text-input" id="bulk-loc" placeholder="path or Org > Shelf"></div>
+        <div class="bulk-group"><span class="bulk-field-label">Cat</span><select class="bulk-select" id="bulk-cat"><option value="">--</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Freq</span><select class="bulk-select" id="bulk-freq"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Rarely</option><option>Never</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Crit</span><select class="bulk-select" id="bulk-crit"><option value="">--</option><option>Essential</option><option>Important</option><option>Nice to Have</option><option>Redundant</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Repl</span><select class="bulk-select" id="bulk-repl"><option value="">--</option><option>Irreplaceable</option><option>Hard/Expensive</option><option>Moderate</option><option>Easy/Cheap</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Keep</span><select class="bulk-select" id="bulk-keep"><option value="">--</option><option>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Cond</span><select class="bulk-select" id="bulk-cond"><option value="">--</option><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Year</span><input type="text" class="bulk-text-input" id="bulk-year" placeholder="2020" style="width:54px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">Fill</span><select class="bulk-select" id="bulk-filllevel"><option value="">--</option><option>Full</option><option>Most</option><option>Half</option><option>Low</option><option>Empty</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Doc</span><select class="bulk-select" id="bulk-doctype"><option value="">--</option><option>Certificate</option><option>Title</option><option>Receipt</option><option>Permit</option><option>Application</option><option>ID</option><option>License</option><option>Insurance</option><option>Registration</option><option>Contract</option><option>Letter</option><option>Notes/Handouts</option><option>Financial</option><option>Book</option><option>Other</option></select></div>
         <div class="bulk-group"><span class="bulk-field-label">Digital</span><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSetDigital(true)">Has Copy</button><button class="btn btn-ghost btn-xs" onclick="bulkSetDigital(false)">No Copy</button></div>
         <div class="bulk-group" style="margin-left:4px">
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(true)">Flag</button>
@@ -1389,6 +1389,10 @@ CSV FORMAT:
           </select>
           <button class="btn btn-ghost btn-xs" style="color:var(--steel)" onclick="enrichSelectedLevel()">✦ Enrich</button>
           <button class="btn btn-danger btn-xs" onclick="bulkDelete()">Del</button>
+        </div>
+        <div class="bulk-group" style="margin-left:6px;border-left:1px solid var(--border2);padding-left:10px;gap:6px">
+          <button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose);color:var(--rose);font-weight:600;padding:0 12px" onclick="bulkApplyAll()">✓ Apply</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkResetFields()">Reset</button>
           <button class="btn btn-ghost btn-xs" onclick="clearSelection()">✕ Clear</button>
         </div>
       </div>
@@ -3014,12 +3018,39 @@ function updateBulkBar(){
   else bar.classList.remove('visible');
 }
 
+function bulkApplyAll(){
+  const count=selectedIds.size;if(!count){toast('No items selected');return;}
+  const mutations=[];
+  const locRaw=document.getElementById('bulk-loc').value.trim();
+  if(locRaw){const path=stringToPath(locRaw);if(path.length)mutations.push(i=>{i.locationPath=path;});}
+  const selFields=[
+    ['bulk-cat','category'],['bulk-freq','frequency'],['bulk-crit','criticality'],
+    ['bulk-repl','replaceability'],['bulk-keep','keep'],['bulk-cond','condition'],
+    ['bulk-filllevel','fillLevel'],['bulk-doctype','docType']
+  ];
+  selFields.forEach(([elId,prop])=>{const v=document.getElementById(elId).value;if(v)mutations.push(i=>{i[prop]=v;});});
+  const yr=document.getElementById('bulk-year').value.trim();
+  if(yr)mutations.push(i=>{i.yearPurchased=yr;});
+  if(!mutations.length){toast('Set at least one field before applying');return;}
+  snapshot();
+  inventory.forEach(i=>{if(selectedIds.has(i.id))mutations.forEach(fn=>fn(i));});
+  save();render();
+  toast(`Applied ${mutations.length} field${mutations.length>1?'s':''} to ${count} item${count>1?'s':''}`);
+}
+
+function bulkResetFields(){
+  ['bulk-cat','bulk-freq','bulk-crit','bulk-repl','bulk-keep','bulk-cond','bulk-filllevel','bulk-doctype']
+    .forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('bulk-loc').value='';
+  document.getElementById('bulk-year').value='';
+}
+
 function bulkSet(field,elId,elType){
   const el=document.getElementById(elId);const val=elType==='text'?el.value.trim():el.value;
   if(!val){toast('Pick a value first');return;}
   const count=selectedIds.size;if(!count){toast('No items selected');return;}
   snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i[field]=val;});
-  el.value='';selectedIds.clear();save();render();toast(`Set ${field} for ${count} item${count>1?'s':''}`);
+  el.value='';save();render();toast(`Set ${field} for ${count} item${count>1?'s':''}`);
 }
 
 function bulkSetLoc(){
@@ -3028,14 +3059,14 @@ function bulkSetLoc(){
   const count=selectedIds.size;if(!count){toast('No items selected');return;}
   const path=stringToPath(val);
   snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.locationPath=path;});
-  document.getElementById('bulk-loc').value='';selectedIds.clear();save();render();
+  document.getElementById('bulk-loc').value='';save();render();
   toast(`Set location to "${val}" for ${count} item${count>1?'s':''}`);
 }
 
 function bulkSetMisplaced(val){
   const count=selectedIds.size;if(!count)return;
   snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.misplaced=val;});
-  selectedIds.clear();save();render();toast(`${val?'Flagged':'Cleared'} ${count}`);
+  save();render();toast(`${val?'Flagged':'Cleared'} ${count}`);
 }
 function bulkDelete(){
   const count=selectedIds.size;if(!count)return;
@@ -3052,7 +3083,7 @@ function toggleDigital(id){const item=inventory.find(i=>i.id===id);if(!item)retu
 function bulkSetDigital(val){
   const count=selectedIds.size;if(!count)return;
   snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.digitalCopy=val;});
-  selectedIds.clear();save();render();toast(`${val?'Marked':'Cleared'} digital copy for ${count} item${count>1?'s':''}`);
+  save();render();toast(`${val?'Marked':'Cleared'} digital copy for ${count} item${count>1?'s':''}`);
 }
 function deleteItem(id){if(!confirm('Delete this item?'))return;snapshot();inventory=inventory.filter(i=>i.id!==id);selectedIds.delete(id);saveDelete([id]);render();toast('Deleted');}
 
