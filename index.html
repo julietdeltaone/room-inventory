@@ -892,6 +892,12 @@ tbody tr:hover .row-actions { opacity: 1; }
 .inuse-toggle.on { background:rgba(77,143,106,0.3);border-color:var(--green); }
 .inuse-thumb { width:14px;height:14px;border-radius:50%;background:var(--text-dim);position:absolute;top:2px;left:2px;transition:transform 0.2s,background 0.2s; }
 .inuse-toggle.on .inuse-thumb { transform:translateX(16px);background:var(--green); }
+.lock-toggle{width:36px;height:20px;border-radius:10px;background:var(--border2);border:1px solid var(--border2);cursor:pointer;position:relative;transition:background 0.2s,border-color 0.2s;flex-shrink:0;}
+.lock-toggle.on{background:rgba(180,80,80,0.25);border-color:#b06060;}
+.lock-thumb{width:14px;height:14px;border-radius:50%;background:var(--text-dim);position:absolute;top:2px;left:2px;transition:transform 0.2s,background 0.2s;}
+.lock-toggle.on .lock-thumb{transform:translateX(16px);background:#c06060;}
+.locked-row td{opacity:0.45;pointer-events:none;}
+.locked-row td:first-child,.locked-row td:last-child{opacity:1;pointer-events:auto;}
 .insp-keywords {
   font-family:var(--font-mono);font-size:10px;color:var(--text-mid);
   line-height:1.8;word-break:break-word;
@@ -1696,7 +1702,7 @@ CSV FORMAT:
     <div class="qa-row">
       <div class="qa-field">
         <div class="qa-label">Category</div>
-        <select class="qa-input" id="qa-category"><option value="">--</option><option>Electronics</option><option>Cables & Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms & Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools & Hardware</option><option>Office Supplies</option><option>Bags & Carry</option><option>Personal Care & Grooming</option><option>Health & Supplements</option><option>Cleaning & Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books & Notebooks</option><option>Gym & Fitness</option><option>Automotive</option><option>Misc</option></select>
+        <select class="qa-input" id="qa-category"><option value="">--</option><option>Electronics</option><option>Cables & Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms & Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools & Hardware</option><option>Office Supplies</option><option>Bags & Carry</option><option>Personal Care & Grooming</option><option>Health & Supplements</option><option>Cleaning & Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books & Notebooks</option><option>Gym & Fitness</option><option>Automotive</option><option>Memorabilia &amp; Keepsakes</option><option>Misc</option></select>
       </div>
       <div class="qa-field">
         <div class="qa-label">Condition</div>
@@ -1765,7 +1771,7 @@ CSV FORMAT:
     <div class="qa-row">
       <div class="qa-field">
         <div class="qa-label">Category</div>
-        <select class="qa-input" id="dupe-category"><option value="">--</option><option>Electronics</option><option>Cables & Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms & Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools & Hardware</option><option>Office Supplies</option><option>Bags & Carry</option><option>Personal Care & Grooming</option><option>Health & Supplements</option><option>Cleaning & Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books & Notebooks</option><option>Gym & Fitness</option><option>Automotive</option><option>Misc</option></select>
+        <select class="qa-input" id="dupe-category"><option value="">--</option><option>Electronics</option><option>Cables & Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms & Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools & Hardware</option><option>Office Supplies</option><option>Bags & Carry</option><option>Personal Care & Grooming</option><option>Health & Supplements</option><option>Cleaning & Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books & Notebooks</option><option>Gym & Fitness</option><option>Automotive</option><option>Memorabilia &amp; Keepsakes</option><option>Misc</option></select>
       </div>
       <div class="qa-field">
         <div class="qa-label">Condition</div>
@@ -2183,6 +2189,8 @@ function itemToRow(item) {
     change_log: item.changeLog ? JSON.stringify(item.changeLog) : '[]',
     created_at: item.createdAt || null,
     in_use: item.inUse ? true : false,
+    locked_item: item.lockedItem ? true : false,
+    locked_notes: item.lockedNotes ? true : false,
   };
 }
 
@@ -2212,6 +2220,8 @@ function rowToItem(row) {
     createdAt: row.created_at || null,
     lastModified: row.last_modified || null,
     inUse: row.in_use ? true : false,
+    lockedItem: row.locked_item ? true : false,
+    lockedNotes: row.locked_notes ? true : false,
   });
 }
 
@@ -2245,7 +2255,7 @@ const CATEGORIES=[
   'Personal Care & Grooming','Health & Supplements','Cleaning & Home','Furniture',
   'Identity Documents','Legal Documents','Vehicle Documents',
   'Military Documents','Financial Documents','Books & Notebooks',
-  'Gym & Fitness','Automotive','Misc'
+  'Gym & Fitness','Automotive','Memorabilia & Keepsakes','Misc'
 ];
 
 const CAT_COLORS={
@@ -2272,6 +2282,7 @@ const CAT_COLORS={
   'Books & Notebooks':{bg:'rgba(170,155,80,0.12)',color:'#b4a458'},
   'Gym & Fitness':{bg:'rgba(70,175,115,0.12)',color:'#50b880'},
   'Automotive':{bg:'rgba(125,115,100,0.12)',color:'#8a8070'},
+  'Memorabilia & Keepsakes':{bg:'rgba(180,120,200,0.12)',color:'#c090d8'},
   'Misc':{bg:'rgba(100,100,100,0.10)',color:'#787878'},
 };
 
@@ -2297,6 +2308,8 @@ const CAT_MIGRATION={
   'Books/Docs':'Books & Notebooks',
   'Legal Documents':'Legal Documents', // unchanged
   'Hobby/Misc':'Misc',
+  'Keepsakes':'Memorabilia & Keepsakes',
+  'Memorabilia':'Memorabilia & Keepsakes',
 };
 
 function migrateCategory(cat){
@@ -2786,6 +2799,18 @@ function toggleMisplaced(id){
 function buildRow(item,dupMap){
   dupMap=dupMap||{};
   const tr=document.createElement('tr');
+  if(item.lockedItem){
+    tr.classList.add('locked-row');
+    if(selectedIds.has(item.id))tr.classList.add('selected');
+    tr.innerHTML=`
+      <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onchange="toggleSelect(${item.id},this.checked)"></td>
+      <td colspan="16" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:0 10px;letter-spacing:1px">
+        🔒 <span style="letter-spacing:3px;opacity:0.5">████████████████████</span>
+        <span style="margin-left:14px;letter-spacing:0;font-size:9px">locked · open inspector to unlock</span>
+      </td>
+      <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
+    return tr;
+  }
   if(item.misplaced)tr.classList.add('misplaced-row');
   if(selectedIds.has(item.id))tr.classList.add('selected');
   const cat=CAT_COLORS[item.category]||CAT_COLORS['Misc'];
@@ -2831,6 +2856,7 @@ function buildRow(item,dupMap){
       // Strip any legacy keywords from notes display
       const clean=raw.replace(/\s*\|\s*keywords:.*$/i,'').trim();
       if(!clean)return'<span style="color:var(--text-dim);font-size:10px">--</span>';
+      if(item.lockedNotes)return'<span style="font-family:var(--font-mono);font-size:10px;color:#b06060;letter-spacing:1px">🔒 locked</span>';
       return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)}</span>`;
     })())}
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
@@ -3089,7 +3115,7 @@ function deleteItem(id){if(!confirm('Delete this item?'))return;snapshot();inven
 
 function addBlankRow(){
   snapshot();
-  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false};
+  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false,lockedItem:false,lockedNotes:false};
   inventory.push(item);save();render();
   setTimeout(()=>{const rows=document.querySelectorAll('#inventory-body tr');const last=rows[rows.length-1];if(last){const td=last.querySelector('td.editable-td[data-field="name"]');if(td)startInlineEdit(item.id,'name',td);}},60);
 }
@@ -3592,7 +3618,7 @@ function addChildLocModal(parentPath){
       const newPath=[...parentPath,name];
       // Create a placeholder item at this path so the tree node appears
       snapshot();
-      const item={id:nextId++,name:'New Item',category:'Misc',locationPath:newPath,qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false};
+      const item={id:nextId++,name:'New Item',category:'Misc',locationPath:newPath,qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false,lockedItem:false,lockedNotes:false};
       inventory.push(item);save();render();
       // Set tree filter to the new child and open quick add
       setTimeout(()=>{
@@ -5196,6 +5222,67 @@ document.addEventListener('click',()=>{
   if(pop)pop.style.display='none';
 });
 
+// ─── PIN / PRIVACY ────────────────────────────────────────────────────────────
+const PIN_KEY='inv_pin';
+function getPin(){return localStorage.getItem(PIN_KEY)||'';}
+function setPin(p){if(p)localStorage.setItem(PIN_KEY,p);else localStorage.removeItem(PIN_KEY);}
+
+function promptSetPin(){
+  const cur=getPin();
+  if(cur){
+    const entered=prompt('Enter current PIN to change it:');
+    if(entered===null)return;
+    if(entered!==cur){toast('Wrong PIN');return;}
+  }
+  const p1=prompt('Set new privacy PIN. Leave blank to remove:');
+  if(p1===null)return;
+  if(!p1){setPin('');toast('PIN removed');return;}
+  const p2=prompt('Confirm PIN:');
+  if(p2!==p1){toast('PINs did not match');return;}
+  setPin(p1);toast('PIN set ✓');
+}
+
+function verifyPin(cb){
+  const pin=getPin();
+  if(!pin){toast('No PIN set — use ⚙ PIN in the inspector Privacy section');return;}
+  const entered=prompt('Enter privacy PIN:');
+  if(entered===null)return;
+  if(entered!==pin){toast('Wrong PIN');return;}
+  cb();
+}
+
+function toggleLockedItem(id){
+  const item=inventory.find(i=>i.id===id);if(!item)return;
+  if(!item.lockedItem){
+    if(!getPin()){if(!confirm('No PIN set. Set one now?'))return;promptSetPin();if(!getPin())return;}
+    snapshot();item.lockedItem=true;
+    logChange(item,'Privacy','Visible','Hidden');
+    save();render();openInspector(id,null);toast('🔒 Item hidden');
+  } else {
+    verifyPin(()=>{
+      snapshot();item.lockedItem=false;
+      logChange(item,'Privacy','Hidden','Visible');
+      save();render();openInspector(id,null);toast('🔓 Item visible');
+    });
+  }
+}
+
+function toggleLockedNotes(id){
+  const item=inventory.find(i=>i.id===id);if(!item)return;
+  if(!item.lockedNotes){
+    if(!getPin()){if(!confirm('No PIN set. Set one now?'))return;promptSetPin();if(!getPin())return;}
+    snapshot();item.lockedNotes=true;
+    logChange(item,'Notes Privacy','Visible','Locked');
+    save();render();openInspector(id,null);toast('🔒 Notes locked');
+  } else {
+    verifyPin(()=>{
+      snapshot();item.lockedNotes=false;
+      logChange(item,'Notes Privacy','Locked','Visible');
+      save();render();openInspector(id,null);toast('🔓 Notes unlocked');
+    });
+  }
+}
+
 // ─── INSPECTOR ────────────────────────────────────────────────────────────────
 function openInspector(id, e){
   e && e.stopPropagation();
@@ -5245,6 +5332,34 @@ function openInspector(id, e){
             ${item.inUse?'🟢 Currently In Use':'⚪ Not In Use'}
           </div>
           ${item.inUse?`<div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:2px">Home: ${(item.locationPath||[]).join(' > ')||'—'}</div>`:''}
+        </div>
+      </label>
+    </div>
+    <div class="insp-section">
+      <div class="insp-label" style="display:flex;align-items:center;justify-content:space-between">
+        Privacy
+        <button onclick="promptSetPin()" style="font-size:9px;font-family:var(--font-mono);color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0;letter-spacing:0.04em">⚙ PIN</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border)">
+        <div class="lock-toggle ${item.lockedItem?'on':''}" onclick="toggleLockedItem(${item.id})">
+          <div class="lock-thumb"></div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-sans);font-size:12px;font-weight:500;color:${item.lockedItem?'#c06060':'var(--text-mid)'}">
+            ${item.lockedItem?'🔒 Item Hidden':'🔓 Item Visible'}
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:1px">Hides entire row — PIN to reveal</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0">
+        <div class="lock-toggle ${item.lockedNotes?'on':''}" onclick="toggleLockedNotes(${item.id})">
+          <div class="lock-thumb"></div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-sans);font-size:12px;font-weight:500;color:${item.lockedNotes?'#c06060':'var(--text-mid)'}">
+            ${item.lockedNotes?'🔒 Notes Locked':'🔓 Notes Visible'}
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:1px">Shows item, hides notes — PIN to read</div>
         </div>
       </label>
     </div>
