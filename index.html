@@ -1216,7 +1216,10 @@ tbody tr:hover .row-actions { opacity: 1; }
   <div class="sidebar" id="main-sidebar">
     <div class="sb-section">
       <div class="sb-label">Location</div>
-      <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)">All <span class="count" id="cnt-loc-all">0</span></button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)" style="flex:1">All <span class="count" id="cnt-loc-all">0</span></button>
+        <button class="filter-btn" id="loc-collapse-btn" onclick="collapseAllNodes()" title="Collapse all" style="flex-shrink:0;padding:0 7px;font-size:10px;color:var(--text-dim)">↑↑</button>
+      </div>
       <div id="loc-tree"></div>
     </div>
 
@@ -1225,17 +1228,20 @@ tbody tr:hover .row-actions { opacity: 1; }
       <button class="filter-btn active" data-view="all" onclick="setView('all',this)">All Items <span class="count" id="cnt-all">0</span></button>
       <button class="filter-btn" data-view="misplaced" onclick="setView('misplaced',this)" style="color:var(--amber)">To Relocate <span class="count" id="cnt-mis">0</span></button>
       <button class="filter-btn" data-view="purge" onclick="setView('purge',this)" style="color:var(--red)">Purge Candidates <span class="count" id="cnt-purge">0</span></button>
+      <button class="filter-btn" data-view="hasdigital" onclick="setView('hasdigital',this)" style="color:var(--steel)">Has Digital Copy <span class="count" id="cnt-hasdigital">0</span></button>
       <button class="filter-btn" data-view="nodigital" onclick="setView('nodigital',this)" style="color:var(--steel)">No Digital Copy <span class="count" id="cnt-nodigital">0</span></button>
       <button class="filter-btn" data-view="inuse" onclick="setView('inuse',this)" style="color:var(--green)"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#4d8f6a;display:inline-block;animation:inUsePulse 2s ease infinite"></span>In Use</span> <span class="count" id="cnt-inuse">0</span></button>
     </div>
 
     <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
-      <div class="sb-label">Score</div>
-      <button class="filter-btn active" data-score="all" onclick="setScoreFilter('all',this)">All <span class="count" id="cnt-score-all">0</span></button>
-      <button class="filter-btn" data-score="green" onclick="setScoreFilter('green',this)"><span style="color:var(--score-green)">Core 80+</span><span class="count" id="cnt-score-green">0</span></button>
-      <button class="filter-btn" data-score="yellow" onclick="setScoreFilter('yellow',this)"><span style="color:var(--score-yellow)">Situational 50+</span><span class="count" id="cnt-score-yellow">0</span></button>
-      <button class="filter-btn" data-score="orange" onclick="setScoreFilter('orange',this)"><span style="color:var(--score-orange)">Low 20+</span><span class="count" id="cnt-score-orange">0</span></button>
-      <button class="filter-btn" data-score="red" onclick="setScoreFilter('red',this)"><span style="color:var(--score-red)">Remove 0+</span><span class="count" id="cnt-score-red">0</span></button>
+      <div class="sb-label">Fill Status</div>
+      <button class="filter-btn active" data-fill="all" onclick="setFillFilter('all',this)">All <span class="count" id="cnt-fill-all">0</span></button>
+      <button class="filter-btn" data-fill="Full" onclick="setFillFilter('Full',this)"><span style="color:#4d8f6a">Full</span><span class="count" id="cnt-fill-Full">0</span></button>
+      <button class="filter-btn" data-fill="Most" onclick="setFillFilter('Most',this)"><span style="color:#7a9e64">Most</span><span class="count" id="cnt-fill-Most">0</span></button>
+      <button class="filter-btn" data-fill="Half" onclick="setFillFilter('Half',this)"><span style="color:#9e7a32">Half</span><span class="count" id="cnt-fill-Half">0</span></button>
+      <button class="filter-btn" data-fill="Low" onclick="setFillFilter('Low',this)"><span style="color:#8f5530">Low</span><span class="count" id="cnt-fill-Low">0</span></button>
+      <button class="filter-btn" data-fill="Empty" onclick="setFillFilter('Empty',this)"><span style="color:#8f3838">Empty</span><span class="count" id="cnt-fill-Empty">0</span></button>
+      <button class="filter-btn" data-fill="set" onclick="setFillFilter('set',this)" style="color:var(--text-dim)">Has Fill <span class="count" id="cnt-fill-set">0</span></button>
     </div>
 
     <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
@@ -1328,7 +1334,16 @@ tbody tr:hover .row-actions { opacity: 1; }
             <div class="chart-bars" id="chart-val"></div>
           </div>
           <div class="chart-card">
-            <div class="chart-title">Score Bands</div>
+            <div class="chart-title" style="display:flex;align-items:center;justify-content:space-between">
+              Score Bands
+              <div style="display:flex;gap:4px">
+                <button class="filter-btn active" data-score="all" onclick="setScoreFilter('all',this)" style="padding:1px 6px;font-size:9px">All <span class="count" id="cnt-score-all">0</span></button>
+                <button class="filter-btn" data-score="green" onclick="setScoreFilter('green',this)" style="padding:1px 6px;font-size:9px;color:var(--score-green)">80+ <span class="count" id="cnt-score-green">0</span></button>
+                <button class="filter-btn" data-score="yellow" onclick="setScoreFilter('yellow',this)" style="padding:1px 6px;font-size:9px;color:var(--score-yellow)">50+ <span class="count" id="cnt-score-yellow">0</span></button>
+                <button class="filter-btn" data-score="orange" onclick="setScoreFilter('orange',this)" style="padding:1px 6px;font-size:9px;color:var(--score-orange)">20+ <span class="count" id="cnt-score-orange">0</span></button>
+                <button class="filter-btn" data-score="red" onclick="setScoreFilter('red',this)" style="padding:1px 6px;font-size:9px;color:var(--score-red)">0+ <span class="count" id="cnt-score-red">0</span></button>
+              </div>
+            </div>
             <div class="chart-donut-wrap">
               <svg id="chart-donut-svg" viewBox="0 0 80 80" width="80" height="80"></svg>
               <div class="chart-donut-legend" id="chart-donut-legend"></div>
@@ -2404,7 +2419,7 @@ function parseNotes(raw){
 // Remaining state:
 // locFilter: null = all, array = filter to items whose path starts with this prefix
 let locFilter=null;
-let currentView='all',currentCat='all',currentScoreFilter='all',currentTab='table';
+let currentView='all',currentCat='all',currentScoreFilter='all',currentFillFilter='all',currentTab='table';
 // Which tree nodes are expanded: Set of pathKey strings
 let expandedNodes=new Set(); // default all closed
 let sortKey=null,sortDir=1,editingCell=null;
@@ -2456,6 +2471,18 @@ async function saveDelete(ids) {
 }
 
 function saveExpanded(){localStorage.setItem('loc-expanded',JSON.stringify([...expandedNodes]));}
+function collapseAllNodes(){expandedNodes.clear();saveExpanded();renderLocTree();}
+function expandAllNodes(){
+  function walk(children,path){
+    Object.entries(children).forEach(([name,node])=>{
+      const p=[...path,name];
+      if(Object.keys(node.children).length)expandedNodes.add(pathKey(p));
+      walk(node.children,p);
+    });
+  }
+  walk(buildLocTree().children,[]);
+  saveExpanded();renderLocTree();
+}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function populateBulkCat(){const s=document.getElementById('bulk-cat');s.innerHTML='<option value="">--</option>'+CATEGORIES.map(c=>`<option>${esc(c)}</option>`).join('');}
@@ -2620,8 +2647,18 @@ function updateSidebarFilters(){
   document.getElementById('cnt-mis').textContent=mis;
   document.getElementById('cnt-purge').textContent=purge;
   document.getElementById('cnt-nodigital').textContent=nodigital;
+  const hasdigital=inventory.filter(i=>i.digitalCopy).length;
+  document.getElementById('cnt-hasdigital').textContent=hasdigital;
   const inuse=inventory.filter(i=>i.inUse).length;
   document.getElementById('cnt-inuse').textContent=inuse;
+  const fillLevels=['Full','Most','Half','Low','Empty'];
+  const fillHas=inventory.filter(i=>i.fillLevel&&fillLevels.includes(i.fillLevel)).length;
+  document.getElementById('cnt-fill-all').textContent=inventory.length;
+  document.getElementById('cnt-fill-set').textContent=fillHas;
+  fillLevels.forEach(f=>{
+    const el=document.getElementById('cnt-fill-'+f);
+    if(el)el.textContent=inventory.filter(i=>i.fillLevel===f).length;
+  });
   document.getElementById('cnt-cat-all').textContent=total;
   document.getElementById('cnt-loc-all').textContent=total;
   document.getElementById('cnt-score-all').textContent=total;
@@ -2750,9 +2787,12 @@ function getFiltered(){
     else if(currentView==='purge')items=items.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
     else if(currentView==='nodigital')items=items.filter(i=>!i.digitalCopy);
     else if(currentView==='inuse')items=items.filter(i=>i.inUse);
+    else if(currentView==='hasdigital')items=items.filter(i=>i.digitalCopy);
     if(currentCat!=='all')items=items.filter(i=>i.category===currentCat);
     if(locFilter)items=items.filter(i=>pathStartsWith(i.locationPath||[],locFilter));
     if(currentScoreFilter!=='all')items=items.filter(i=>scoreBand(calcScore(i))===currentScoreFilter);
+    if(currentFillFilter==='set')items=items.filter(i=>i.fillLevel&&['Full','Most','Half','Low','Empty'].includes(i.fillLevel));
+    else if(currentFillFilter!=='all')items=items.filter(i=>i.fillLevel===currentFillFilter);
   }
   if(q)items=items.filter(i=>i.name.toLowerCase().includes(q)||(i.notes||'').toLowerCase().includes(q)||(i.sn||'').toLowerCase().includes(q)||pathToString(i.locationPath||[]).toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q));
   if(sortKey)items.sort((a,b)=>{
@@ -4443,6 +4483,7 @@ function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=1;}re
 function setView(v,el){currentView=v;document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
 function setCat(c,el){currentCat=c;document.querySelectorAll('[data-cat]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
 function setScoreFilter(f,el){currentScoreFilter=f;document.querySelectorAll('[data-score]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
+function setFillFilter(f,el){currentFillFilter=f;document.querySelectorAll('[data-fill]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
 function switchTab(tab){currentTab=tab;document.getElementById('tab-table').classList.toggle('active',tab==='table');document.getElementById('tab-relocate').classList.toggle('active',tab==='relocate');renderTable();}
 
 // ─── COLUMN VISIBILITY + RESIZE ───────────────────────────────────────────────
