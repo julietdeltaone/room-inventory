@@ -913,6 +913,7 @@ tbody tr:hover .row-actions { opacity: 1; }
   0%,100% { box-shadow: 0 0 4px rgba(77,143,106,0.6); }
   50%      { box-shadow: 0 0 10px rgba(77,143,106,0.9); }
 }
+.ai-progress-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-left:auto;}
 .inuse-popover {
   position:fixed; z-index:600;
   background:var(--s3); border:1px solid var(--green); border-radius:6px;
@@ -1225,6 +1226,7 @@ tbody tr:hover .row-actions { opacity: 1; }
       <button class="filter-btn" data-view="misplaced" onclick="setView('misplaced',this)" style="color:var(--amber)">To Relocate <span class="count" id="cnt-mis">0</span></button>
       <button class="filter-btn" data-view="purge" onclick="setView('purge',this)" style="color:var(--red)">Purge Candidates <span class="count" id="cnt-purge">0</span></button>
       <button class="filter-btn" data-view="nodigital" onclick="setView('nodigital',this)" style="color:var(--steel)">No Digital Copy <span class="count" id="cnt-nodigital">0</span></button>
+      <button class="filter-btn" data-view="inuse" onclick="setView('inuse',this)" style="color:var(--green)"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#4d8f6a;display:inline-block;animation:inUsePulse 2s ease infinite"></span>In Use</span> <span class="count" id="cnt-inuse">0</span></button>
     </div>
 
     <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
@@ -1597,6 +1599,13 @@ CSV FORMAT:
   <div class="inuse-popover-path" id="inuse-popover-path"></div>
 </div>
 
+<!-- AI Progress bar -->
+<div id="ai-progress-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:900;background:var(--s2);border-top:1px solid var(--border2);padding:6px 16px;display:none;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--text-mid)">
+  <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rose);animation:inUsePulse 1s ease infinite;flex-shrink:0"></span>
+  <span id="ai-progress-msg">Claude is thinking…</span>
+  <span id="ai-progress-detail" style="color:var(--text-dim);margin-left:4px"></span>
+</div>
+
 <!-- Inspector popover -->
 <div class="inspector-overlay" id="inspector-overlay" onclick="closeInspector(event)">
   <div class="inspector-pop" id="inspector-pop">
@@ -1953,6 +1962,7 @@ async function claudeSuggest(){
   const lbl=document.getElementById('claude-suggest-label');
   btn.classList.add('loading');
   lbl.textContent='Thinking…';
+  setAIProgress('Suggesting fields…');
 
   // Build context from existing inventory (category distribution, existing locations)
   const catCounts={};
@@ -1974,6 +1984,7 @@ async function claudeSuggest(){
     if(!res.ok){
       const errText=await res.text();
       if(res.status===404){
+        clearAIProgress();
         toast('AI suggest not deployed yet — see README');
         lbl.textContent='✦ Suggest fields with AI';
         btn.classList.remove('loading');
@@ -1981,10 +1992,12 @@ async function claudeSuggest(){
       }
       throw new Error(errText);
     }
+    clearAIProgress();
     const parsed=await res.json();
     showSuggestions(parsed);
   }catch(e){
     console.error('Claude suggest error:',e);
+    clearAIProgress();
     toast('AI suggest unavailable — fill manually');
     lbl.textContent='✦ Suggest fields with AI';
     btn.classList.remove('loading');
@@ -2607,6 +2620,8 @@ function updateSidebarFilters(){
   document.getElementById('cnt-mis').textContent=mis;
   document.getElementById('cnt-purge').textContent=purge;
   document.getElementById('cnt-nodigital').textContent=nodigital;
+  const inuse=inventory.filter(i=>i.inUse).length;
+  document.getElementById('cnt-inuse').textContent=inuse;
   document.getElementById('cnt-cat-all').textContent=total;
   document.getElementById('cnt-loc-all').textContent=total;
   document.getElementById('cnt-score-all').textContent=total;
@@ -2734,6 +2749,7 @@ function getFiltered(){
     if(currentView==='misplaced')items=items.filter(i=>i.misplaced);
     else if(currentView==='purge')items=items.filter(i=>['Sell','Donate','Trash'].includes(i.keep));
     else if(currentView==='nodigital')items=items.filter(i=>!i.digitalCopy);
+    else if(currentView==='inuse')items=items.filter(i=>i.inUse);
     if(currentCat!=='all')items=items.filter(i=>i.category===currentCat);
     if(locFilter)items=items.filter(i=>pathStartsWith(i.locationPath||[],locFilter));
     if(currentScoreFilter!=='all')items=items.filter(i=>scoreBand(calcScore(i))===currentScoreFilter);
@@ -2832,7 +2848,7 @@ function buildRow(item,dupMap){
     <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onchange="toggleSelect(${item.id},this.checked)"></td>
     ${etd('name',`<div style="display:flex;align-items:center;gap:3px">${esc(item.name)}</div>${snVal?`<div><span class="sn-badge">S/N ${esc(snVal)}</span></div>`:''}${mergedBadge}`,'min-width:120px;font-weight:500;font-size:13px')}
     ${etd('_loc', item.inUse
-      ? `<div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="showHomeLocation(${item.id},event)" title="Click to see home location">
+      ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
           <span style="width:7px;height:7px;border-radius:50%;background:#4d8f6a;box-shadow:0 0 6px rgba(77,143,106,0.8);flex-shrink:0;animation:inUsePulse 2s ease infinite"></span>
           <span style="font-size:11px;color:#4d8f6a;font-weight:500">In Use</span>
         </div>`
@@ -3152,6 +3168,7 @@ async function runEnrichLevel(level){
   if(!item) return;
 
   toast(`Enriching "${item.name}" at Level ${level}…`);
+  setAIProgress(`Enriching "${item.name}"…`);
 
   const catCounts={};
   inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
@@ -3203,8 +3220,10 @@ async function runEnrichLevel(level){
 
     logChange(item,'Enrich','—',`Level ${level}`);
     save();render();
+    clearAIProgress();
     toast(`✓ Level ${level} enrich done for "${item.name}"`);
   }catch(err){
+    clearAIProgress();
     toast(`✗ Enrich failed: ${err.message}`);
   }
 }
@@ -3215,6 +3234,7 @@ async function enrichSelectedLevel(){
   if(!ids.length){toast('No items selected');return;}
   const items=inventory.filter(i=>ids.includes(i.id));
   toast(`Enriching ${items.length} items at Level ${level}…`);
+  setAIProgress(`Enriching at Level ${level}…`,0,items.length);
 
   const catCounts={};
   inventory.forEach(i=>{catCounts[i.category]=(catCounts[i.category]||0)+1;});
@@ -3258,9 +3278,11 @@ async function enrichSelectedLevel(){
       logChange(item,'Enrich','—',`Level ${level}`);
       done++;
     }catch(e){console.warn('Enrich failed for',item.name,e);}
+    setAIProgress(`Enriching at Level ${level}…`,done,items.length);
     await new Promise(r=>setTimeout(r,200));
   }
   snapshot();save();render();
+  clearAIProgress();
   toast(`✓ Level ${level} enrich done — ${done}/${items.length} items updated`);
 }
 
@@ -3695,6 +3717,7 @@ async function runBulkEnrich(){
   const BATCH=2;
   let done=0;
   _enrichResults=[];
+  setAIProgress('Running Custom Enrich…',0,missing.length);
 
   body.innerHTML=`<div style="padding:20px 16px">
     <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-bottom:10px" id="enrich-progress-label">Starting…</div>
@@ -4230,6 +4253,8 @@ async function enrichSelected(){
   const ids=[...selectedIds];
   if(!ids.length){toast('No items selected');return;}
   const items=inventory.filter(i=>ids.includes(i.id));
+  const _enrTotal=items.length;let _enrDone=0;
+  setAIProgress(`Enriching selected items…`,0,_enrTotal);
   toast(`Enriching ${items.length} selected items…`);
 
   const catCounts={};
@@ -4255,9 +4280,11 @@ async function enrichSelected(){
       if(s.keywords&&s.keywords.trim()){item.keywords=s.keywords.trim();applied++;}
       if(s.cleanedName&&s.cleanedName.trim()&&s.cleanedName!==item.name){item.name=s.cleanedName;applied++;}
     }catch(e){console.warn('Enrich failed for',item.name,e);}
+    _enrDone++;setAIProgress(`Enriching selected items…`,_enrDone,_enrTotal);
     await new Promise(r=>setTimeout(r,200));
   }
   snapshot();save();render();
+  clearAIProgress();
   toast(`✓ Enrich done — ${applied} fields updated across ${items.length} items`);
 }
 
@@ -4265,6 +4292,7 @@ async function keywordsSelected(){
   const ids=[...selectedIds];
   if(!ids.length){toast('No items selected');return;}
   const items=inventory.filter(i=>ids.includes(i.id));
+  setAIProgress(`Generating keywords…`,0,items.length);
   toast(`Generating keywords for ${items.length} items…`);
 
   const catCounts={};
@@ -4283,9 +4311,11 @@ async function keywordsSelected(){
       const s=await res.json();
       if(s.keywords&&s.keywords.trim()){item.keywords=s.keywords.trim();applied++;}
     }catch(e){console.warn('Keywords failed for',item.name,e);}
+    setAIProgress(`Generating keywords…`,applied,items.length);
     await new Promise(r=>setTimeout(r,150));
   }
   snapshot();save();render();
+  clearAIProgress();
   toast(`✓ Keywords done — ${applied} of ${items.length} items updated`);
 }
 
@@ -4335,6 +4365,7 @@ async function runKeywordsEnrich(){
   const total = inventory.length;
   let done = 0, applied = 0;
   _kwResults = [];
+  setAIProgress('Generating all keywords…',0,inventory.length);
 
   body.innerHTML = `<div style="padding:20px 16px">
     <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid);margin-bottom:10px" id="kw-progress-label">Starting…</div>
@@ -5201,26 +5232,45 @@ function toggleInUse(id){
 
 let _inuseHideTimer=null;
 function showHomeLocation(id,e){
-  e.stopPropagation();
   const item=inventory.find(i=>i.id===id);
   if(!item)return;
   const pop=document.getElementById('inuse-popover');
   const pathEl=document.getElementById('inuse-popover-path');
   pathEl.textContent=(item.locationPath||[]).join(' > ')||'No home location set';
   pop.style.display='block';
-  let x=e.clientX-pop.offsetWidth/2;
-  let y=e.clientY+12;
+  // Position near the cell, not the cursor — avoids triggering re-hover on move
+  const rect=e.currentTarget?e.currentTarget.getBoundingClientRect():null;
+  let x=rect?rect.left:e.clientX;
+  let y=rect?rect.bottom+4:e.clientY+12;
+  if(x+pop.offsetWidth>window.innerWidth-8)x=window.innerWidth-pop.offsetWidth-8;
   if(x<8)x=8;
-  if(y+80>window.innerHeight)y=e.clientY-70;
   pop.style.left=x+'px';
   pop.style.top=y+'px';
   clearTimeout(_inuseHideTimer);
-  _inuseHideTimer=setTimeout(()=>{pop.style.display='none';},2500);
 }
-document.addEventListener('click',()=>{
-  const pop=document.getElementById('inuse-popover');
-  if(pop)pop.style.display='none';
-});
+function scheduleHidePopover(){
+  _inuseHideTimer=setTimeout(()=>{
+    const pop=document.getElementById('inuse-popover');
+    if(pop)pop.style.display='none';
+  },120);
+}
+
+// ─── AI PROGRESS ─────────────────────────────────────────────────────────────
+let _aiTotal=0,_aiDone=0;
+function setAIProgress(msg,done,total){
+  const bar=document.getElementById('ai-progress-bar');
+  const msgEl=document.getElementById('ai-progress-msg');
+  const detailEl=document.getElementById('ai-progress-detail');
+  if(!bar)return;
+  bar.style.display='flex';
+  if(msgEl)msgEl.textContent=msg||'Claude is thinking…';
+  if(detailEl&&total>1)detailEl.textContent=`${done||0} / ${total}`;
+  else if(detailEl)detailEl.textContent='';
+}
+function clearAIProgress(){
+  const bar=document.getElementById('ai-progress-bar');
+  if(bar)bar.style.display='none';
+}
 
 // ─── PIN / PRIVACY ────────────────────────────────────────────────────────────
 const PIN_KEY='inv_pin';
