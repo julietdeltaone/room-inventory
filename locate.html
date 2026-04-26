@@ -261,6 +261,10 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
         <span style="display:flex;align-items:center;gap:6px"><span class="inuse-dot" style="animation:none;box-shadow:0 0 5px rgba(77,143,106,0.7)"></span>In Use</span>
         <span class="sb-inuse-count" id="sb-inuse-count">0</span>
       </div>
+      <div id="sb-lock-btn" onclick="_pinUnlocked?lockSession():unlockSession()" style="display:none;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:5px;border:1px solid var(--border1);background:transparent;cursor:pointer;font-family:var(--font-ui);font-size:12px;color:var(--text-mid);gap:8px;margin-bottom:6px;transition:border-color 0.15s">
+        <span id="sb-lock-label">🔒 Unlock Private</span>
+        <span id="sb-lock-count" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"></span>
+      </div>
       <div id="sb-tree"></div>
     </div>
     <div class="stage" id="stage">
@@ -274,6 +278,7 @@ const SUPABASE_URL='https://npdtjxjhepaqhrqtvueu.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
 
 let inventory=[], currentPath=[], expandedSb=new Set(), searchQuery='', inUseView=false;
+let _pinUnlocked=false;
 // Path registry — maps numeric IDs to path arrays to avoid JSON-in-HTML issues
 const _paths={};let _pid=0;
 function regPath(arr){const id='p'+(++_pid);_paths[id]=arr;return id;}
@@ -306,6 +311,7 @@ const CAT={
   'Books & Notebooks':        {bg:'#252218',text:'#c0a850',border:'#3a3420'},
   'Gym & Fitness':            {bg:'#152518',text:'#60c880',border:'#223c28'},
   'Automotive':               {bg:'#1e1e1a',text:'#909080',border:'#2e2e28'},
+  'Memorabilia & Keepsakes':  {bg:'#221828',text:'#b888d0',border:'#362248'},
   'Misc':                     {bg:'#1a1a1a',text:'#888888',border:'#2a2a2a'},
 };
 function catC(cat){return CAT[cat]||CAT['Misc'];}
@@ -328,6 +334,8 @@ function rowToItem(row){
     yearPurchased:row.year_purchased,estValue:row.est_value,
     fillLevel:row.fill_level,digitalCopy:row.digital_copy,
     inUse:row.in_use?true:false,
+    lockedItem:row.locked_item?true:false,
+    lockedNotes:row.locked_notes?true:false,
     keywords:row.keywords||'',
     locationPath:stringToPath(row.location||'')};
 }
@@ -345,6 +353,30 @@ function buildTree(){
 }
 
 // ── SIDEBAR ──────────────────────────────────────────────────────────────────
+// ── PIN ──────────────────────────────────────────────────────────────────────
+const PIN_KEY='inv_pin';
+function getPin(){return localStorage.getItem(PIN_KEY)||'';}
+function verifyPin(cb){
+  const pin=getPin();
+  if(!pin){alert('No PIN set on this inventory.');return;}
+  const entered=prompt('Enter privacy PIN:');
+  if(entered===null)return;
+  if(entered!==pin){alert('Wrong PIN');return;}
+  cb();
+}
+function unlockSession(){
+  verifyPin(()=>{_pinUnlocked=true;renderSidebar();renderStage();});
+}
+function lockSession(){_pinUnlocked=false;renderSidebar();renderStage();}
+function unlockItemNotes(id){
+  verifyPin(()=>{
+    const ln=document.getElementById('locked-notes-'+id);
+    const rn=document.getElementById('revealed-notes-'+id);
+    if(ln)ln.style.display='none';
+    if(rn)rn.style.display='block';
+  });
+}
+
 function renderSidebar(){
   const tree=buildTree();
   const inUseCount=inventory.filter(i=>i.inUse).length;
@@ -352,6 +384,13 @@ function renderSidebar(){
   document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery&&!inUseView);
   document.getElementById('sb-inuse-count').textContent=inUseCount;
   document.getElementById('sb-inuse').classList.toggle('active',inUseView);
+  const lockedCount=inventory.filter(i=>i.lockedItem).length;
+  const lockBtn=document.getElementById('sb-lock-btn');
+  if(lockBtn){
+    lockBtn.style.display=lockedCount>0?'flex':'none';
+    document.getElementById('sb-lock-label').textContent=_pinUnlocked?'🔓 Lock Private':'🔒 Unlock Private';
+    document.getElementById('sb-lock-count').textContent=lockedCount?lockedCount+' hidden':'';
+  }
   const container=document.getElementById('sb-tree');container.innerHTML='';
   function rNode(children,parentPath,container,depth){
     Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
@@ -405,7 +444,7 @@ function renderStage(){
 
   // In Use mode
   if(inUseView){
-    const items=inventory.filter(i=>i.inUse).sort((a,b)=>a.name.localeCompare(b.name));
+    const items=inventory.filter(i=>i.inUse&&(_pinUnlocked||!i.lockedItem)).sort((a,b)=>a.name.localeCompare(b.name));
     const cards=items.map(item=>itemCardHTML(item)).join('');
     stage.innerHTML=`<div class="view"><div class="view-inner">
       <div class="loc-title-wrap">
@@ -426,6 +465,7 @@ function renderStage(){
     // Compute match type per item
     const results=[];
     inventory.forEach(i=>{
+      if(!_pinUnlocked&&i.lockedItem)return;
       const nameMatch = i.name.toLowerCase().includes(q);
       const catMatch  = (i.category||'').toLowerCase().includes(q);
       const locMatch  = pathToString(i.locationPath).toLowerCase().includes(q);
@@ -462,7 +502,7 @@ function renderStage(){
 
   // Location mode
   const path=currentPath;
-  const allItems=inventory.filter(i=>pathStartsWith(i.locationPath||[],path));
+  const allItems=inventory.filter(i=>pathStartsWith(i.locationPath||[],path)&&(_pinUnlocked||!i.lockedItem));
   const directItems=allItems.filter(i=>(i.locationPath||[]).length===path.length);
   const childMap={};
   allItems.forEach(item=>{
@@ -550,6 +590,9 @@ function itemCardHTML(item){
   const rawNote=item.notes||'';
   const kwIdx=rawNote.toLowerCase().indexOf('| keywords:');
   const displayNote=kwIdx!==-1?rawNote.slice(0,kwIdx).trim():rawNote;
+  const notesHTML=item.lockedNotes
+    ?`<span id="locked-notes-${item.id}" style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#b06060;font-family:var(--font-mono);cursor:pointer" onclick="unlockItemNotes(${item.id})">🔒 notes locked — tap to unlock</span><span id="revealed-notes-${item.id}" style="display:none;font-size:10px;color:var(--text-dim)">${esc(displayNote)}</span>`
+    :(displayNote?`<span class="item-notes-inline">${esc(displayNote)}</span>`:'');
 
   const fillMap={'Full':{label:'Full',color:'#4d8f6a'},'Most':{label:'Most',color:'#7a9e64'},'Half':{label:'Half',color:'#9e7a32'},'Low':{label:'Low',color:'#8f5530'},'Empty':{label:'Empty',color:'#8f3838'}};
   const fillInfo=item.fillLevel?fillMap[item.fillLevel]:null;
@@ -568,7 +611,7 @@ function itemCardHTML(item){
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text}">${esc(item.category)}</span>
       ${parts.length?`<div class="item-meta-inline">${parts.map(p=>`<span class="item-pill"><span class="pill-lbl">${p.l}</span>${esc(p.v)}</span>`).join('')}</div>`:''}
       ${fillBadge||digitalBadge||inUseBadge?`<div class="item-indicators">${inUseBadge}${fillBadge}${digitalBadge}</div>`:''}
-      ${displayNote?`<span class="item-notes-inline">${esc(displayNote)}</span>`:''}
+      ${notesHTML}
     </div>
   </div>`;
 }
