@@ -189,6 +189,58 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 }
 .inuse-dot{width:6px;height:6px;border-radius:50%;background:#4d8f6a;flex-shrink:0;animation:inUsePulse 2s ease infinite;}
 
+/* ── CATEGORY KEY ── */
+.sb-section{margin:0 0 2px;}
+.sb-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;cursor:pointer;user-select:none;}
+.sb-section-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);}
+.sb-section-arrow{font-size:8px;color:var(--text-dim);transition:transform 0.2s;}
+.sb-section-arrow.open{transform:rotate(90deg);}
+.sb-section-body{overflow:hidden;}
+.sb-section-body.collapsed{display:none;}
+.cat-key-item{display:flex;align-items:center;gap:8px;padding:4px 12px;cursor:pointer;border-radius:3px;transition:background 0.12s;}
+.cat-key-item:hover{background:var(--s1);}
+.cat-key-item.active{background:rgba(255,255,255,0.04);}
+.cat-key-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.cat-key-name{font-family:var(--font-ui);font-size:11px;color:var(--text-mid);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cat-key-count{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
+.cat-key-item.active .cat-key-name{color:var(--text);}
+
+/* ── RECENT LOCATIONS ── */
+.recent-item{display:flex;align-items:center;gap:8px;padding:4px 12px;cursor:pointer;border-radius:3px;transition:background 0.12s;}
+.recent-item:hover{background:var(--s1);}
+.recent-path{font-family:var(--font-ui);font-size:11px;color:var(--text-mid);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.recent-leaf{color:var(--text);font-weight:500;}
+
+/* ── JUMP INPUT ── */
+.jump-wrap{padding:4px 12px 8px;}
+.jump-input{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:var(--font-mono);font-size:10px;color:var(--text);outline:none;transition:border-color 0.15s;}
+.jump-input:focus{border-color:var(--border2);}
+.jump-results{margin-top:3px;display:none;}
+.jump-result{padding:3px 8px;font-family:var(--font-mono);font-size:10px;color:var(--text-mid);cursor:pointer;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jump-result:hover,.jump-result.active{background:var(--s2);color:var(--text);}
+
+/* ── STATS STRIP ── */
+.stats-strip{display:flex;gap:28px;margin-bottom:44px;justify-content:center;flex-wrap:wrap;}
+.stat-cell{text-align:center;}
+.stat-num{font-family:var(--font-mono);font-size:22px;font-weight:500;color:var(--text);letter-spacing:-0.02em;}
+.stat-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-top:2px;}
+
+/* ── SORT CONTROL ── */
+.sort-strip{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.sort-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);}
+.sort-btn{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);background:none;border:1px solid var(--border);border-radius:2px;padding:2px 8px;cursor:pointer;transition:all 0.12s;}
+.sort-btn:hover{color:var(--text-mid);border-color:var(--border2);}
+.sort-btn.active{color:var(--rose);border-color:var(--rose);background:rgba(176,122,132,0.08);}
+
+/* ── SIBLINGS ── */
+.siblings-strip{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.sibling-chip{font-family:var(--font-ui);font-size:11px;color:var(--text-dim);background:var(--s1);border:1px solid var(--border);border-radius:3px;padding:4px 10px;cursor:pointer;transition:all 0.12s;white-space:nowrap;}
+.sibling-chip:hover{color:var(--text-mid);border-color:var(--border2);}
+
+/* ── CAT VIEW ── */
+.cat-view{min-height:100%;padding:44px 60px 80px;display:flex;flex-direction:column;align-items:center;animation:fadeUp 0.24s cubic-bezier(0.16,1,0.3,1) both;}
+.cat-view-inner{width:100%;max-width:880px;}
+
 /* ── SEARCH RESULTS ── */
 .search-view{min-height:100%;padding:44px 60px 80px;display:flex;flex-direction:column;align-items:center;animation:fadeUp 0.24s cubic-bezier(0.16,1,0.3,1) both;}
 .search-inner{width:100%;max-width:880px;}
@@ -253,6 +305,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
   </header>
   <div class="body">
     <div class="sidebar" id="sidebar">
+      <!-- All Items + In Use + Lock -->
       <div class="sb-all active" id="sb-all" onclick="navigate([])">
         <span>All Items</span>
         <span class="sb-all-count" id="sb-all-count"></span>
@@ -261,11 +314,66 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
         <span style="display:flex;align-items:center;gap:6px"><span class="inuse-dot" style="animation:none;box-shadow:0 0 5px rgba(77,143,106,0.7)"></span>In Use</span>
         <span class="sb-inuse-count" id="sb-inuse-count">0</span>
       </div>
-      <div id="sb-lock-btn" onclick="_pinUnlocked?lockSession():unlockSession()" style="display:none;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:5px;border:1px solid var(--border1);background:transparent;cursor:pointer;font-family:var(--font-ui);font-size:12px;color:var(--text-mid);gap:8px;margin-bottom:6px;transition:border-color 0.15s">
+      <div id="sb-lock-btn" onclick="_pinUnlocked?lockSession():unlockSession()" style="display:none;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;cursor:pointer;font-family:var(--font-ui);font-size:12px;color:var(--text-mid);gap:8px;margin-bottom:6px;transition:border-color 0.15s;margin:0 12px 6px">
         <span id="sb-lock-label">🔒 Unlock Private</span>
         <span id="sb-lock-count" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"></span>
       </div>
-      <div id="sb-tree"></div>
+
+      <!-- Quick Jump -->
+      <div class="sb-section">
+        <div class="sb-section-hdr" onclick="toggleSbSection('jump-body','jump-arrow')">
+          <span class="sb-section-label">Jump To</span>
+          <span class="sb-section-arrow open" id="jump-arrow">›</span>
+        </div>
+        <div class="sb-section-body" id="jump-body">
+          <div class="jump-wrap">
+            <input class="jump-input" id="jump-input" placeholder="type a location…" autocomplete="off" oninput="updateJump(this.value)" onkeydown="jumpKeydown(event)">
+            <div class="jump-results" id="jump-results"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Locations tree -->
+      <div class="sb-section">
+        <div class="sb-section-hdr" onclick="toggleSbSection('sb-tree','tree-arrow')">
+          <span class="sb-section-label">Locations</span>
+          <span class="sb-section-arrow open" id="tree-arrow">›</span>
+        </div>
+        <div class="sb-section-body" id="sb-tree"></div>
+      </div>
+
+      <!-- Browse by Category -->
+      <div class="sb-section">
+        <div class="sb-section-hdr" onclick="toggleSbSection('cat-browse-body','cat-browse-arrow')">
+          <span class="sb-section-label">By Category</span>
+          <span class="sb-section-arrow open" id="cat-browse-arrow">›</span>
+        </div>
+        <div class="sb-section-body" id="cat-browse-body">
+          <div id="cat-browse-list"></div>
+        </div>
+      </div>
+
+      <!-- Category Color Key -->
+      <div class="sb-section">
+        <div class="sb-section-hdr" onclick="toggleSbSection('cat-key-body','cat-key-arrow')">
+          <span class="sb-section-label">Category Key</span>
+          <span class="sb-section-arrow" id="cat-key-arrow">›</span>
+        </div>
+        <div class="sb-section-body collapsed" id="cat-key-body">
+          <div id="cat-key-list"></div>
+        </div>
+      </div>
+
+      <!-- Recent Locations -->
+      <div class="sb-section">
+        <div class="sb-section-hdr" onclick="toggleSbSection('recent-body','recent-arrow')">
+          <span class="sb-section-label">Recent</span>
+          <span class="sb-section-arrow open" id="recent-arrow">›</span>
+        </div>
+        <div class="sb-section-body" id="recent-body">
+          <div id="recent-list"><div style="padding:4px 12px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">No recent locations</div></div>
+        </div>
+      </div>
     </div>
     <div class="stage" id="stage">
       <div class="loading-state"><div class="loading-ring"></div><div class="loading-label">Loading</div></div>
@@ -279,6 +387,10 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 let inventory=[], currentPath=[], expandedSb=new Set(), searchQuery='', inUseView=false;
 let _pinUnlocked=false;
+let _catView=null; // category name when browsing by category
+let _sortMode='default'; // 'default'|'name'|'value'|'keep'
+const RECENT_KEY='inv_recent_locs';
+const SB_COLLAPSE_KEY='inv_sb_collapse';
 // Path registry — maps numeric IDs to path arrays to avoid JSON-in-HTML issues
 const _paths={};let _pid=0;
 function regPath(arr){const id='p'+(++_pid);_paths[id]=arr;return id;}
@@ -353,6 +465,143 @@ function buildTree(){
 }
 
 // ── SIDEBAR ──────────────────────────────────────────────────────────────────
+// ── SIDEBAR SECTION TOGGLE ───────────────────────────────────────────────────
+function toggleSbSection(bodyId,arrowId){
+  const body=document.getElementById(bodyId);
+  const arrow=document.getElementById(arrowId);
+  if(!body)return;
+  const collapsed=body.classList.toggle('collapsed');
+  if(arrow)arrow.classList.toggle('open',!collapsed);
+  // persist
+  try{
+    const state=JSON.parse(localStorage.getItem(SB_COLLAPSE_KEY)||'{}');
+    state[bodyId]=collapsed;
+    localStorage.setItem(SB_COLLAPSE_KEY,JSON.stringify(state));
+  }catch(e){}
+}
+function restoreSbCollapse(){
+  try{
+    const state=JSON.parse(localStorage.getItem(SB_COLLAPSE_KEY)||'{}');
+    Object.entries(state).forEach(([bodyId,collapsed])=>{
+      const body=document.getElementById(bodyId);
+      const arrowId=bodyId.replace('-body','-arrow').replace('sb-tree','tree');
+      const arrow=document.getElementById(arrowId);
+      if(!body)return;
+      if(collapsed){body.classList.add('collapsed');if(arrow)arrow.classList.remove('open');}
+      else{body.classList.remove('collapsed');if(arrow)arrow.classList.add('open');}
+    });
+  }catch(e){}
+}
+
+// ── RECENT LOCATIONS ─────────────────────────────────────────────────────────
+function getRecent(){try{return JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');}catch(e){return[];}}
+function pushRecent(path){
+  if(!path||!path.length)return;
+  const key=path.join('::');
+  let r=getRecent().filter(x=>x.key!==key);
+  r.unshift({key,path});
+  if(r.length>8)r=r.slice(0,8);
+  localStorage.setItem(RECENT_KEY,JSON.stringify(r));
+  renderRecent();
+}
+function renderRecent(){
+  const el=document.getElementById('recent-list');if(!el)return;
+  const r=getRecent();
+  if(!r.length){el.innerHTML='<div style="padding:4px 12px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">No recent locations</div>';return;}
+  el.innerHTML=r.map(({path})=>{
+    const leaf=path[path.length-1];
+    const parents=path.slice(0,-1);
+    const pid=regPath(path);
+    const prefix=parents.length?`<span style="font-size:9px;color:var(--text-dim)">${esc(parents.join(' › '))} › </span>`:'';
+    return`<div class="recent-item" onclick="nav('${pid}')">
+      <div class="recent-path">${prefix}<span class="recent-leaf">${esc(leaf)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ── CATEGORY BROWSE ──────────────────────────────────────────────────────────
+function setCatView(cat){
+  _catView=cat;currentPath=[];searchQuery='';inUseView=false;
+  document.getElementById('search-input').value='';
+  renderSidebar();renderStage();
+  document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
+}
+function renderCatBrowse(){
+  const el=document.getElementById('cat-browse-list');if(!el)return;
+  const cats={};
+  inventory.forEach(i=>{
+    if(_pinUnlocked||!i.lockedItem){
+      const c=i.category||'Misc';
+      cats[c]=(cats[c]||0)+1;
+    }
+  });
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=sorted.map(([cat,count])=>{
+    const cs=CAT[cat]||CAT['Misc'];
+    const isActive=_catView===cat;
+    return`<div class="cat-key-item${isActive?' active':''}" onclick="setCatView('${esc(cat)}')" style="${isActive?'background:'+cs.bg+';':''}" >
+      <div class="cat-key-dot" style="background:${cs.text};box-shadow:0 0 4px ${cs.text}60"></div>
+      <span class="cat-key-name" style="${isActive?'color:'+cs.text+';':''}">${esc(cat)}</span>
+      <span class="cat-key-count">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── CATEGORY COLOR KEY ────────────────────────────────────────────────────────
+function renderCatKey(){
+  const el=document.getElementById('cat-key-list');if(!el)return;
+  el.innerHTML=Object.entries(CAT).map(([cat,cs])=>`
+    <div class="cat-key-item">
+      <div class="cat-key-dot" style="background:${cs.text}"></div>
+      <span class="cat-key-name">${esc(cat)}</span>
+    </div>`).join('');
+}
+
+// ── JUMP TO LOCATION ─────────────────────────────────────────────────────────
+let _jumpActive=-1;
+function getAllPaths(){
+  const paths=new Set();
+  inventory.forEach(i=>{
+    const p=i.locationPath||[];
+    for(let j=1;j<=p.length;j++)paths.add(p.slice(0,j).join(' > '));
+  });
+  return [...paths].sort();
+}
+function updateJump(val){
+  const res=document.getElementById('jump-results');if(!res)return;
+  if(!val.trim()){res.style.display='none';res.innerHTML='';_jumpActive=-1;return;}
+  const q=val.toLowerCase();
+  const matches=getAllPaths().filter(p=>p.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){res.style.display='none';return;}
+  _jumpActive=-1;
+  res.style.display='block';
+  res.innerHTML=matches.map((p,i)=>`<div class="jump-result" data-idx="${i}" data-path="${esc(p)}" onclick="jumpTo('${esc(p)}')">${esc(p)}</div>`).join('');
+}
+function jumpTo(pathStr){
+  const path=pathStr.split(' > ').map(s=>s.trim()).filter(Boolean);
+  document.getElementById('jump-input').value='';
+  document.getElementById('jump-results').style.display='none';
+  navigate(path);
+}
+function jumpKeydown(e){
+  const res=document.getElementById('jump-results');
+  const items=res?[...res.querySelectorAll('.jump-result')]:[];
+  if(!items.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();_jumpActive=Math.min(_jumpActive+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('active',i===_jumpActive));}
+  else if(e.key==='ArrowUp'){e.preventDefault();_jumpActive=Math.max(_jumpActive-1,0);items.forEach((el,i)=>el.classList.toggle('active',i===_jumpActive));}
+  else if(e.key==='Enter'&&_jumpActive>=0){jumpTo(items[_jumpActive].dataset.path);}
+  else if(e.key==='Escape'){res.style.display='none';document.getElementById('jump-input').value='';}
+}
+
+// ── SORT ─────────────────────────────────────────────────────────────────────
+function setSort(mode){_sortMode=mode;renderStage();}
+function sortItems(items){
+  if(_sortMode==='name')return [...items].sort((a,b)=>a.name.localeCompare(b.name));
+  if(_sortMode==='value')return [...items].sort((a,b)=>(parseFloat(b.estValue)||0)-(parseFloat(a.estValue)||0));
+  if(_sortMode==='keep'){const order=['Keep','Maybe','Sell','Donate','Trash'];return [...items].sort((a,b)=>order.indexOf(a.keep)-order.indexOf(b.keep));}
+  return items;
+}
+
 // ── PIN ──────────────────────────────────────────────────────────────────────
 const PIN_KEY='inv_pin';
 function getPin(){return localStorage.getItem(PIN_KEY)||'';}
@@ -377,13 +626,57 @@ function unlockItemNotes(id){
   });
 }
 
+function sortStripHTML(){
+  const modes=[['default','Default'],['name','A–Z'],['value','Value ↓'],['keep','Keep']];
+  return`<div class="sort-strip">
+    <span class="sort-label">Sort</span>
+    ${modes.map(([m,l])=>`<button class="sort-btn${_sortMode===m?' active':''}" onclick="setSort('${m}')">${l}</button>`).join('')}
+  </div>`;
+}
+
+function statsStripHTML(){
+  const vis=inventory.filter(i=>_pinUnlocked||!i.lockedItem);
+  const inUseCount=vis.filter(i=>i.inUse).length;
+  const cats=new Set(vis.map(i=>i.category)).size;
+  const locs=new Set(vis.map(i=>(i.locationPath||[]).join('::'))).size;
+  return`<div class="stats-strip">
+    <div class="stat-cell"><div class="stat-num">${vis.length}</div><div class="stat-lbl">Items</div></div>
+    <div class="stat-cell"><div class="stat-num">${inUseCount}</div><div class="stat-lbl">In Use</div></div>
+    <div class="stat-cell"><div class="stat-num">${cats}</div><div class="stat-lbl">Categories</div></div>
+    <div class="stat-cell"><div class="stat-num">${locs}</div><div class="stat-lbl">Locations</div></div>
+  </div>`;
+}
+
+function siblingsHTML(path){
+  if(!path.length)return'';
+  const parentPath=path.slice(0,-1);
+  const siblings=new Set();
+  inventory.forEach(i=>{
+    const p=i.locationPath||[];
+    if(p.length>parentPath.length&&parentPath.every((s,j)=>s===p[j])){
+      const sib=p[parentPath.length];
+      if(sib&&sib!==path[parentPath.length])siblings.add(sib);
+    }
+  });
+  if(!siblings.size)return'';
+  const chips=[...siblings].sort().map(sib=>{
+    const sibPath=[...parentPath,sib];
+    const pid=regPath(sibPath);
+    return`<span class="sibling-chip" onclick="nav('${pid}')">${esc(sib)}</span>`;
+  }).join('');
+  return`<div style="margin-bottom:16px"><div class="sort-label" style="margin-bottom:6px">Also in ${esc(parentPath[parentPath.length-1]||'this level')}</div><div class="siblings-strip">${chips}</div></div>`;
+}
+
 function renderSidebar(){
   const tree=buildTree();
   const inUseCount=inventory.filter(i=>i.inUse).length;
   document.getElementById('sb-all-count').textContent=tree.total;
-  document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery&&!inUseView);
   document.getElementById('sb-inuse-count').textContent=inUseCount;
+  document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery&&!inUseView&&!_catView);
   document.getElementById('sb-inuse').classList.toggle('active',inUseView);
+  renderCatBrowse();
+  renderCatKey();
+  renderRecent();
   const lockedCount=inventory.filter(i=>i.lockedItem).length;
   const lockBtn=document.getElementById('sb-lock-btn');
   if(lockBtn){
@@ -424,15 +717,16 @@ function renderSidebar(){
 
 // ── NAVIGATE ─────────────────────────────────────────────────────────────────
 function navigate(path){
-  currentPath=path;searchQuery='';inUseView=false;
+  currentPath=path;searchQuery='';inUseView=false;_catView=null;
   document.getElementById('search-input').value='';
   for(let i=1;i<=path.length;i++)expandedSb.add(path.slice(0,i).join('::'));
+  if(path.length)pushRecent(path);
   renderSidebar();renderStage();
   document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
 }
 
 function setInUseView(){
-  inUseView=true;currentPath=[];searchQuery='';
+  inUseView=true;currentPath=[];searchQuery='';_catView=null;
   document.getElementById('search-input').value='';
   renderSidebar();renderStage();
   document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
@@ -442,9 +736,25 @@ function setInUseView(){
 function renderStage(){
   const stage=document.getElementById('stage');
 
+  // Category browse mode
+  if(_catView){
+    const items=sortItems(inventory.filter(i=>i.category===_catView&&(_pinUnlocked||!i.lockedItem)));
+    const cs=CAT[_catView]||CAT['Misc'];
+    const cards=items.map(item=>itemCardHTML(item)).join('');
+    stage.innerHTML=`<div class="cat-view"><div class="cat-view-inner">
+      <div class="loc-title-wrap">
+        <div class="loc-title" style="color:${cs.text}">${esc(_catView)}</div>
+        <div class="loc-subtitle"><span>${items.length} item${items.length!==1?'s':''}</span></div>
+      </div>
+      ${sortStripHTML()}
+      <div class="items-grid">${cards||'<div style="color:var(--text-dim);font-size:13px;padding:24px 0">No items in this category.</div>'}</div>
+    </div></div>`;
+    return;
+  }
+
   // In Use mode
   if(inUseView){
-    const items=inventory.filter(i=>i.inUse&&(_pinUnlocked||!i.lockedItem)).sort((a,b)=>a.name.localeCompare(b.name));
+    const items=sortItems(inventory.filter(i=>i.inUse&&(_pinUnlocked||!i.lockedItem)));
     const cards=items.map(item=>itemCardHTML(item)).join('');
     stage.innerHTML=`<div class="view"><div class="view-inner">
       <div class="loc-title-wrap">
@@ -452,6 +762,10 @@ function renderStage(){
           <span class="inuse-dot"></span>In Use
         </div>
         <div class="loc-subtitle"><span>${items.length} item${items.length!==1?'s':''} currently in use</span></div>
+      </div>
+      ${sortStripHTML()}
+      <div style='display:none'><!--placeholder--></div>
+      <div style='display:none'>
       </div>
       <div class="items-list">${cards||'<div style="color:var(--text-dim);font-size:13px;padding:24px 0">No items currently marked as in use.</div>'}</div>
     </div></div>`;
@@ -541,7 +855,9 @@ function renderStage(){
         <span>${allItems.length} item${allItems.length!==1?'s':''}</span>
         ${children.length?`<span>${children.length} location${children.length!==1?'s':''}</span>`:''}
       </div>
-    </div>`;
+    </div>
+    ${path.length===0?statsStripHTML():''}
+    ${path.length>1?siblingsHTML(path):''}`;
 
   // Boxes
   if(children.length){
@@ -568,7 +884,8 @@ function renderStage(){
       <div class="section-div-line"></div>
       <div class="section-div-label">${directItems.length}</div>
     </div>
-    <div class="items-grid">${directItems.map(i=>itemCardHTML(i)).join('')}</div>`;
+    ${sortStripHTML()}
+    <div class="items-grid">${sortItems(directItems).map(i=>itemCardHTML(i)).join('')}</div>`;
   }
 
   if(!children.length&&!directItems.length){
@@ -684,7 +1001,7 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
 
 // Search
 document.getElementById('search-input').addEventListener('input',e=>{
-  searchQuery=e.target.value.trim();inUseView=false;renderSidebar();renderStage();
+  searchQuery=e.target.value.trim();inUseView=false;_catView=null;renderSidebar();renderStage();
   document.getElementById('stage').scrollTo({top:0});
 });
 
@@ -702,7 +1019,7 @@ async function load(){
       all=all.concat(rows.map(rowToItem));
       if(rows.length<page)break;from+=page;
     }
-    inventory=all;setSyncStatus('ok');renderSidebar();renderStage();
+    inventory=all;setSyncStatus('ok');renderSidebar();renderStage();restoreSbCollapse();
   }catch(err){
     setSyncStatus('error');
     document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
