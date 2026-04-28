@@ -219,6 +219,25 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .jump-result{padding:3px 8px;font-family:var(--font-mono);font-size:10px;color:var(--text-mid);cursor:pointer;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .jump-result:hover,.jump-result.active{background:var(--s2);color:var(--text);}
 
+/* ── TREE SEARCH ── */
+.tree-search-wrap{padding:4px 12px 6px;}
+.tree-search-input{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-family:var(--font-mono);font-size:10px;color:var(--text);outline:none;transition:border-color 0.15s;}
+.tree-search-input:focus{border-color:var(--rose);}
+.tree-search-input::placeholder{color:var(--text-dim);}
+.sb-row.tree-match .sb-name em{background:rgba(176,122,132,0.3);color:var(--text);border-radius:2px;font-style:normal;padding:0 2px;}
+.sb-row.tree-dimmed{opacity:0.3;}
+
+/* ── LOCKED ITEMS SECTION ── */
+.sb-locked-banner{margin:0 12px 6px;padding:10px 14px;border-radius:4px;border:1px solid rgba(180,100,100,0.35);background:rgba(120,50,50,0.15);cursor:pointer;transition:all 0.15s;}
+.sb-locked-banner:hover{border-color:rgba(180,100,100,0.6);background:rgba(120,50,50,0.25);}
+.sb-locked-banner.unlocked{border-color:rgba(100,160,100,0.35);background:rgba(50,100,60,0.15);}
+.sb-locked-banner.unlocked:hover{border-color:rgba(100,160,100,0.6);}
+.sb-locked-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.sb-locked-title{font-family:var(--font-ui);font-size:11px;font-weight:600;color:#c08080;}
+.sb-locked-banner.unlocked .sb-locked-title{color:#80c090;}
+.sb-locked-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.sb-locked-hint{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:0.04em;}
+
 /* ── STATS STRIP ── */
 .stats-strip{display:flex;gap:28px;margin-bottom:44px;justify-content:center;flex-wrap:wrap;}
 .stat-cell{text-align:center;}
@@ -314,9 +333,8 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
         <span style="display:flex;align-items:center;gap:6px"><span class="inuse-dot" style="animation:none;box-shadow:0 0 5px rgba(77,143,106,0.7)"></span>In Use</span>
         <span class="sb-inuse-count" id="sb-inuse-count">0</span>
       </div>
-      <div id="sb-lock-btn" onclick="_pinUnlocked?lockSession():unlockSession()" style="display:none;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;cursor:pointer;font-family:var(--font-ui);font-size:12px;color:var(--text-mid);gap:8px;margin-bottom:6px;transition:border-color 0.15s;margin:0 12px 6px">
-        <span id="sb-lock-label">🔒 Unlock Private</span>
-        <span id="sb-lock-count" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"></span>
+      <!-- Locked Items Banner -->
+      <div id="sb-locked-banner" style="display:none" onclick="_pinUnlocked?lockSession():unlockSession()">
       </div>
 
       <!-- Quick Jump -->
@@ -335,11 +353,16 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 
       <!-- Locations tree -->
       <div class="sb-section">
-        <div class="sb-section-hdr" onclick="toggleSbSection('sb-tree','tree-arrow')">
+        <div class="sb-section-hdr" onclick="toggleSbSection('sb-tree-body','tree-arrow')">
           <span class="sb-section-label">Locations</span>
           <span class="sb-section-arrow open" id="tree-arrow">›</span>
         </div>
-        <div class="sb-section-body" id="sb-tree"></div>
+        <div class="sb-section-body" id="sb-tree-body">
+          <div class="tree-search-wrap">
+            <input class="tree-search-input" id="tree-search" placeholder="filter locations…" autocomplete="off" oninput="onTreeSearch(this.value)">
+          </div>
+          <div id="sb-tree"></div>
+        </div>
       </div>
 
       <!-- Browse by Category -->
@@ -484,7 +507,7 @@ function restoreSbCollapse(){
     const state=JSON.parse(localStorage.getItem(SB_COLLAPSE_KEY)||'{}');
     Object.entries(state).forEach(([bodyId,collapsed])=>{
       const body=document.getElementById(bodyId);
-      const arrowId=bodyId.replace('-body','-arrow').replace('sb-tree','tree');
+      const arrowId=bodyId.replace('-body','-arrow').replace('sb-tree-body','tree').replace('sb-tree','tree');
       const arrow=document.getElementById(arrowId);
       if(!body)return;
       if(collapsed){body.classList.add('collapsed');if(arrow)arrow.classList.remove('open');}
@@ -605,25 +628,101 @@ function sortItems(items){
 // ── PIN ──────────────────────────────────────────────────────────────────────
 const PIN_KEY='inv_pin';
 function getPin(){return localStorage.getItem(PIN_KEY)||'';}
+
+// Shows a styled modal overlay instead of browser prompt/alert
+function pinModal(title, hint, onSubmit){
+  const existing=document.getElementById('pin-modal-overlay');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='pin-modal-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML=`
+    <div style="background:#181818;border:1px solid #3a3a3a;border-radius:8px;padding:28px 32px;min-width:300px;max-width:360px;font-family:var(--font-ui);">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">${title}</div>
+      ${hint?`<div style="font-size:11px;color:var(--text-dim);margin-bottom:16px;">${hint}</div>`:'<div style="margin-bottom:16px"></div>'}
+      <input id="pin-modal-input" type="password" placeholder="Enter PIN…"
+        style="width:100%;background:#111;border:1px solid #3a3a3a;border-radius:4px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:13px;outline:none;letter-spacing:0.2em;margin-bottom:4px;"
+        autocomplete="off">
+      <div id="pin-modal-err" style="font-size:10px;color:#c07070;min-height:16px;margin-bottom:12px;font-family:var(--font-mono);"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="document.getElementById('pin-modal-overlay').remove()"
+          style="padding:7px 16px;border-radius:4px;border:1px solid #3a3a3a;background:transparent;color:var(--text-mid);cursor:pointer;font-size:12px;">Cancel</button>
+        <button id="pin-modal-ok"
+          style="padding:7px 16px;border-radius:4px;border:1px solid var(--rose);background:rgba(176,122,132,0.15);color:var(--rose);cursor:pointer;font-size:12px;font-weight:600;">Unlock</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const input=overlay.querySelector('#pin-modal-input');
+  const errEl=overlay.querySelector('#pin-modal-err');
+  const okBtn=overlay.querySelector('#pin-modal-ok');
+  input.focus();
+  const submit=()=>{
+    const val=input.value;
+    const result=onSubmit(val);
+    if(result===true){overlay.remove();}
+    else{errEl.textContent=result||'Incorrect PIN';input.value='';input.focus();}
+  };
+  okBtn.onclick=submit;
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')submit();if(e.key==='Escape')overlay.remove();});
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+}
+
 function verifyPin(cb){
   const pin=getPin();
-  if(!pin){alert('No PIN set on this inventory.');return;}
-  const entered=prompt('Enter privacy PIN:');
-  if(entered===null)return;
-  if(entered!==pin){alert('Wrong PIN');return;}
-  cb();
-}
-function unlockSession(){
-  verifyPin(()=>{_pinUnlocked=true;renderSidebar();renderStage();});
-}
-function lockSession(){_pinUnlocked=false;renderSidebar();renderStage();}
-function unlockItemNotes(id){
-  verifyPin(()=>{
-    const ln=document.getElementById('locked-notes-'+id);
-    const rn=document.getElementById('revealed-notes-'+id);
-    if(ln)ln.style.display='none';
-    if(rn)rn.style.display='block';
+  if(!pin){
+    pinModal('No PIN Set','Set a PIN in the editor (any item inspector → Privacy → ⚙ PIN) before using this feature.',
+      ()=>true);
+    return;
+  }
+  pinModal('Private Items','Enter your PIN to view hidden items.',val=>{
+    if(val===pin){cb();return true;}
+    return'Incorrect PIN — try again';
   });
+}
+
+function unlockSession(){
+  const pin=getPin();
+  if(!pin){
+    pinModal('No PIN Set','Set a PIN in the editor first.',()=>true);
+    return;
+  }
+  pinModal('Unlock Private Items','Enter your PIN to reveal all hidden items for this session.',val=>{
+    if(val===pin){_pinUnlocked=true;renderSidebar();renderStage();return true;}
+    return'Incorrect PIN — try again';
+  });
+}
+
+function lockSession(){_pinUnlocked=false;renderSidebar();renderStage();}
+
+// Unlock notes for a single card — requires PIN, then reveals inline without reload
+function unlockItemNotes(id){
+  const pin=getPin();
+  if(!pin){return;}
+  // If session is already unlocked, reveal immediately
+  if(_pinUnlocked){
+    _revealNotes(id);return;
+  }
+  pinModal('Notes Locked','Enter your PIN to reveal notes for this item.',val=>{
+    if(val===pin){_revealNotes(id);return true;}
+    return'Incorrect PIN — try again';
+  });
+}
+function _revealNotes(id){
+  const item=inventory.find(i=>i.id===id);
+  if(!item)return;
+  const rawNote=item.notes||'';
+  const kwIdx=rawNote.toLowerCase().indexOf('| keywords:');
+  const displayNote=kwIdx!==-1?rawNote.slice(0,kwIdx).trim():rawNote;
+  const ln=document.getElementById('locked-notes-'+id);
+  if(ln){
+    // Replace the lock pill with the actual note inline
+    const span=document.createElement('span');
+    span.className='item-notes-inline';
+    span.style.fontSize='10px';
+    span.style.color='var(--text-dim)';
+    span.textContent=displayNote||'(no notes)';
+    ln.replaceWith(span);
+  }
 }
 
 function sortStripHTML(){
@@ -667,24 +766,49 @@ function siblingsHTML(path){
   return`<div style="margin-bottom:16px"><div class="sort-label" style="margin-bottom:6px">Also in ${esc(parentPath[parentPath.length-1]||'this level')}</div><div class="siblings-strip">${chips}</div></div>`;
 }
 
-function renderSidebar(){
+// ── TREE SEARCH ──────────────────────────────────────────────────────────────
+let _treeQuery='';
+function onTreeSearch(val){
+  _treeQuery=val.toLowerCase().trim();
+  renderTree();
+}
+
+function renderTree(){
   const tree=buildTree();
-  const inUseCount=inventory.filter(i=>i.inUse).length;
-  document.getElementById('sb-all-count').textContent=tree.total;
-  document.getElementById('sb-inuse-count').textContent=inUseCount;
-  document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery&&!inUseView&&!_catView);
-  document.getElementById('sb-inuse').classList.toggle('active',inUseView);
-  renderCatBrowse();
-  renderCatKey();
-  renderRecent();
-  const lockedCount=inventory.filter(i=>i.lockedItem).length;
-  const lockBtn=document.getElementById('sb-lock-btn');
-  if(lockBtn){
-    lockBtn.style.display=lockedCount>0?'flex':'none';
-    document.getElementById('sb-lock-label').textContent=_pinUnlocked?'🔓 Lock Private':'🔒 Unlock Private';
-    document.getElementById('sb-lock-count').textContent=lockedCount?lockedCount+' hidden':'';
+  const container=document.getElementById('sb-tree');
+  container.innerHTML='';
+  const q=_treeQuery;
+
+  // If searching, flatten all paths and show matches directly
+  if(q){
+    const allPaths=getAllPaths();
+    const matches=allPaths.filter(p=>p.toLowerCase().includes(q));
+    if(!matches.length){
+      container.innerHTML=`<div style="padding:6px 12px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">No locations match</div>`;
+      return;
+    }
+    matches.slice(0,30).forEach(pathStr=>{
+      const path=pathStr.split(' > ').map(s=>s.trim()).filter(Boolean);
+      const pid=regPath(path);
+      const leaf=path[path.length-1];
+      const parents=path.slice(0,-1);
+      const row=document.createElement('div');
+      row.className='sb-row tree-match d0';
+      row.style.paddingLeft='8px';
+      // highlight match in text
+      const full=pathStr;
+      const idx=full.toLowerCase().indexOf(q);
+      let nameHTML=idx>=0
+        ?esc(full.slice(0,idx))+`<em>${esc(full.slice(idx,idx+q.length))}</em>`+esc(full.slice(idx+q.length))
+        :esc(full);
+      row.innerHTML=`<span class="sb-name" style="color:var(--text-mid);font-size:11px">${nameHTML}</span>`;
+      row.onclick=()=>navigate(path);
+      container.appendChild(row);
+    });
+    return;
   }
-  const container=document.getElementById('sb-tree');container.innerHTML='';
+
+  // Normal tree render
   function rNode(children,parentPath,container,depth){
     Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
       const path=[...parentPath,name];
@@ -700,7 +824,7 @@ function renderSidebar(){
       const arrow=document.createElement('span');
       arrow.className=`sb-arrow${!hasChildren?' leaf':isExpanded?' open':''}`;
       arrow.textContent=hasChildren?'▶':'';
-      arrow.onclick=e=>{e.stopPropagation();if(!hasChildren)return;if(isExpanded)expandedSb.delete(pk);else expandedSb.add(pk);renderSidebar();};
+      arrow.onclick=e=>{e.stopPropagation();if(!hasChildren)return;if(isExpanded)expandedSb.delete(pk);else expandedSb.add(pk);renderTree();};
       const nameEl=document.createElement('span');nameEl.className='sb-name';nameEl.textContent=name;
       const countEl=document.createElement('span');countEl.className='sb-count';countEl.textContent=node.total;
       row.appendChild(arrow);row.appendChild(nameEl);row.appendChild(countEl);
@@ -713,6 +837,38 @@ function renderSidebar(){
     });
   }
   rNode(tree.children,[],container,0);
+}
+
+function renderSidebar(){
+  const tree=buildTree();
+  const inUseCount=inventory.filter(i=>i.inUse).length;
+  document.getElementById('sb-all-count').textContent=tree.total;
+  document.getElementById('sb-inuse-count').textContent=inUseCount;
+  document.getElementById('sb-all').classList.toggle('active',!currentPath.length&&!searchQuery&&!inUseView&&!_catView);
+  document.getElementById('sb-inuse').classList.toggle('active',inUseView);
+  renderCatBrowse();
+  renderCatKey();
+  renderRecent();
+
+  // Locked items banner
+  const lockedCount=inventory.filter(i=>i.lockedItem).length;
+  const banner=document.getElementById('sb-locked-banner');
+  if(banner){
+    if(lockedCount>0){
+      banner.style.display='block';
+      banner.className=`sb-locked-banner${_pinUnlocked?' unlocked':''}`;
+      banner.innerHTML=`
+        <div class="sb-locked-top">
+          <span class="sb-locked-title">${_pinUnlocked?'🔓 Private Unlocked':'🔒 Private Items'}</span>
+          <span class="sb-locked-count">${lockedCount}</span>
+        </div>
+        <div class="sb-locked-hint">${_pinUnlocked?'Tap to re-lock this session':'Tap to unlock and view hidden items'}</div>`;
+    } else {
+      banner.style.display='none';
+    }
+  }
+
+  renderTree();
 }
 
 // ── NAVIGATE ─────────────────────────────────────────────────────────────────
@@ -816,7 +972,9 @@ function renderStage(){
 
   // Location mode
   const path=currentPath;
-  const allItems=inventory.filter(i=>pathStartsWith(i.locationPath||[],path)&&(_pinUnlocked||!i.lockedItem));
+  const allItemsRaw=inventory.filter(i=>pathStartsWith(i.locationPath||[],path));
+  const allItems=allItemsRaw.filter(i=>_pinUnlocked||!i.lockedItem);
+  const lockedHere=!_pinUnlocked?allItemsRaw.filter(i=>i.lockedItem&&(i.locationPath||[]).length===path.length).length:0;
   const directItems=allItems.filter(i=>(i.locationPath||[]).length===path.length);
   const childMap={};
   allItems.forEach(item=>{
@@ -878,17 +1036,25 @@ function renderStage(){
   }
 
   // Direct items
-  if(directItems.length){
+  if(directItems.length||lockedHere>0){
+    const lockedPlaceholder=lockedHere>0?`
+      <div onclick="unlockSession()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(100,50,50,0.12);border:1px solid rgba(180,100,100,0.2);border-left:3px solid rgba(180,100,100,0.5);border-radius:3px;cursor:pointer;margin-top:${directItems.length?'4px':'0'}">
+        <span style="font-size:16px">🔒</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#c08080">${lockedHere} private item${lockedHere!==1?'s':''} hidden</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px">Tap to unlock with PIN</div>
+        </div>
+      </div>`:'';
     html+=`<div class="section-div">
       <div class="section-div-label">Items${path.length?' here':''}</div>
       <div class="section-div-line"></div>
-      <div class="section-div-label">${directItems.length}</div>
+      <div class="section-div-label">${directItems.length+(lockedHere>0?'+🔒':'')}</div>
     </div>
     ${sortStripHTML()}
-    <div class="items-grid">${sortItems(directItems).map(i=>itemCardHTML(i)).join('')}</div>`;
+    <div class="items-grid">${sortItems(directItems).map(i=>itemCardHTML(i)).join('')}${lockedPlaceholder}</div>`;
   }
 
-  if(!children.length&&!directItems.length){
+  if(!children.length&&!directItems.length&&!lockedHere){
     html+=`<div style="text-align:center;padding:80px 0;font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;color:var(--text-dim);text-transform:uppercase">Empty</div>`;
   }
   html+=`</div></div>`;
@@ -907,8 +1073,11 @@ function itemCardHTML(item){
   const rawNote=item.notes||'';
   const kwIdx=rawNote.toLowerCase().indexOf('| keywords:');
   const displayNote=kwIdx!==-1?rawNote.slice(0,kwIdx).trim():rawNote;
-  const notesHTML=item.lockedNotes
-    ?`<span id="locked-notes-${item.id}" style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#b06060;font-family:var(--font-mono);cursor:pointer" onclick="unlockItemNotes(${item.id})">🔒 notes locked — tap to unlock</span><span id="revealed-notes-${item.id}" style="display:none;font-size:10px;color:var(--text-dim)">${esc(displayNote)}</span>`
+
+  // Locked notes: show a tap-to-unlock pill. Don't render the actual note in DOM at all
+  // until PIN is verified (content injected dynamically by _revealNotes)
+  const notesHTML=item.lockedNotes&&!_pinUnlocked
+    ?`<span id="locked-notes-${item.id}" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#b06868;font-family:var(--font-mono);cursor:pointer;border:1px solid rgba(180,100,100,0.3);border-radius:3px;padding:1px 7px;" onclick="unlockItemNotes(${item.id})">🔒 notes locked</span>`
     :(displayNote?`<span class="item-notes-inline">${esc(displayNote)}</span>`:'');
 
   const fillMap={'Full':{label:'Full',color:'#4d8f6a'},'Most':{label:'Most',color:'#7a9e64'},'Half':{label:'Half',color:'#9e7a32'},'Low':{label:'Low',color:'#8f5530'},'Empty':{label:'Empty',color:'#8f3838'}};
