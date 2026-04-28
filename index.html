@@ -597,19 +597,18 @@ tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--s1); }
 tbody tr.misplaced-row { background: rgba(184,146,74,0.04); }
 tbody tr.selected { background: rgba(183,110,121,0.05) !important; }
-tbody tr.mil-ocie { background: rgba(80,120,60,0.10) !important; }
-tbody tr.mil-ocie td { border-bottom-color: rgba(80,140,60,0.15) !important; }
-tbody tr.mil-personal { background: rgba(50,100,70,0.12) !important; }
-tbody tr.mil-personal td { border-bottom-color: rgba(50,130,80,0.15) !important; }
-tbody tr.mil-ocie.selected, tbody tr.mil-personal.selected { background: rgba(80,140,60,0.18) !important; }
-.mil-sub-wrap { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
-.mil-sub-check { display:inline-flex; align-items:center; gap:3px; cursor:pointer; font-family:var(--font-mono); font-size:9px; letter-spacing:0.04em; color:var(--text-dim); transition:color 0.12s; user-select:none; }
-.mil-sub-check input { accent-color:#5a9048; width:11px; height:11px; cursor:pointer; }
-.mil-sub-check.ocie-active { color:#7abf58; }
-.mil-sub-check.personal-active { color:#58bf8a; }
-.mil-sub-badge { font-family:var(--font-mono); font-size:8px; font-weight:600; letter-spacing:0.08em; padding:1px 5px; border-radius:2px; text-transform:uppercase; }
-.mil-sub-badge.ocie { background:rgba(80,160,60,0.18); color:#7abf58; border:1px solid rgba(80,160,60,0.3); }
-.mil-sub-badge.personal { background:rgba(50,160,100,0.18); color:#58bf8a; border:1px solid rgba(50,160,100,0.3); }
+tbody tr.mil-ocie { background: rgba(60,110,45,0.13) !important; }
+tbody tr.mil-ocie td { border-bottom-color: rgba(90,150,55,0.18) !important; }
+tbody tr.mil-personal { background: rgba(30,90,80,0.14) !important; }
+tbody tr.mil-personal td { border-bottom-color: rgba(40,140,110,0.18) !important; }
+tbody tr.mil-ocie.selected { background: rgba(60,110,45,0.22) !important; }
+tbody tr.mil-personal.selected { background: rgba(30,90,80,0.22) !important; }
+.mil-sub-unset { font-family:var(--font-mono); font-size:9px; color:var(--text-dim); cursor:pointer; letter-spacing:0.04em; margin-top:3px; display:block; opacity:0.6; transition:opacity 0.15s; }
+.mil-sub-unset:hover { opacity:1; color:var(--text-mid); }
+.mil-sub-pill { display:inline-flex; align-items:center; gap:4px; margin-top:3px; font-family:var(--font-mono); font-size:9px; font-weight:600; letter-spacing:0.08em; padding:2px 7px; border-radius:3px; cursor:pointer; text-transform:uppercase; transition:filter 0.15s; user-select:none; }
+.mil-sub-pill:hover { filter:brightness(1.2); }
+.mil-sub-pill.ocie { background:rgba(75,145,50,0.2); color:#82c45a; border:1px solid rgba(75,145,50,0.35); }
+.mil-sub-pill.personal { background:rgba(35,130,105,0.2); color:#45c49a; border:1px solid rgba(35,130,105,0.35); }
 
 td { padding: 6px 8px; vertical-align: middle; }
 td.check-col { text-align: center; }
@@ -2950,16 +2949,14 @@ function toggleMisplaced(id){
 // ─── BUILD ROW ────────────────────────────────────────────────────────────────
 // ─── MILITARY SUBCATEGORY ────────────────────────────────────────────────────
 const MIL_SUB_NOTES = {
-  OCIE: 'OCIE (DA Form 3645/3645-1): This is government-issued gear tracked on an official Army accountability document. OCIE items are issued, not owned — they must be returned or accounted for on hand receipt. Record serial numbers, NSN, and condition carefully.',
-  Personal: 'Personal military gear: Non-issued or personally purchased equipment not tracked on a government hand receipt. Keep this record for insurance, deployment packing lists, and personal accountability separate from your OCIE record.',
+  OCIE: 'Govt-issued gear. Tracked on DA Form 3645/3645-1 hand receipt — must be returned or accounted for. Record NSN and serial numbers.',
+  Personal: 'Personally owned gear, not on a govt hand receipt. Keep for insurance, deployment packing, and personal accountability.',
 };
 
-// Preserves mil_sub and its accountability note through enrich overwrites
+// Preserves mil_sub note through enrich overwrites
 function applyEnrichNotes(item, newNotes){
   if(!newNotes||!newNotes.trim())return;
-  // If item has a milSub, prepend the accountability note to whatever AI wrote
   if(item.milSub && MIL_SUB_NOTES[item.milSub]){
-    // Strip any previous mil note from the incoming text to avoid duplication
     let base=newNotes.trim();
     Object.values(MIL_SUB_NOTES).forEach(n=>{base=base.replace(n,'').trim();});
     item.notes=MIL_SUB_NOTES[item.milSub]+(base?'\n\n'+base:'');
@@ -2968,27 +2965,33 @@ function applyEnrichNotes(item, newNotes){
   }
 }
 
-
-function setMilSub(id, sub, checked){
+// Cycles: unset → OCIE → Personal → unset
+function cycleMilSub(id, e){
+  e&&e.stopPropagation();
   const item=inventory.find(i=>i.id===id);
   if(!item)return;
   snapshot();
   const prev=item.milSub;
-  // Only one sub can be active — checking one unchecks the other
-  item.milSub=checked?sub:null;
-  // Inject accountability note if not already present, preserve if already customized
+  if(!item.milSub)             item.milSub='OCIE';
+  else if(item.milSub==='OCIE') item.milSub='Personal';
+  else                          item.milSub=null;
+
   if(item.milSub){
-    const note=MIL_SUB_NOTES[item.milSub]||'';
+    const note=MIL_SUB_NOTES[item.milSub];
     if(!item.notes||!item.notes.trim()){
       item.notes=note;
-    } else if(!item.notes.includes('[OCIE]')&&!item.notes.includes('[Personal]')&&!item.notes.startsWith('OCIE')&&!item.notes.startsWith('Personal')){
-      // Don't overwrite existing custom notes — prepend a short tag instead
-      // Already has notes, just leave them; the row color and badge make it clear
+    } else {
+      // Swap out any existing mil note, preserve the rest
+      Object.values(MIL_SUB_NOTES).forEach(n=>{
+        if(item.notes.startsWith(n)) item.notes=item.notes.slice(n.length).trimStart();
+      });
+      item.notes=note+(item.notes?'\n\n'+item.notes:'');
     }
   }
   logChange(item,'milSub',prev||'—',item.milSub||'—');
   save();render();
 }
+
 
 function buildRow(item,dupMap){
   dupMap=dupMap||{};
@@ -3040,10 +3043,13 @@ function buildRow(item,dupMap){
       if(item.category!=='Military')return badge;
       const isOCIE=item.milSub==='OCIE';
       const isPers=item.milSub==='Personal';
-      return`${badge}<div class="mil-sub-wrap">
-        <label class="mil-sub-check${isOCIE?' ocie-active':''}"><input type="checkbox" ${isOCIE?'checked':''} onchange="setMilSub(${item.id},'OCIE',this.checked)" onclick="event.stopPropagation()">OCIE</label>
-        <label class="mil-sub-check${isPers?' personal-active':''}"><input type="checkbox" ${isPers?'checked':''} onchange="setMilSub(${item.id},'Personal',this.checked)" onclick="event.stopPropagation()">Personal</label>
-      </div>`;
+      if(isOCIE){
+        return`${badge}<span class="mil-sub-pill ocie" onclick="cycleMilSub(${item.id},event)" title="Click to switch to Personal · Click again to clear">OCIE</span>`;
+      } else if(isPers){
+        return`${badge}<span class="mil-sub-pill personal" onclick="cycleMilSub(${item.id},event)" title="Click to clear">Personal</span>`;
+      } else {
+        return`${badge}<span class="mil-sub-unset" onclick="cycleMilSub(${item.id},event)" title="Set military subcategory">+ ocie · personal</span>`;
+      }
     })())}
     ${etd('frequency',pill(item.frequency,FREQ_COLORS))}
     ${etd('criticality',pill(item.criticality,CRIT_COLORS))}
