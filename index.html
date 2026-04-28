@@ -232,8 +232,26 @@ main { padding: 12px 16px; overflow-y: auto; min-width: 0; }
 
 /* ── LOCATION TREE ── */
 .loc-node { margin-bottom: 1px; }
-.loc-node-row {
-  display: flex;
+.loc-tree-search {
+  width:100%; background:var(--s2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:4px 8px; margin:4px 0 4px;
+  color:var(--text); font-family:var(--font-mono); font-size:10px;
+  outline:none; transition:border-color 0.15s; display:block;
+}
+.loc-tree-search:focus { border-color:var(--rose); }
+.loc-tree-search::placeholder { color:var(--text-dim); }
+.loc-tree-flat-result {
+  display:flex; align-items:center; gap:4px; width:100%;
+  padding:4px 6px; border-radius:var(--radius); cursor:pointer;
+  border:1px solid transparent; font-size:11px; color:var(--text-mid);
+  transition:all 0.1s; font-family:var(--font-mono);
+  border-left:2px solid transparent;
+}
+.loc-tree-flat-result:hover { background:var(--s2); color:var(--text); border-color:var(--border); }
+.loc-tree-flat-result mark { background:rgba(176,122,132,0.35); color:var(--text); border-radius:2px; padding:0 1px; }
+.loc-tree-flat-result .flat-count { font-size:9px; color:var(--text-dim); margin-left:auto; padding-left:6px; flex-shrink:0; }
+.loc-tree-no-match { padding:6px 8px; font-family:var(--font-mono); font-size:9px; color:var(--text-dim); }
+.loc-node-row {  display: flex;
   align-items: center;
   gap: 3px;
   width: 100%;
@@ -579,6 +597,19 @@ tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--s1); }
 tbody tr.misplaced-row { background: rgba(184,146,74,0.04); }
 tbody tr.selected { background: rgba(183,110,121,0.05) !important; }
+tbody tr.mil-ocie { background: rgba(80,120,60,0.10) !important; }
+tbody tr.mil-ocie td { border-bottom-color: rgba(80,140,60,0.15) !important; }
+tbody tr.mil-personal { background: rgba(50,100,70,0.12) !important; }
+tbody tr.mil-personal td { border-bottom-color: rgba(50,130,80,0.15) !important; }
+tbody tr.mil-ocie.selected, tbody tr.mil-personal.selected { background: rgba(80,140,60,0.18) !important; }
+.mil-sub-wrap { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
+.mil-sub-check { display:inline-flex; align-items:center; gap:3px; cursor:pointer; font-family:var(--font-mono); font-size:9px; letter-spacing:0.04em; color:var(--text-dim); transition:color 0.12s; user-select:none; }
+.mil-sub-check input { accent-color:#5a9048; width:11px; height:11px; cursor:pointer; }
+.mil-sub-check.ocie-active { color:#7abf58; }
+.mil-sub-check.personal-active { color:#58bf8a; }
+.mil-sub-badge { font-family:var(--font-mono); font-size:8px; font-weight:600; letter-spacing:0.08em; padding:1px 5px; border-radius:2px; text-transform:uppercase; }
+.mil-sub-badge.ocie { background:rgba(80,160,60,0.18); color:#7abf58; border:1px solid rgba(80,160,60,0.3); }
+.mil-sub-badge.personal { background:rgba(50,160,100,0.18); color:#58bf8a; border:1px solid rgba(50,160,100,0.3); }
 
 td { padding: 6px 8px; vertical-align: middle; }
 td.check-col { text-align: center; }
@@ -1220,6 +1251,7 @@ tbody tr:hover .row-actions { opacity: 1; }
         <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)" style="flex:1">All <span class="count" id="cnt-loc-all">0</span></button>
         <button class="filter-btn" id="loc-collapse-btn" onclick="collapseAllNodes()" title="Collapse all" style="flex-shrink:0;padding:0 7px;font-size:10px;color:var(--text-dim)">↑↑</button>
       </div>
+      <input id="loc-tree-search" class="loc-tree-search" placeholder="filter locations…" autocomplete="off" oninput="onLocTreeSearch(this.value)">
       <div id="loc-tree"></div>
     </div>
 
@@ -2219,6 +2251,7 @@ function itemToRow(item) {
     in_use: item.inUse ? true : false,
     locked_item: item.lockedItem ? true : false,
     locked_notes: item.lockedNotes ? true : false,
+    mil_sub: item.milSub || null,
   };
 }
 
@@ -2250,6 +2283,7 @@ function rowToItem(row) {
     inUse: row.in_use ? true : false,
     lockedItem: row.locked_item ? true : false,
     lockedNotes: row.locked_notes ? true : false,
+    milSub: row.mil_sub || null,
   });
 }
 
@@ -2419,6 +2453,11 @@ function parseNotes(raw){
 // Remaining state:
 // locFilter: null = all, array = filter to items whose path starts with this prefix
 let locFilter=null;
+let _locTreeQuery='';
+function onLocTreeSearch(val){
+  _locTreeQuery=val.toLowerCase().trim();
+  renderLocTree();
+}
 let currentView='all',currentCat='all',currentScoreFilter='all',currentFillFilter='all',currentTab='table';
 // Which tree nodes are expanded: Set of pathKey strings
 let expandedNodes=new Set(); // default all closed
@@ -2684,6 +2723,63 @@ function renderLocTree(){
   const maxCount=tree.total||1;
   const DENSE_WARN=8,DENSE_FULL=12;
 
+  // ── SEARCH MODE ──────────────────────────────────────────────────────────
+  if(_locTreeQuery){
+    const q=_locTreeQuery.toLowerCase();
+    // Flatten all paths from inventory
+    const pathMap={};
+    inventory.forEach(item=>{
+      const p=item.locationPath||[];
+      for(let len=1;len<=p.length;len++){
+        const sub=p.slice(0,len);
+        const key=sub.join('::');
+        if(!pathMap[key]){pathMap[key]={path:sub,count:0};}
+        pathMap[key].count++;
+      }
+    });
+    const matches=Object.values(pathMap)
+      .filter(({path})=>path.join(' > ').toLowerCase().includes(q))
+      .sort((a,b)=>a.path.join(' > ').localeCompare(b.path.join(' > ')));
+
+    if(!matches.length){
+      el.innerHTML=`<div class="loc-tree-no-match">No locations match</div>`;
+      return;
+    }
+    matches.slice(0,40).forEach(({path,count})=>{
+      const fullStr=path.join(' > ');
+      const idx=fullStr.toLowerCase().indexOf(q);
+      const highlighted=idx>=0
+        ? esc(fullStr.slice(0,idx))+'<mark>'+esc(fullStr.slice(idx,idx+q.length))+'</mark>'+esc(fullStr.slice(idx+q.length))
+        : esc(fullStr);
+      const hue=getDepthHue(pathKey(path));
+      const nodeColor=hueToColor(hue,0.9);
+      const nodeBg=`hsla(${hue},55%,55%,0.10)`;
+      const isActive=locFilter&&pathKey(locFilter)===pathKey(path);
+      const div=document.createElement('div');
+      div.className='loc-tree-flat-result';
+      div.style.borderLeftColor=hueToColor(hue,isActive?1:0.4);
+      div.style.color=nodeColor;
+      if(isActive){div.style.background=nodeBg;}
+      div.innerHTML=`<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${highlighted}</span><span class="flat-count">${count}</span>`;
+      div.addEventListener('mouseover',()=>{div.style.background=nodeBg;div.style.borderLeftColor=nodeColor;});
+      div.addEventListener('mouseout',()=>{if(!isActive){div.style.background='';div.style.borderLeftColor=hueToColor(hue,0.4);}});
+      div.onclick=()=>{
+        // Expand ancestors so the node is visible if user clears search
+        for(let i=1;i<=path.length;i++)expandedNodes.add(pathKey(path.slice(0,i)));
+        saveExpanded();
+        setLocFilter(path,div);
+      };
+      el.appendChild(div);
+    });
+    if(matches.length>40){
+      const more=document.createElement('div');
+      more.className='loc-tree-no-match';
+      more.textContent=`…${matches.length-40} more — keep typing to narrow`;
+      el.appendChild(more);
+    }
+    return;
+  }
+
   function renderNode(children,parentPath,container){
     Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
       const path=[...parentPath,name];
@@ -2852,6 +2948,48 @@ function toggleMisplaced(id){
 }
 
 // ─── BUILD ROW ────────────────────────────────────────────────────────────────
+// ─── MILITARY SUBCATEGORY ────────────────────────────────────────────────────
+const MIL_SUB_NOTES = {
+  OCIE: 'OCIE (DA Form 3645/3645-1): This is government-issued gear tracked on an official Army accountability document. OCIE items are issued, not owned — they must be returned or accounted for on hand receipt. Record serial numbers, NSN, and condition carefully.',
+  Personal: 'Personal military gear: Non-issued or personally purchased equipment not tracked on a government hand receipt. Keep this record for insurance, deployment packing lists, and personal accountability separate from your OCIE record.',
+};
+
+// Preserves mil_sub and its accountability note through enrich overwrites
+function applyEnrichNotes(item, newNotes){
+  if(!newNotes||!newNotes.trim())return;
+  // If item has a milSub, prepend the accountability note to whatever AI wrote
+  if(item.milSub && MIL_SUB_NOTES[item.milSub]){
+    // Strip any previous mil note from the incoming text to avoid duplication
+    let base=newNotes.trim();
+    Object.values(MIL_SUB_NOTES).forEach(n=>{base=base.replace(n,'').trim();});
+    item.notes=MIL_SUB_NOTES[item.milSub]+(base?'\n\n'+base:'');
+  } else {
+    item.notes=newNotes.trim();
+  }
+}
+
+
+function setMilSub(id, sub, checked){
+  const item=inventory.find(i=>i.id===id);
+  if(!item)return;
+  snapshot();
+  const prev=item.milSub;
+  // Only one sub can be active — checking one unchecks the other
+  item.milSub=checked?sub:null;
+  // Inject accountability note if not already present, preserve if already customized
+  if(item.milSub){
+    const note=MIL_SUB_NOTES[item.milSub]||'';
+    if(!item.notes||!item.notes.trim()){
+      item.notes=note;
+    } else if(!item.notes.includes('[OCIE]')&&!item.notes.includes('[Personal]')&&!item.notes.startsWith('OCIE')&&!item.notes.startsWith('Personal')){
+      // Don't overwrite existing custom notes — prepend a short tag instead
+      // Already has notes, just leave them; the row color and badge make it clear
+    }
+  }
+  logChange(item,'milSub',prev||'—',item.milSub||'—');
+  save();render();
+}
+
 function buildRow(item,dupMap){
   dupMap=dupMap||{};
   const tr=document.createElement('tr');
@@ -2869,6 +3007,8 @@ function buildRow(item,dupMap){
   }
   if(item.misplaced)tr.classList.add('misplaced-row');
   if(selectedIds.has(item.id))tr.classList.add('selected');
+  if(item.category==='Military'&&item.milSub==='OCIE')tr.classList.add('mil-ocie');
+  if(item.category==='Military'&&item.milSub==='Personal')tr.classList.add('mil-personal');
   const cat=CAT_COLORS[item.category]||CAT_COLORS['Misc'];
   const cc=COND_COLORS[item.condition]||'#888';
   const qty=parseInt(item.qty)||1;
@@ -2895,7 +3035,16 @@ function buildRow(item,dupMap){
       : `<div style="font-size:11px">${renderPath(item.locationPath||[])}</div>`
     ,'min-width:130px')}
     <td data-col="qty"><div class="qty-ctrl"><button class="qty-btn" onclick="adjustQty(${item.id},-1)">-</button><span class="qty-val">${qty}</span><button class="qty-btn" onclick="adjustQty(${item.id},1)">+</button></div></td>
-    ${etd('category',`<span class="cat-badge" style="background:${cat.bg};color:${cat.color}">${esc(item.category||'Misc')}</span>`)}
+    ${etd('category',(()=>{
+      const badge=`<span class="cat-badge" style="background:${cat.bg};color:${cat.color}">${esc(item.category||'Misc')}</span>`;
+      if(item.category!=='Military')return badge;
+      const isOCIE=item.milSub==='OCIE';
+      const isPers=item.milSub==='Personal';
+      return`${badge}<div class="mil-sub-wrap">
+        <label class="mil-sub-check${isOCIE?' ocie-active':''}"><input type="checkbox" ${isOCIE?'checked':''} onchange="setMilSub(${item.id},'OCIE',this.checked)" onclick="event.stopPropagation()">OCIE</label>
+        <label class="mil-sub-check${isPers?' personal-active':''}"><input type="checkbox" ${isPers?'checked':''} onchange="setMilSub(${item.id},'Personal',this.checked)" onclick="event.stopPropagation()">Personal</label>
+      </div>`;
+    })())}
     ${etd('frequency',pill(item.frequency,FREQ_COLORS))}
     ${etd('criticality',pill(item.criticality,CRIT_COLORS))}
     ${etd('replaceability',pill(item.replaceability,REPL_COLORS))}
@@ -3232,7 +3381,7 @@ async function runEnrichLevel(level){
       if(!item.replaceability&&s.replaceability)item.replaceability=s.replaceability;
       if(!item.keep&&s.keep)              item.keep=s.keep;
       if(!item.estValue&&s.estimatedValue)item.estValue=s.estimatedValue;
-      if(!item.notes&&s.notes&&s.notes.trim())item.notes=s.notes;
+      if(!item.notes&&s.notes&&s.notes.trim())applyEnrichNotes(item,s.notes);
       if(!item.category&&s.category)      item.category=s.category;
     }
     // L2 — always refresh keywords
@@ -3252,10 +3401,10 @@ async function runEnrichLevel(level){
       if(s.cleanedName&&s.cleanedName.trim())item.name=s.cleanedName.trim();
       if(s.category)      item.category=s.category;
     }
-    // L5 — full overwrite
+    // L5 — full overwrite (mil_sub note preserved via applyEnrichNotes)
     if(level>=5){
       if(s.estimatedValue)item.estValue=s.estimatedValue;
-      if(s.notes&&s.notes.trim())item.notes=s.notes.trim();
+      if(s.notes&&s.notes.trim())applyEnrichNotes(item,s.notes);
     }
 
     logChange(item,'Enrich','—',`Level ${level}`);
@@ -3296,7 +3445,7 @@ async function enrichSelectedLevel(){
         if(!item.replaceability&&s.replaceability)item.replaceability=s.replaceability;
         if(!item.keep&&s.keep)              item.keep=s.keep;
         if(!item.estValue&&s.estimatedValue)item.estValue=s.estimatedValue;
-        if(!item.notes&&s.notes&&s.notes.trim())item.notes=s.notes;
+        if(!item.notes&&s.notes&&s.notes.trim())applyEnrichNotes(item,s.notes);
         if(!item.category&&s.category)      item.category=s.category;
       }
       if(level>=2&&s.keywords&&s.keywords.trim())item.keywords=s.keywords.trim();
@@ -3313,7 +3462,7 @@ async function enrichSelectedLevel(){
       }
       if(level>=5){
         if(s.estimatedValue)item.estValue=s.estimatedValue;
-        if(s.notes&&s.notes.trim())item.notes=s.notes.trim();
+        if(s.notes&&s.notes.trim())applyEnrichNotes(item,s.notes);
       }
       logChange(item,'Enrich','—',`Level ${level}`);
       done++;
@@ -4089,7 +4238,7 @@ async function runCustomEnrich(){
         if(selectedFields.includes('cleanedName')&&s.cleanedName?.trim()&&s.cleanedName!==item.name){ if(mode==='overwrite'||!item.name){item.name=s.cleanedName.trim();fieldsApplied.push('name');} }
         if(selectedFields.includes('category'))     set('category',s.category);
         if(selectedFields.includes('estValue'))     set('estValue',s.estimatedValue);
-        if(selectedFields.includes('notes')&&s.notes?.trim()) { if(mode==='overwrite'||!item.notes){item.notes=s.notes.trim();fieldsApplied.push('notes');} }
+        if(selectedFields.includes('notes')&&s.notes?.trim()) { if(mode==='overwrite'||!item.notes){applyEnrichNotes(item,s.notes);fieldsApplied.push('notes');} }
 
         if(fieldsApplied.length) logChange(item,'Custom Enrich','—',fieldsApplied.join(', '));
         applied+=fieldsApplied.length;
@@ -4316,7 +4465,7 @@ async function enrichSelected(){
       if(!item.replaceability&&s.replaceability){item.replaceability=s.replaceability;applied++;}
       if(!item.keep&&s.keep){item.keep=s.keep;applied++;}
       if(!item.estValue&&s.estimatedValue){item.estValue=s.estimatedValue;applied++;}
-      if(!item.notes&&s.notes&&s.notes.trim()){item.notes=s.notes;applied++;}
+      if(!item.notes&&s.notes&&s.notes.trim()){applyEnrichNotes(item,s.notes);applied++;}
       if(s.keywords&&s.keywords.trim()){item.keywords=s.keywords.trim();applied++;}
       if(s.cleanedName&&s.cleanedName.trim()&&s.cleanedName!==item.name){item.name=s.cleanedName;applied++;}
     }catch(e){console.warn('Enrich failed for',item.name,e);}
