@@ -794,7 +794,7 @@ tbody tr:hover .row-actions { opacity: 1; }
 .qa-label { font-family: var(--font-mono); font-size: 8px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
 .qa-input { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 8px; color: var(--text); font-family: var(--font-sans); font-size: 12px; width: 100%; }
 .qa-input:focus { outline: none; border-color: var(--rose); background: var(--s3); }
-.qa-suggest { position: absolute; background: var(--s3); border: 1px solid var(--rose); border-radius: var(--radius); z-index: 500; max-height: 160px; overflow-y: auto; width: 100%; }
+.qa-suggest { position: absolute; bottom: calc(100% + 2px); left: 0; background: var(--s3); border: 1px solid var(--rose); border-radius: var(--radius); z-index: 500; max-height: 180px; overflow-y: auto; width: 100%; box-shadow: 0 -4px 12px rgba(0,0,0,0.3); }
 .qa-suggest-item { padding: 5px 9px; font-family: var(--font-sans); font-size: 11px; color: var(--text-mid); cursor: pointer; }
 .qa-suggest-item:hover, .qa-suggest-item.active { background: var(--s4); color: var(--rose); }
 .qa-suggest-wrap { position: relative; }
@@ -1796,6 +1796,10 @@ CSV FORMAT:
     <div class="qa-actions">
       <button class="btn btn-primary btn-sm" onclick="qaSubmit(false)">Add + Close</button>
       <button class="btn btn-steel btn-sm" onclick="qaSubmit(true)">Add + Another</button>
+      <label style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--text-mid);cursor:pointer;margin-left:8px">
+        <input type="checkbox" id="qa-enrich-after" style="accent-color:var(--rose);width:11px;height:11px">
+        enrich after add
+      </label>
       <button class="btn btn-ghost btn-sm" onclick="closeQuickAdd()" style="margin-left:auto">Cancel</button>
     </div>
   </div>
@@ -2865,7 +2869,7 @@ function renderLocTree(){
 
 function setLocFilter(path,el){
   locFilter=path;
-  // Deactivate all loc rows
+  selectedIds.clear();
   document.querySelectorAll('.loc-node-row').forEach(r=>r.classList.remove('active'));
   document.getElementById('loc-all-btn').classList.toggle('active',!path);
   if(el)el.classList.add('active');
@@ -3561,14 +3565,19 @@ function qaSubmit(keepOpen){
   inventory.push(item);save();render();
   const locLabel=locationPath.length?locationPath.join(' > '):'(no location)';
   document.getElementById('qa-added').textContent=`✓ Added "${name}" → ${locLabel}`;
+
+  const enrichAfter=document.getElementById('qa-enrich-after')?.checked;
+
   if(keepOpen){
     document.getElementById('qa-name').value='';
     document.getElementById('qa-qty').value='1';
     document.getElementById('qa-suggest').style.display='none';
     resetClaudeSuggest();
     setTimeout(()=>document.getElementById('qa-name').focus(),30);
+    if(enrichAfter){_elItemId=item.id;runEnrichLevel(3);}
   } else {
     closeQuickAdd();
+    if(enrichAfter){_elItemId=item.id;runEnrichLevel(3);}
   }
 }
 
@@ -4635,11 +4644,11 @@ function addTopLevelLoc(){
 // ─── MERGE ────────────────────────────────────────────────────────────────────
 // ─── SORT / VIEW ──────────────────────────────────────────────────────────────
 function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=1;}renderTable();}
-function setView(v,el){currentView=v;document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
-function setCat(c,el){currentCat=c;document.querySelectorAll('[data-cat]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
-function setScoreFilter(f,el){currentScoreFilter=f;document.querySelectorAll('[data-score]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
+function setView(v,el){currentView=v;selectedIds.clear();updateBulkBar();document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
+function setCat(c,el){currentCat=c;selectedIds.clear();updateBulkBar();document.querySelectorAll('[data-cat]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
+function setScoreFilter(f,el){currentScoreFilter=f;selectedIds.clear();updateBulkBar();document.querySelectorAll('[data-score]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
 function setFillFilter(f,el){currentFillFilter=f;document.querySelectorAll('[data-fill]').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTable();}
-function switchTab(tab){currentTab=tab;document.getElementById('tab-table').classList.toggle('active',tab==='table');document.getElementById('tab-relocate').classList.toggle('active',tab==='relocate');renderTable();}
+function switchTab(tab){currentTab=tab;selectedIds.clear();updateBulkBar();document.getElementById('tab-table').classList.toggle('active',tab==='table');document.getElementById('tab-relocate').classList.toggle('active',tab==='relocate');renderTable();}
 
 // ─── COLUMN VISIBILITY + RESIZE ───────────────────────────────────────────────
 const COL_DEFS=[
