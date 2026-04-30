@@ -1390,10 +1390,86 @@ tbody tr:hover .row-actions { opacity: 1; }
       </div>
     </div>
 
-    <!-- Import Panel -->
+    <!-- Photo Intake Panel -->
+    <div class="panel">
+      <div class="panel-header" onclick="togglePanel('photo-intake-body','photo-intake-toggle')">
+        <div class="panel-title"><div class="panel-dot"></div>📷 Photo Intake — Add New Item from Photo</div>
+        <span class="panel-toggle" id="photo-intake-toggle">+</span>
+      </div>
+      <div class="panel-body" id="photo-intake-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+          <!-- Left: photo drop -->
+          <div>
+            <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px">Photo</div>
+            <div id="pi-dropzone" style="border:1px dashed var(--border2);border-radius:4px;padding:20px 12px;text-align:center;cursor:pointer;background:var(--s2);position:relative;transition:border-color 0.15s;">
+              <input type="file" id="pi-file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="piFileSelect(event)">
+              <div style="font-size:20px;margin-bottom:4px;opacity:0.4">📷</div>
+              <div style="font-size:11px;color:var(--text-mid);">Choose or drag photo</div>
+              <label style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;color:var(--rose);border:1px solid rgba(176,122,132,0.25);border-radius:3px;padding:3px 8px;cursor:pointer;position:relative;z-index:2;">
+                📷 Camera
+                <input type="file" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="piFileSelect(event)">
+              </label>
+            </div>
+            <div id="pi-preview-wrap" style="display:none;margin-top:6px;">
+              <img id="pi-preview-img" style="width:100%;max-height:160px;object-fit:contain;border-radius:3px;border:1px solid var(--border);background:var(--s2);" alt="">
+              <div style="display:flex;justify-content:space-between;margin-top:3px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">
+                <span id="pi-size-label"></span>
+                <span style="color:var(--rose);cursor:pointer" onclick="piClear()">✕ remove</span>
+              </div>
+              <button class="btn btn-steel btn-sm" id="pi-extract-btn" onclick="piExtract()" style="width:100%;margin-top:6px;display:none">
+                <span id="pi-extract-label">✦ Extract from photo</span>
+              </button>
+            </div>
+          </div>
+          <!-- Right: item fields -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Item Name *</div>
+              <input class="qa-input" id="pi-name" type="text" placeholder="Item name…" style="width:100%">
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Location</div>
+              <input class="qa-input" id="pi-loc" type="text" placeholder="Room > Shelf > Box…" style="width:100%" value="">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Category</div>
+                <select class="qa-input" id="pi-category" style="width:100%"><option value="">--</option><option>Electronics</option><option>Cables & Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms & Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools & Hardware</option><option>Office Supplies</option><option>Bags & Carry</option><option>Personal Care & Grooming</option><option>Health & Supplements</option><option>Cleaning & Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books & Notebooks</option><option>Gym & Fitness</option><option>Automotive</option><option>Memorabilia & Keepsakes</option><option>Misc</option></select>
+              </div>
+              <div>
+                <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Condition</div>
+                <select class="qa-input" id="pi-condition" style="width:100%"><option value="">--</option><option>New</option><option value="Good" selected>Good</option><option>Fair</option><option>Poor</option></select>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Notes (from photo extract)</div>
+              <textarea class="qa-input" id="pi-notes" rows="2" style="width:100%;resize:vertical;min-height:40px" placeholder="Auto-filled after extract, or type manually…"></textarea>
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">S/N or Ref # (from extract)</div>
+              <input class="qa-input" id="pi-sn" type="text" placeholder="Serial / policy / reference number…" style="width:100%">
+            </div>
+          </div>
+        </div>
+        <!-- Keywords -->
+        <div id="pi-tags-wrap" style="display:none;margin-bottom:8px;">
+          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Keywords <span style="font-size:8px;text-transform:none;letter-spacing:0">(tap to toggle)</span></div>
+          <div id="pi-tags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+        </div>
+        <!-- Actions -->
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-primary btn-sm" id="pi-add-btn" onclick="piAdd(false)" disabled>Add to Inventory</button>
+          <button class="btn btn-steel btn-sm" id="pi-add-doc-btn" onclick="piAdd(true)" disabled>Add + Upload Doc</button>
+          <span id="pi-status" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);"></span>
+        </div>
+        <div style="margin-top:8px;font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;color:var(--text-dim)">Location defaults to current tree filter if blank. Use outline/CSV import below for bulk.</div>
+      </div>
+    </div>
+
+    <!-- Import Panel (text/CSV) -->
     <div class="panel">
       <div class="panel-header" onclick="togglePanel('import-body','import-toggle')">
-        <div class="panel-title"><div class="panel-dot"></div>Import — Outline / CSV / Voice</div>
+        <div class="panel-title"><div class="panel-dot"></div>Import — Outline / CSV</div>
         <span class="panel-toggle" id="import-toggle">+</span>
       </div>
       <div class="panel-body" id="import-body">
@@ -2631,6 +2707,146 @@ function buildLocTree(){
 function render(){updateDashboard();renderLocTree();updateSidebarFilters();renderTable();updateBulkBar();applyColPrefs();if(window.innerWidth<=768)renderMobile();}
 
 function toggleDash(){const b=document.getElementById('dash-body'),a=document.getElementById('dash-arrow');b.classList.toggle('open');a.textContent=b.classList.contains('open')?'-':'+';}
+// ─── PHOTO INTAKE ─────────────────────────────────────────────────────────────
+let _piBlob=null, _piDataUrl=null, _piTags=new Set();
+
+function piFileSelect(e){
+  const file=e.target.files[0]; if(!file)return; e.target.value='';
+  piClear(true);
+  document.getElementById('pi-status').textContent='Compressing…';
+  docupCompress(file).then(({blob,dataUrl})=>{
+    _piBlob=blob; _piDataUrl=dataUrl;
+    const origKB=Math.round(file.size/1024);
+    const compKB=Math.round(blob.size/1024);
+    document.getElementById('pi-dropzone').style.display='none';
+    document.getElementById('pi-preview-wrap').style.display='';
+    document.getElementById('pi-preview-img').src=dataUrl;
+    document.getElementById('pi-size-label').textContent=`${origKB}KB → ${compKB}KB`;
+    document.getElementById('pi-extract-btn').style.display='';
+    document.getElementById('pi-add-btn').disabled=false;
+    document.getElementById('pi-add-doc-btn').disabled=false;
+    document.getElementById('pi-status').textContent='';
+  }).catch(err=>{
+    document.getElementById('pi-status').textContent='Compression failed: '+err.message;
+  });
+}
+
+function piClear(silent){
+  _piBlob=null; _piDataUrl=null; _piTags.clear();
+  document.getElementById('pi-dropzone').style.display='';
+  document.getElementById('pi-preview-wrap').style.display='none';
+  document.getElementById('pi-extract-btn').style.display='none';
+  document.getElementById('pi-tags-wrap').style.display='none';
+  document.getElementById('pi-tags').innerHTML='';
+  document.getElementById('pi-add-btn').disabled=true;
+  document.getElementById('pi-add-doc-btn').disabled=true;
+  if(!silent) document.getElementById('pi-status').textContent='';
+}
+
+async function piExtract(){
+  if(!_piDataUrl)return;
+  const btn=document.getElementById('pi-extract-btn');
+  const label=document.getElementById('pi-extract-label');
+  btn.disabled=true; label.textContent='⟳ Reading…';
+  try{
+    const base64=_piDataUrl.split(',')[1];
+    const mtype=_piDataUrl.split(';')[0].split(':')[1]||'image/jpeg';
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({visionMode:true,imageBase64:base64,imageMediaType:mtype})
+    });
+    if(!res.ok) throw new Error(res.status);
+    const data=await res.json();
+    let parsed;
+    try{
+      const raw=data.content?data.content.map(b=>b.text||'').join(''):JSON.stringify(data);
+      parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    }catch{parsed={summary:String(data.summary||''),keywords:[],numbers:''};}
+    if(parsed.summary) document.getElementById('pi-notes').value=parsed.summary;
+    if(parsed.numbers) document.getElementById('pi-sn').value=parsed.numbers;
+    _piTags.clear();
+    const tagsEl=document.getElementById('pi-tags');
+    tagsEl.innerHTML=(parsed.keywords||[]).map(kw=>
+      `<span style="font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;background:var(--s3);color:var(--text-mid);" onclick="piToggleTag(this,'${esc(kw)}')">${esc(kw)}</span>`
+    ).join('');
+    document.getElementById('pi-tags-wrap').style.display='';
+    // Auto-fill name from photo if blank
+    if(!document.getElementById('pi-name').value && parsed.summary){
+      const firstSentence=parsed.summary.split(/[.!?]/)[0].trim().slice(0,60);
+      document.getElementById('pi-name').value=firstSentence;
+    }
+    label.textContent='✦ Re-extract'; btn.disabled=false;
+  }catch(err){
+    btn.disabled=false;
+    label.textContent='✦ Extract (fill manually)';
+    document.getElementById('pi-notes').placeholder='Type a summary manually…';
+    document.getElementById('pi-tags-wrap').style.display='';
+  }
+}
+
+function piToggleTag(el,tag){
+  if(_piTags.has(tag)){_piTags.delete(tag);el.style.color='var(--text-mid)';el.style.borderColor='var(--border2)';el.style.background='var(--s3)';}
+  else{_piTags.add(tag);el.style.color='var(--rose)';el.style.borderColor='var(--rose)';el.style.background='var(--rose-glow)';}
+}
+
+async function piAdd(withDoc){
+  const name=document.getElementById('pi-name').value.trim();
+  if(!name){document.getElementById('pi-name').focus();document.getElementById('pi-status').textContent='Name required';return;}
+  const locStr=document.getElementById('pi-loc').value.trim();
+  const locationPath=locStr?stringToPath(locStr):(locFilter?[...locFilter]:[]);
+  const notes=document.getElementById('pi-notes').value.trim();
+  const sn=document.getElementById('pi-sn').value.trim();
+  const tags=[..._piTags];
+  snapshot();
+  const item={
+    id:nextId++,name,
+    category:document.getElementById('pi-category').value||'Misc',
+    locationPath,
+    qty:'1',
+    condition:document.getElementById('pi-condition').value||'Good',
+    frequency:'',criticality:'',replaceability:'',keep:'',
+    estValue:'',yearPurchased:'',lastUsed:'',
+    notes:notes||'',
+    sn:sn||'',
+    keywords:tags.join(', '),
+    docType:'',digitalCopy:false,fillLevel:'',
+    misplaced:false,lockedItem:false,lockedNotes:false,
+    docUrl:null,milSub:null,
+  };
+  inventory.push(item);
+
+  // Upload doc if requested and photo available
+  if(withDoc && _piBlob){
+    document.getElementById('pi-status').textContent='Uploading photo…';
+    try{
+      const ts=Date.now();
+      const ext=_piBlob.type==='application/pdf'?'pdf':'jpg';
+      const fname=`item_${item.id}_${ts}.${ext}`;
+      const upRes=await fetch(`${SUPABASE_URL}/storage/v1/object/documents/${fname}`,{
+        method:'POST',
+        headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':_piBlob.type||'image/jpeg','x-upsert':'true'},
+        body:_piBlob,
+      });
+      if(!upRes.ok) throw new Error(await upRes.text());
+      item.docUrl=`${SUPABASE_URL}/storage/v1/object/public/documents/${fname}`;
+      item.digitalCopy=true;
+    }catch(err){
+      toast('Photo upload failed — item saved without doc: '+err.message);
+    }
+  }
+
+  save();render();
+  toast(`✓ Added "${name}"${item.docUrl?' + doc':''}`);
+  // Reset form
+  document.getElementById('pi-name').value='';
+  document.getElementById('pi-notes').value='';
+  document.getElementById('pi-sn').value='';
+  document.getElementById('pi-loc').value='';
+  document.getElementById('pi-status').textContent=`✓ Added "${name}"`;
+  piClear();
+}
+
 function togglePanel(bid,aid){const b=document.getElementById(bid),a=document.getElementById(aid);b.classList.toggle('open');a.textContent=b.classList.contains('open')?'-':'+';}
 
 function updateDashboard(){
@@ -3107,7 +3323,7 @@ function buildRow(item,dupMap){
 
   tr.innerHTML=`
     <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onchange="toggleSelect(${item.id},this.checked)"></td>
-    ${etd('name',`<div style="display:flex;align-items:center;gap:3px">${esc(item.name)}</div>${snVal?`<div><span class="sn-badge">S/N ${esc(snVal)}</span></div>`:''}${mergedBadge}`,'min-width:120px;font-weight:500;font-size:13px')}
+    ${etd('name',`<div style="display:flex;align-items:center;gap:3px">${esc(item.name)}${item.docUrl?`<span title="Has document" style="font-size:10px;opacity:0.6;cursor:pointer;" onclick="event.stopPropagation();window.open('${esc(item.docUrl)}','_blank')">📎</span>`:''}${item.milSub==='OCIE'?`<span class="mil-sub-pill ocie" style="font-size:7px;padding:1px 4px">OCIE</span>`:item.milSub==='Personal'?`<span class="mil-sub-pill personal" style="font-size:7px;padding:1px 4px">Personal</span>`:''}</div>${snVal?`<div><span class="sn-badge">S/N ${esc(snVal)}</span></div>`:''}${mergedBadge}`,'min-width:120px;font-weight:500;font-size:13px')}
     ${etd('_loc', item.inUse
       ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
           <span style="width:7px;height:7px;border-radius:50%;background:#4d8f6a;box-shadow:0 0 6px rgba(77,143,106,0.8);flex-shrink:0;animation:inUsePulse 2s ease infinite"></span>
