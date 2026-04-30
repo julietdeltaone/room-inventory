@@ -6613,6 +6613,34 @@ function chatSend(){
   chatAsk(q);
 }
 
+// Strip raw JSON blocks Claude sometimes appends, then render light markdown
+function formatReply(text){
+  if(!text) return '—';
+  // Strip any trailing ```json ... ``` or bare { "reply": ... } blocks
+  text = text
+    .replace(/```json[\s\S]*?```/g, '')
+    .replace(/`{3}[\s\S]*?`{3}/g, '')
+    .replace(/\{[\s\S]*?"action"\s*:\s*"[^"]*"[\s\S]*?\}/g, '')
+    .trim();
+  // Render basic markdown: **bold**, - bullets, newlines
+  const lines = text.split('\n').filter(l => l.trim() !== '' || false);
+  return lines.map(line => {
+    line = line
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') // escape HTML
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')               // **bold**
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>');                          // *italic*
+    // Bullet lines
+    if(/^[-•*]\s+/.test(line.trim())){
+      return `<div style="display:flex;gap:6px;margin:1px 0"><span style="opacity:0.4;flex-shrink:0">·</span><span>${line.replace(/^[-•*]\s+/,'')}</span></div>`;
+    }
+    // Section headers (lines ending with : that are short)
+    if(/^[A-Z][^:]{0,40}:$/.test(line.trim())){
+      return `<div style="font-weight:600;margin-top:8px;margin-bottom:2px;color:var(--text)">${line}</div>`;
+    }
+    return `<div style="margin:1px 0">${line}</div>`;
+  }).join('');
+}
+
 async function chatAsk(question){
   if (!_chatOpen) toggleChat();
   const body = document.getElementById('chat-body');
@@ -6735,7 +6763,7 @@ ${JSON.stringify(snapshot)}`;
     body.insertAdjacentHTML('beforeend', `
       <div class="chat-bubble">
         <div class="chat-bubble-label">Assistant</div>
-        <div class="chat-bubble-text">${esc(parsed.reply || '—')}</div>
+        <div class="chat-bubble-text">${formatReply(parsed.reply || '—')}</div>
         ${actionPill}
       </div>`);
 
