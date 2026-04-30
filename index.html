@@ -2706,7 +2706,7 @@ function buildLocTree(){
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
-function render(){updateDashboard();renderLocTree();updateSidebarFilters();renderTable();updateBulkBar();applyColPrefs();if(window.innerWidth<=768)renderMobile();}
+function render(){updateDashboard();renderLocTree();updateSidebarFilters();renderTable();updateBulkBar();if(window.innerWidth<=768)renderMobile();}
 
 function toggleDash(){const b=document.getElementById('dash-body'),a=document.getElementById('dash-arrow');b.classList.toggle('open');a.textContent=b.classList.contains('open')?'-':'+';}
 // ─── PHOTO INTAKE ─────────────────────────────────────────────────────────────
@@ -3200,14 +3200,17 @@ function renderTable(){
   const items=getFiltered();
   updateSortHeaders();
   if(!items.length){
-    tbody.innerHTML=`<tr><td colspan="17"><div class="empty-state"><div class="empty-icon">[ ]</div>${inventory.length?'No items match current filters.':'No items yet. Use an import panel above to get started.'}</div></td></tr>`;
+    const visCount=COL_DEFS.filter(d=>!hiddenCols.has(d.col)).length;
+    tbody.innerHTML=`<tr><td colspan="${visCount}"><div class="empty-state"><div class="empty-icon">[ ]</div>${inventory.length?'No items match current filters.':'No items yet. Use an import panel above to get started.'}</div></td></tr>`;
     const sa=document.getElementById('select-all');if(sa){sa.checked=false;sa.indeterminate=false;}
+    applyColPrefs();
     return;
   }
   tbody.innerHTML='';
   items.forEach(item=>tbody.appendChild(buildRow(item,{})));
   const sa=document.getElementById('select-all');
   if(sa){const vids=items.map(i=>i.id);const all=vids.length>0&&vids.every(id=>selectedIds.has(id));sa.checked=all;sa.indeterminate=!all&&vids.some(id=>selectedIds.has(id));}
+  applyColPrefs();
 }
 
 function updateSortHeaders(){document.querySelectorAll('th.sortable').forEach(th=>{th.classList.remove('sort-asc','sort-desc');if(th.dataset.key===sortKey)th.classList.add(sortDir===1?'sort-asc':'sort-desc');});}
@@ -5279,11 +5282,9 @@ function closeColPickerOutside(e){
 
 function toggleColHide(col,visible){
   if(visible)hiddenCols.delete(col);else hiddenCols.add(col);
+  if(!visible){delete colWidths[col];}
   saveColPrefs();
-  applyColVisibility();
-  // When hiding, delete that col's saved width and reflow remaining cols
-  if(!visible){delete colWidths[col];saveColPrefs();}
-  applyColWidths();
+  renderTable(); // full re-render ensures th/td alignment is always correct
 }
 
 function resetColWidths(){
