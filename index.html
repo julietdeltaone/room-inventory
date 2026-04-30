@@ -2393,6 +2393,7 @@ function itemToRow(item) {
     locked_item: item.lockedItem ? true : false,
     locked_notes: item.lockedNotes ? true : false,
     mil_sub: item.milSub || null,
+    doc_url: item.docUrl || null,
   };
 }
 
@@ -2425,6 +2426,7 @@ function rowToItem(row) {
     lockedItem: row.locked_item ? true : false,
     lockedNotes: row.locked_notes ? true : false,
     milSub: row.mil_sub || null,
+    docUrl: row.doc_url || null,
   });
 }
 
