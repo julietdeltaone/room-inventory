@@ -557,15 +557,49 @@ function renderHdr() {
 }
 
 // ── ZONE CARDS ────────────────────────────────────────────────────────────────
+
+// Interpolate between two hex colors by t (0–1)
+function lerpColor(a, b, t){
+  const ah=a.replace('#',''), bh=b.replace('#','');
+  const ar=parseInt(ah.slice(0,2),16), ag=parseInt(ah.slice(2,4),16), ab=parseInt(ah.slice(4,6),16);
+  const br=parseInt(bh.slice(0,2),16), bg=parseInt(bh.slice(2,4),16), bb=parseInt(bh.slice(4,6),16);
+  const rr=Math.round(ar+(br-ar)*t), rg=Math.round(ag+(bg-ag)*t), rb=Math.round(ab+(bb-ab)*t);
+  return `#${rr.toString(16).padStart(2,'0')}${rg.toString(16).padStart(2,'0')}${rb.toString(16).padStart(2,'0')}`;
+}
+
+// Heatmap: 0=cold dim, 1=hot bright. Uses zone accent color as the hot end.
+function heatColor(t, bright){
+  // cold = very dim version of bright, hot = full bright
+  // We blend from near-black tinted toward full bright
+  const cold = '#1a1a22';
+  return lerpColor(cold, bright, Math.max(0.05, t));
+}
+
+function heatAlpha(t){ return 0.06 + t * 0.36; }  // background alpha for pills
+function heatBorderAlpha(t){ return 0.04 + t * 0.22; }
+
 function renderZones() {
   const wrap = document.getElementById('zones-wrap');
   wrap.innerHTML = '';
+
+  // Collect all zone item counts for proportional flex
+  const zoneCounts = {};
+  ZONE_ORDER.forEach(z => {
+    zoneCounts[z] = inventory.filter(i => i.locationPath[0] === z).length;
+  });
+  const maxZoneCount = Math.max(...Object.values(zoneCounts), 1);
+  const minFlex = 0.5;  // thinnest card still gets this flex
+  const maxFlex = 3.0;  // densest card gets this
 
   ZONE_ORDER.forEach((zoneName, zi) => {
     const items = inventory.filter(i => i.locationPath[0] === zoneName);
     if (!items.length) return;
 
     const cfg = ZONE_CONFIG[zoneName] || {cls:'zone-bedroom',bright:'#888',bar:'rgba(128,128,128,0.4)'};
+
+    // Proportional flex: linear scale from minFlex to maxFlex
+    const densityRatio = items.length / maxZoneCount;
+    const flexVal = minFlex + (maxFlex - minFlex) * densityRatio;
 
     // L2 breakdown
     const l2Map = {};
@@ -590,16 +624,26 @@ function renderZones() {
     const card = document.createElement('div');
     card.className = `zone-card ${cfg.cls}`;
     card.dataset.zone = zoneName;
+    card.style.flex = flexVal;
 
-    // Location pills
-    const pillsHTML = l2Entries.slice(0,7).map(([name, its]) => {
-      const pct = Math.round(its.length / maxL2 * 100);
-      return `<div class="loc-pill">
-        <span class="loc-pill-name">${esc(name)}</span>
+    // ── HEATMAP PILLS ──
+    // Each pill's color intensity = its count / maxL2 count in this zone
+    const pillsHTML = l2Entries.slice(0, 8).map(([name, its]) => {
+      const t = its.length / maxL2;            // 0–1 heat value
+      const barColor = heatColor(t, cfg.bright);
+      const bgAlpha  = heatAlpha(t);
+      const bdAlpha  = heatBorderAlpha(t);
+      const textAlpha = 0.35 + t * 0.55;
+      const numAlpha  = 0.25 + t * 0.65;
+      return `<div class="loc-pill" style="
+          background:rgba(${hexToRgb(barColor)},${bgAlpha});
+          border-color:rgba(${hexToRgb(barColor)},${bdAlpha});
+        ">
+        <span class="loc-pill-name" style="color:rgba(${hexToRgb(cfg.bright)},${textAlpha})">${esc(name)}</span>
         <div class="loc-pill-bar-wrap">
-          <div class="loc-pill-bar" style="width:${pct}%;background:${cfg.bright};opacity:0.5"></div>
+          <div class="loc-pill-bar" style="width:${Math.round(t*100)}%;background:${barColor};opacity:0.8"></div>
         </div>
-        <span class="loc-pill-n">${its.length}</span>
+        <span class="loc-pill-n" style="color:rgba(${hexToRgb(cfg.bright)},${numAlpha})">${its.length}</span>
       </div>`;
     }).join('');
 
@@ -612,10 +656,16 @@ function renderZones() {
       </div>`;
     }).join('');
 
-    // Expanded detail view — deep tree
-    const detailHTML = buildDetailTree(l2Entries, zoneName);
+    // Expanded detail view — deep tree with heatmap
+    const detailHTML = buildDetailTree(l2Entries, zoneName, maxL2, cfg.bright);
+
+    // Density indicator bar at top of card
+    const densityPct = Math.round(densityRatio * 100);
 
     card.innerHTML = `
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;border-radius:18px 18px 0 0;overflow:hidden;">
+        <div style="height:100%;width:${densityPct}%;background:${cfg.bright};opacity:0.4;transition:width 0.8s ease;"></div>
+      </div>
       <div class="zone-header">
         <div>
           <div class="zone-name" style="color:${cfg.bright}">${esc(zoneName)}</div>
@@ -628,24 +678,18 @@ function renderZones() {
       <div class="zone-detail">${detailHTML}</div>`;
 
     card.addEventListener('click', e => {
-      if (e.target.closest('.detail-node-hdr')) return; // handled separately
+      if (e.target.closest('.detail-node-hdr')) return;
       toggleZone(card, zoneName);
     });
 
-    // Wire detail node toggles after insertion
     wrap.appendChild(card);
 
-    // Stagger entrance animation
+    // Stagger entrance
     card.style.opacity = '0';
-    card.style.transform += ' translateY(20px)';
     setTimeout(() => {
       card.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
       card.style.opacity = '1';
-      card.style.transform = '';
-      // Restore float animation after entrance
-      setTimeout(() => {
-        card.style.transition = '';
-      }, 600);
+      setTimeout(() => { card.style.transition = ''; }, 600);
     }, zi * 80);
   });
 
@@ -653,14 +697,27 @@ function renderZones() {
   document.querySelectorAll('.detail-node-hdr').forEach(hdr => {
     hdr.addEventListener('click', e => {
       e.stopPropagation();
-      const node = hdr.closest('.detail-node');
-      node.classList.toggle('open');
+      hdr.closest('.detail-node').classList.toggle('open');
     });
   });
 }
 
-function buildDetailTree(l2Entries, zoneName) {
+function hexToRgb(hex){
+  const h=hex.replace('#','');
+  return `${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)}`;
+}
+
+function buildDetailTree(l2Entries, zoneName, maxL2, bright) {
+  const globalMax = maxL2 || (l2Entries[0]?.[1].length || 1);
+  const br = bright || (ZONE_CONFIG[zoneName]||{bright:'#888'}).bright;
+
   return l2Entries.map(([l2name, items]) => {
+    const t2 = items.length / globalMax;
+    const hc2 = heatColor(t2, br);
+    const bg2 = `rgba(${hexToRgb(hc2)},${heatAlpha(t2)})`;
+    const bd2 = `rgba(${hexToRgb(hc2)},${heatBorderAlpha(t2) + 0.08})`;
+    const nameCol2 = `rgba(${hexToRgb(br)},${0.4 + t2 * 0.55})`;
+
     // Group by L3
     const l3Map = {};
     items.forEach(i => {
@@ -669,45 +726,51 @@ function buildDetailTree(l2Entries, zoneName) {
       if (!l3Map[key]) l3Map[key] = [];
       l3Map[key].push(i);
     });
-
     const l3Entries = Object.entries(l3Map).sort((a,b) => b[1].length - a[1].length);
+    const maxL3 = Math.max(...l3Entries.map(([,v])=>v.length), 1);
 
     const innerHTML = l3Entries.map(([l3name, its]) => {
       if (l3name === '__items__') {
-        const rows = its.slice(0,8).map(i => {
+        return its.slice(0, 8).map(i => {
           const icon = CAT_ICON[i.category] || '📦';
           return `<div class="detail-item-row">
             <span class="detail-item-cat">${icon}</span>
             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(i.name)}</span>
-            ${i.doc_url ? '<span style="opacity:0.4">📎</span>' : ''}
+            ${i.doc_url ? '<span style="opacity:0.35">📎</span>' : ''}
           </div>`;
-        }).join('') + (its.length > 8 ? `<div class="detail-item-row" style="color:rgba(255,255,255,0.2)">…+${its.length-8} more</div>` : '');
-        return rows;
+        }).join('') + (its.length > 8 ? `<div class="detail-item-row" style="color:rgba(255,255,255,0.18)">…+${its.length-8} more</div>` : '');
       }
-      return `<div class="detail-node" style="margin-bottom:3px;border-radius:6px;">
+
+      const t3 = its.length / maxL3;
+      const hc3 = heatColor(t3, br);
+      const bg3 = `rgba(${hexToRgb(hc3)},${heatAlpha(t3) * 0.7})`;
+      const bd3 = `rgba(${hexToRgb(hc3)},${heatBorderAlpha(t3) + 0.06})`;
+      const nameCol3 = `rgba(${hexToRgb(br)},${0.3 + t3 * 0.55})`;
+
+      return `<div class="detail-node" style="margin-bottom:3px;border-radius:6px;background:${bg3};border-color:${bd3};">
         <div class="detail-node-hdr">
-          <span class="detail-node-name">${esc(l3name)}</span>
-          <span class="detail-node-count">${its.length}</span>
+          <span class="detail-node-name" style="color:${nameCol3}">${esc(l3name)}</span>
+          <span class="detail-node-count" style="color:${nameCol3};opacity:0.7">${its.length}</span>
           <span class="detail-node-arrow">›</span>
         </div>
         <div class="detail-items">
-          ${its.slice(0,10).map(i => {
+          ${its.slice(0, 10).map(i => {
             const icon = CAT_ICON[i.category]||'📦';
             return `<div class="detail-item-row">
               <span class="detail-item-cat">${icon}</span>
               <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(i.name)}</span>
-              ${i.doc_url?'<span style="opacity:0.4">📎</span>':''}
+              ${i.doc_url?'<span style="opacity:0.35">📎</span>':''}
             </div>`;
           }).join('')}
-          ${its.length > 10 ? `<div class="detail-item-row" style="color:rgba(255,255,255,0.2)">…+${its.length-10} more</div>` : ''}
+          ${its.length > 10 ? `<div class="detail-item-row" style="color:rgba(255,255,255,0.18)">…+${its.length-10} more</div>` : ''}
         </div>
       </div>`;
     }).join('');
 
-    return `<div class="detail-node">
+    return `<div class="detail-node" style="background:${bg2};border-color:${bd2};">
       <div class="detail-node-hdr">
-        <span class="detail-node-name">${esc(l2name)}</span>
-        <span class="detail-node-count">${items.length}</span>
+        <span class="detail-node-name" style="color:${nameCol2}">${esc(l2name)}</span>
+        <span class="detail-node-count" style="color:${nameCol2};opacity:0.7">${items.length}</span>
         <span class="detail-node-arrow">›</span>
       </div>
       <div class="detail-items">${innerHTML}</div>
