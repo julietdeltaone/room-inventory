@@ -1249,6 +1249,7 @@ tbody tr:hover .row-actions { opacity: 1; }
       <div style="display:flex;align-items:center;gap:4px">
         <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)" style="flex:1">All <span class="count" id="cnt-loc-all">0</span></button>
         <button class="filter-btn" id="loc-collapse-btn" onclick="collapseAllNodes()" title="Collapse all" style="flex-shrink:0;padding:0 7px;font-size:10px;color:var(--text-dim)">↑↑</button>
+        <button class="filter-btn" id="loc-sort-btn" onclick="toggleLocSort()" title="Toggle sort order" style="flex-shrink:0;padding:0 7px;font-size:10px;color:var(--text-dim)">A–Z</button>
       </div>
       <input id="loc-tree-search" class="loc-tree-search" placeholder="filter locations…" autocomplete="off" oninput="onLocTreeSearch(this.value)">
       <div id="loc-tree"></div>
@@ -2456,6 +2457,13 @@ function parseNotes(raw){
 // Remaining state:
 // locFilter: null = all, array = filter to items whose path starts with this prefix
 let locFilter=null;
+let _locTreeSort='count'; // 'count' | 'alpha'
+function toggleLocSort(){
+  _locTreeSort=_locTreeSort==='count'?'alpha':'count';
+  const btn=document.getElementById('loc-sort-btn');
+  if(btn){btn.textContent=_locTreeSort==='alpha'?'#':'A–Z';btn.classList.toggle('active',_locTreeSort==='alpha');}
+  renderLocTree();
+}
 let _locTreeQuery='';
 function onLocTreeSearch(val){
   _locTreeQuery=val.toLowerCase().trim();
@@ -2784,7 +2792,12 @@ function renderLocTree(){
   }
 
   function renderNode(children,parentPath,container){
-    Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
+    const _entries=Object.entries(children);
+    _entries.sort(_locTreeSort==='alpha'
+      ?(a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'})
+      :(a,b)=>b[1].total-a[1].total
+    );
+    _entries.forEach(([name,node])=>{
       const path=[...parentPath,name];
       const pk=pathKey(path);
       const isExpanded=expandedNodes.has(pk);
