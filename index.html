@@ -179,11 +179,21 @@ header {
   top: 46px;
   height: calc(100vh - 46px);
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 2px;
   border-right: 1px solid var(--border);
+  --sb-fs: 1;  /* font scale: set by JS during resize */
 }
+
+/* Sidebar text scales with width */
+.sidebar .loc-node-row { font-size: calc(11px * var(--sb-fs, 1)); }
+.sidebar .loc-count    { font-size: calc(9px  * var(--sb-fs, 1)); }
+.sidebar .loc-tree-flat-result { font-size: calc(11px * var(--sb-fs, 1)); }
+.sidebar .filter-btn   { font-size: calc(10px * var(--sb-fs, 1)); }
+.sidebar .sb-label     { font-size: calc(10px * var(--sb-fs, 1)); }
+.sidebar .loc-tree-search { font-size: calc(10px * var(--sb-fs, 1)); }
 
 main { padding: 12px 16px; overflow-y: auto; min-width: 0; }
 
@@ -1341,10 +1351,10 @@ tbody tr:hover .row-actions { opacity: 1; }
   <div class="sidebar" id="main-sidebar">
     <div class="sb-section">
       <div class="sb-label">Location</div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)" style="flex:1">All <span class="count" id="cnt-loc-all">0</span></button>
-        <button class="filter-btn" id="loc-collapse-btn" onclick="collapseAllNodes()" title="Collapse all" style="flex-shrink:0;padding:0 7px;font-size:10px;color:var(--text-dim)">↑↑</button>
-        <button class="filter-btn" id="loc-sort-btn" onclick="toggleLocSort()" title="Toggle sort order" style="flex-shrink:0;padding:0 7px;font-size:10px;color:var(--text-dim)">A–Z</button>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+        <button class="filter-btn active" id="loc-all-btn" onclick="setLocFilter(null,this)" style="flex:1;min-width:0">All <span class="count" id="cnt-loc-all">0</span></button>
+        <button class="filter-btn" id="loc-collapse-btn" onclick="collapseAllNodes()" title="Collapse all" style="flex-shrink:0;padding:0 8px;font-size:11px;color:var(--text-dim)" aria-label="Collapse all">↑↑</button>
+        <button class="filter-btn" id="loc-sort-btn" onclick="toggleLocSort()" title="Toggle sort: count / A–Z" style="flex-shrink:0;padding:0 8px;font-size:10px;color:var(--text-dim)">A–Z</button>
       </div>
       <input id="loc-tree-search" class="loc-tree-search" placeholder="filter locations…" autocomplete="off" oninput="onLocTreeSearch(this.value)">
       <div id="loc-tree"></div>
@@ -3961,10 +3971,10 @@ function qaSubmit(keepOpen){
     document.getElementById('qa-suggest').style.display='none';
     resetClaudeSuggest();
     setTimeout(()=>document.getElementById('qa-name').focus(),30);
-    if(enrichAfter){_elItemId=item.id;runEnrichLevel(3);}
+    if(enrichAfter){_elItemId=item.id;runEnrichLevel(5);}
   } else {
     closeQuickAdd();
-    if(enrichAfter){_elItemId=item.id;runEnrichLevel(3);}
+    if(enrichAfter){_elItemId=item.id;runEnrichLevel(5);}
   }
 }
 
@@ -6282,20 +6292,47 @@ function closeInspector(e){
 (function(){
   const resizer = document.getElementById('sidebar-resizer');
   const app = document.querySelector('.app');
+  const sidebar = document.getElementById('main-sidebar');
   if(!resizer || !app) return;
+
+  const SB_MIN = 140;   // narrowest — large text mode
+  const SB_MAX = 320;   // widest  — small text mode
+  const SB_DEFAULT = 220;
+
+  // Font scale: narrow sidebar → bigger text, wide → smaller
+  // At SB_MIN: scale = 1.35, at SB_MAX: scale = 0.88
+  function calcFontScale(w){
+    const t = (w - SB_MIN) / (SB_MAX - SB_MIN);  // 0 at narrow, 1 at wide
+    return 1.35 - t * (1.35 - 0.88);
+  }
+
+  function applySidebarWidth(w){
+    w = Math.min(SB_MAX, Math.max(SB_MIN, w));
+    app.style.setProperty('--sidebar-w', w + 'px');
+    if(sidebar) sidebar.style.setProperty('--sb-fs', calcFontScale(w).toFixed(3));
+    // Persist
+    try{ localStorage.setItem('inv_sb_w', w); }catch(e){}
+  }
+
+  // Restore saved width
+  try{
+    const saved = parseInt(localStorage.getItem('inv_sb_w'));
+    if(saved && saved >= SB_MIN && saved <= SB_MAX) applySidebarWidth(saved);
+  }catch(e){}
+
   let dragging = false, startX = 0, startW = 0;
   resizer.addEventListener('mousedown', e => {
     dragging = true;
     startX = e.clientX;
-    startW = parseInt(getComputedStyle(app).gridTemplateColumns.split(' ')[0]) || 220;
+    startW = parseInt(getComputedStyle(app).getPropertyValue('--sidebar-w')) ||
+             parseInt(getComputedStyle(app).gridTemplateColumns.split(' ')[0]) || SB_DEFAULT;
     resizer.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   });
   document.addEventListener('mousemove', e => {
     if(!dragging) return;
-    const w = Math.min(400, Math.max(140, startW + (e.clientX - startX)));
-    app.style.setProperty('--sidebar-w', w + 'px');
+    applySidebarWidth(startW + (e.clientX - startX));
   });
   document.addEventListener('mouseup', () => {
     if(!dragging) return;
