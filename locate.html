@@ -166,6 +166,21 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 
 /* Row 1: name left, price right */
 .item-row1{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px;}
+.doc-view-btn{background:none;border:none;cursor:pointer;font-size:15px;padding:0;line-height:1;opacity:0.7;transition:opacity 0.15s;flex-shrink:0;}
+.doc-view-btn:hover{opacity:1;}
+
+/* ── DOC LIGHTBOX ── */
+.doc-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:9000;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:0;}
+.doc-lightbox.open{display:flex;}
+.doc-lb-header{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--s1);}
+.doc-lb-title{font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;padding-right:12px;}
+.doc-lb-actions{display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.doc-lb-btn{font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text-mid);cursor:pointer;transition:all 0.12s;white-space:nowrap;}
+.doc-lb-btn:hover{border-color:var(--rose);color:var(--rose);}
+.doc-lb-close{font-size:18px;color:var(--text-dim);cursor:pointer;background:none;border:none;padding:0 0 0 4px;line-height:1;transition:color 0.15s;}
+.doc-lb-close:hover{color:var(--text);}
+.doc-lb-body{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:20px;width:100%;}
+.doc-lb-img{max-width:100%;max-height:calc(100vh - 100px);object-fit:contain;border-radius:4px;}
 .item-name-primary{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .item-name-secondary{font-family:var(--font-ui);font-size:12px;font-weight:300;font-style:italic;color:var(--text-mid);margin-left:4px;}
 .item-price{font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--text);letter-spacing:0.02em;white-space:nowrap;flex-shrink:0;}
@@ -472,6 +487,7 @@ function rowToItem(row){
     lockedItem:row.locked_item?true:false,
     lockedNotes:row.locked_notes?true:false,
     keywords:row.keywords||'',
+    docUrl:row.doc_url||null,
     locationPath:stringToPath(row.location||'')};
 }
 
@@ -1085,13 +1101,17 @@ function itemCardHTML(item){
   const fillBadge=fillInfo?`<span class="indicator-badge" style="color:${fillInfo.color};border-color:${fillInfo.color}40"><span class="ind-dot" style="background:${fillInfo.color}"></span>${fillInfo.label}</span>`:'';
   const digitalBadge=item.digitalCopy?`<span class="indicator-badge" style="color:#6e8fa8;border-color:#6e8fa840"><span class="ind-dot" style="background:#6e8fa8"></span>Digital</span>`:'';
   const inUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
+  const docBtn=item.docUrl?`<button class="doc-view-btn" onclick="openDocViewer('${esc(item.docUrl)}','${esc(item.name)}')" title="View document">📄</button>`:'';
 
   return`<div class="item-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
     <div class="item-row1">
       <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
         <span class="item-name-primary">${esc(primary)}</span>${secondary?`<span class="item-name-secondary"> — ${esc(secondary)}</span>`:''}
       </div>
-      ${item.estValue?`<span class="item-price"><span class="item-price-label">est.</span>$${esc(item.estValue)}</span>`:''}
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        ${docBtn}
+        ${item.estValue?`<span class="item-price"><span class="item-price-label">est.</span>$${esc(item.estValue)}</span>`:''}
+      </div>
     </div>
     <div class="item-row2">
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text}">${esc(item.category)}</span>
@@ -1199,6 +1219,43 @@ function setSyncStatus(s){
   document.getElementById('sync-label').textContent=s==='ok'?`${inventory.length} items`:s==='loading'?'loading':'error';
 }
 load();
+</script>
+<!-- ── DOC LIGHTBOX ── -->
+<div class="doc-lightbox" id="doc-lightbox" onclick="docLbBgClick(event)">
+  <div class="doc-lb-header">
+    <div class="doc-lb-title" id="doc-lb-title"></div>
+    <div class="doc-lb-actions">
+      <a class="doc-lb-btn" id="doc-lb-open" href="" target="_blank" rel="noopener">Open full size ↗</a>
+      <a class="doc-lb-btn" id="doc-lb-dl" href="" download>Download ↓</a>
+      <button class="doc-lb-close" onclick="closeDocViewer()">✕</button>
+    </div>
+  </div>
+  <div class="doc-lb-body">
+    <img class="doc-lb-img" id="doc-lb-img" alt="Document">
+  </div>
+</div>
+
+<script>
+function openDocViewer(url, name){
+  document.getElementById('doc-lb-title').textContent = name;
+  document.getElementById('doc-lb-img').src = url;
+  document.getElementById('doc-lb-open').href = url;
+  document.getElementById('doc-lb-dl').href = url;
+  document.getElementById('doc-lb-dl').download = name.replace(/[^a-z0-9]/gi,'_') + '.jpg';
+  document.getElementById('doc-lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDocViewer(){
+  document.getElementById('doc-lightbox').classList.remove('open');
+  document.getElementById('doc-lb-img').src = '';
+  document.body.style.overflow = '';
+}
+function docLbBgClick(e){
+  if(e.target === document.getElementById('doc-lightbox')) closeDocViewer();
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeDocViewer();
+});
 </script>
 </body>
 </html>
