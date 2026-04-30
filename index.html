@@ -1494,13 +1494,13 @@ tbody tr:hover .row-actions { opacity: 1; }
 
     <!-- Photo Intake Panel -->
     <div class="panel">
-      <div class="panel-header" onclick="togglePanel('photo-intake-body','photo-intake-toggle')">
+      <div class="panel-header" onclick="togglePanel('photo-intake-body','photo-intake-toggle');piPanelOpen()">
         <div class="panel-title"><div class="panel-dot"></div>📷 Photo Intake — Add New Item from Photo</div>
         <span class="panel-toggle" id="photo-intake-toggle">+</span>
       </div>
       <div class="panel-body" id="photo-intake-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-          <!-- Left: photo drop -->
+          <!-- Left: photo -->
           <div>
             <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px">Photo</div>
             <div id="pi-dropzone" style="border:1px dashed var(--border2);border-radius:4px;padding:20px 12px;text-align:center;cursor:pointer;background:var(--s2);position:relative;transition:border-color 0.15s;">
@@ -1523,48 +1523,78 @@ tbody tr:hover .row-actions { opacity: 1; }
               </button>
             </div>
           </div>
-          <!-- Right: item fields -->
+          <!-- Right: core fields -->
           <div style="display:flex;flex-direction:column;gap:6px;">
             <div>
-              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Item Name *</div>
+              <div class="qa-label">Item Name *</div>
               <input class="qa-input" id="pi-name" type="text" placeholder="Item name…" style="width:100%">
             </div>
             <div>
-              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Location</div>
-              <input class="qa-input" id="pi-loc" type="text" placeholder="Room > Shelf > Box…" style="width:100%" value="">
+              <div class="qa-label">Location <span style="font-size:8px;color:var(--green);letter-spacing:0;text-transform:none">(auto from tree)</span></div>
+              <input class="qa-input" id="pi-loc" type="text" placeholder="Room > Shelf > Box…" style="width:100%">
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:6px">
+              <div>
+                <div class="qa-label">Category</div>
+                <select class="qa-input" id="pi-category" style="width:100%"><option value="">--</option><option>Electronics</option><option>Cables &amp; Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms &amp; Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools &amp; Hardware</option><option>Office Supplies</option><option>Bags &amp; Carry</option><option>Personal Care &amp; Grooming</option><option>Health &amp; Supplements</option><option>Cleaning &amp; Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books &amp; Notebooks</option><option>Gym &amp; Fitness</option><option>Automotive</option><option>Memorabilia &amp; Keepsakes</option><option>Misc</option></select>
+              </div>
+              <div>
+                <div class="qa-label">Qty</div>
+                <input class="qa-input" id="pi-qty" type="number" min="1" value="1" style="width:100%">
+              </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
               <div>
-                <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Category</div>
-                <select class="qa-input" id="pi-category" style="width:100%"><option value="">--</option><option>Electronics</option><option>Cables & Charging</option><option>Camera/Photo Gear</option><option>Military</option><option>Firearms & Ammo</option><option>Clothing</option><option>Footwear</option><option>Accessories</option><option>Tools & Hardware</option><option>Office Supplies</option><option>Bags & Carry</option><option>Personal Care & Grooming</option><option>Health & Supplements</option><option>Cleaning & Home</option><option>Furniture</option><option>Identity Documents</option><option>Legal Documents</option><option>Vehicle Documents</option><option>Military Documents</option><option>Financial Documents</option><option>Books & Notebooks</option><option>Gym & Fitness</option><option>Automotive</option><option>Memorabilia & Keepsakes</option><option>Misc</option></select>
+                <div class="qa-label">Condition</div>
+                <select class="qa-input" id="pi-condition" style="width:100%"><option value="">--</option><option>New</option><option selected>Good</option><option>Fair</option><option>Poor</option></select>
               </div>
               <div>
-                <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Condition</div>
-                <select class="qa-input" id="pi-condition" style="width:100%"><option value="">--</option><option>New</option><option value="Good" selected>Good</option><option>Fair</option><option>Poor</option></select>
+                <div class="qa-label">Keep</div>
+                <select class="qa-input" id="pi-keep" style="width:100%"><option value="">--</option><option selected>Keep</option><option>Maybe</option><option>Sell</option><option>Trash</option></select>
               </div>
             </div>
-            <div>
-              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">Notes (from photo extract)</div>
-              <textarea class="qa-input" id="pi-notes" rows="2" style="width:100%;resize:vertical;min-height:40px" placeholder="Auto-filled after extract, or type manually…"></textarea>
-            </div>
-            <div>
-              <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px">S/N or Ref # (from extract)</div>
-              <input class="qa-input" id="pi-sn" type="text" placeholder="Serial / policy / reference number…" style="width:100%">
-            </div>
+          </div>
+        </div>
+        <!-- Scoring row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div>
+            <div class="qa-label">Frequency</div>
+            <select class="qa-input" id="pi-frequency" style="width:100%"><option value="">--</option><option>Daily</option><option>Weekly</option><option>Monthly</option><option selected>Rarely</option><option>Never</option></select>
+          </div>
+          <div>
+            <div class="qa-label">Criticality</div>
+            <select class="qa-input" id="pi-criticality" style="width:100%"><option value="">--</option><option>Essential</option><option>Important</option><option selected>Nice to Have</option><option>Redundant</option></select>
+          </div>
+          <div>
+            <div class="qa-label">Replaceability</div>
+            <select class="qa-input" id="pi-replaceability" style="width:100%"><option value="">--</option><option>Easy/Cheap</option><option selected>Moderate</option><option>Hard/Expensive</option><option>Irreplaceable</option></select>
+          </div>
+        </div>
+        <!-- Notes + SN -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div>
+            <div class="qa-label">Notes</div>
+            <textarea class="qa-input" id="pi-notes" rows="2" style="width:100%;resize:vertical;min-height:40px" placeholder="Auto-filled after extract…"></textarea>
+          </div>
+          <div>
+            <div class="qa-label">Serial / Ref #</div>
+            <input class="qa-input" id="pi-sn" type="text" placeholder="S/N or reference…" style="width:100%">
           </div>
         </div>
         <!-- Keywords -->
         <div id="pi-tags-wrap" style="display:none;margin-bottom:8px;">
-          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">Keywords <span style="font-size:8px;text-transform:none;letter-spacing:0">(tap to toggle)</span></div>
+          <div class="qa-label">Keywords <span style="font-size:8px;text-transform:none;letter-spacing:0;color:var(--text-dim)">(tap to toggle)</span></div>
           <div id="pi-tags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
         </div>
         <!-- Actions -->
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="btn btn-primary btn-sm" id="pi-add-btn" onclick="piAdd(false)" disabled>Add to Inventory</button>
-          <button class="btn btn-steel btn-sm" id="pi-add-doc-btn" onclick="piAdd(true)" disabled>Add + Upload Doc</button>
-          <span id="pi-status" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);"></span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" id="pi-add-btn" onclick="piAdd(false,false)" disabled>Add</button>
+          <button class="btn btn-steel btn-sm" id="pi-add-doc-btn" onclick="piAdd(true,false)" disabled>Add + Doc</button>
+          <button class="btn btn-ghost btn-sm" id="pi-add-enrich-btn" onclick="piAdd(false,true)" disabled>Add + Enrich ✦</button>
+          <button class="btn btn-ghost btn-sm" id="pi-add-doc-enrich-btn" onclick="piAdd(true,true)" disabled>Add + Doc + Enrich ✦</button>
+          <span id="pi-status" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-left:4px;"></span>
         </div>
-        <div style="margin-top:8px;font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;color:var(--text-dim)">Location defaults to current tree filter if blank. Use outline/CSV import below for bulk.</div>
+        <div style="margin-top:6px;font-family:var(--font-mono);font-size:8px;letter-spacing:0.06em;color:var(--text-dim)">Location auto-fills from tree selection · Enrich ✦ runs full L5 overwrite after saving</div>
       </div>
     </div>
 
@@ -2814,6 +2844,11 @@ function toggleDash(){const b=document.getElementById('dash-body'),a=document.ge
 // ─── PHOTO INTAKE ─────────────────────────────────────────────────────────────
 let _piBlob=null, _piDataUrl=null, _piTags=new Set();
 
+function piPanelOpen(){
+  const loc=document.getElementById('pi-loc');
+  if(loc&&!loc.value&&locFilter&&locFilter.length) loc.value=locFilter.join(' > ');
+}
+
 function piFileSelect(e){
   const file=e.target.files[0]; if(!file)return; e.target.value='';
   piClear(true);
@@ -2827,8 +2862,9 @@ function piFileSelect(e){
     document.getElementById('pi-preview-img').src=dataUrl;
     document.getElementById('pi-size-label').textContent=`${origKB}KB → ${compKB}KB`;
     document.getElementById('pi-extract-btn').style.display='';
-    document.getElementById('pi-add-btn').disabled=false;
-    document.getElementById('pi-add-doc-btn').disabled=false;
+    ['pi-add-btn','pi-add-doc-btn','pi-add-enrich-btn','pi-add-doc-enrich-btn'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.disabled=false;
+    });
     document.getElementById('pi-status').textContent='';
   }).catch(err=>{
     document.getElementById('pi-status').textContent='Compression failed: '+err.message;
@@ -2842,8 +2878,9 @@ function piClear(silent){
   document.getElementById('pi-extract-btn').style.display='none';
   document.getElementById('pi-tags-wrap').style.display='none';
   document.getElementById('pi-tags').innerHTML='';
-  document.getElementById('pi-add-btn').disabled=true;
-  document.getElementById('pi-add-doc-btn').disabled=true;
+  ['pi-add-btn','pi-add-doc-btn','pi-add-enrich-btn','pi-add-doc-enrich-btn'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.disabled=true;
+  });
   if(!silent) document.getElementById('pi-status').textContent='';
 }
 
@@ -2875,10 +2912,8 @@ async function piExtract(){
       `<span style="font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;background:var(--s3);color:var(--text-mid);" onclick="piToggleTag(this,'${esc(kw)}')">${esc(kw)}</span>`
     ).join('');
     document.getElementById('pi-tags-wrap').style.display='';
-    // Auto-fill name from photo if blank
     if(!document.getElementById('pi-name').value && parsed.summary){
-      const firstSentence=parsed.summary.split(/[.!?]/)[0].trim().slice(0,60);
-      document.getElementById('pi-name').value=firstSentence;
+      document.getElementById('pi-name').value=parsed.summary.split(/[.!?]/)[0].trim().slice(0,60);
     }
     label.textContent='✦ Re-extract'; btn.disabled=false;
   }catch(err){
@@ -2894,7 +2929,7 @@ function piToggleTag(el,tag){
   else{_piTags.add(tag);el.style.color='var(--rose)';el.style.borderColor='var(--rose)';el.style.background='var(--rose-glow)';}
 }
 
-async function piAdd(withDoc){
+async function piAdd(withDoc, withEnrich){
   const name=document.getElementById('pi-name').value.trim();
   if(!name){document.getElementById('pi-name').focus();document.getElementById('pi-status').textContent='Name required';return;}
   const locStr=document.getElementById('pi-loc').value.trim();
@@ -2904,15 +2939,17 @@ async function piAdd(withDoc){
   const tags=[..._piTags];
   snapshot();
   const item={
-    id:nextId++,name,
+    id:nextId++, name,
     category:document.getElementById('pi-category').value||'Misc',
     locationPath,
-    qty:'1',
+    qty:String(parseInt(document.getElementById('pi-qty')?.value||'1')||1),
     condition:document.getElementById('pi-condition').value||'Good',
-    frequency:'',criticality:'',replaceability:'',keep:'',
+    keep:document.getElementById('pi-keep')?.value||'Keep',
+    frequency:document.getElementById('pi-frequency')?.value||'',
+    criticality:document.getElementById('pi-criticality')?.value||'',
+    replaceability:document.getElementById('pi-replaceability')?.value||'',
     estValue:'',yearPurchased:'',lastUsed:'',
-    notes:notes||'',
-    sn:sn||'',
+    notes:notes||'', sn:sn||'',
     keywords:tags.join(', '),
     docType:'',digitalCopy:false,fillLevel:'',
     misplaced:false,lockedItem:false,lockedNotes:false,
@@ -2920,7 +2957,6 @@ async function piAdd(withDoc){
   };
   inventory.push(item);
 
-  // Upload doc if requested and photo available
   if(withDoc && _piBlob){
     document.getElementById('pi-status').textContent='Uploading photo…';
     try{
@@ -2940,15 +2976,20 @@ async function piAdd(withDoc){
     }
   }
 
-  save();render();
-  toast(`✓ Added "${name}"${item.docUrl?' + doc':''}`);
-  // Reset form
+  save(); render();
+  toast(`✓ Added "${name}"${item.docUrl?' + doc':''}${withEnrich?' — enriching…':''}`);
+
+  if(withEnrich){ _elItemId=item.id; runEnrichLevel(5); }
+
+  // Reset name/notes/sn but KEEP location for rapid sequential adds
+  const currentLoc=document.getElementById('pi-loc').value;
   document.getElementById('pi-name').value='';
   document.getElementById('pi-notes').value='';
   document.getElementById('pi-sn').value='';
-  document.getElementById('pi-loc').value='';
+  document.getElementById('pi-qty').value='1';
   document.getElementById('pi-status').textContent=`✓ Added "${name}"`;
   piClear();
+  document.getElementById('pi-loc').value=currentLoc;
 }
 
 function togglePanel(bid,aid){const b=document.getElementById(bid),a=document.getElementById(aid);b.classList.toggle('open');a.textContent=b.classList.contains('open')?'-':'+';}
