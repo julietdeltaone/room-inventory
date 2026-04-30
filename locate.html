@@ -325,7 +325,41 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
   font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
   background:rgba(176,122,132,0.08);border:1px solid rgba(176,122,132,0.2);
   border-radius:2px;padding:1px 7px;letter-spacing:0.03em;
-}</style>
+}
+/* ── CHAT PANEL ── */
+.chat-panel{position:fixed;right:-400px;top:0;bottom:0;width:360px;background:var(--s1);border-left:1px solid var(--border);z-index:800;display:flex;flex-direction:column;transition:right 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:-20px 0 60px rgba(0,0,0,0.4);}
+.chat-panel.open{right:0;}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.chat-title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-mid);}
+.chat-title span{color:var(--rose);}
+.chat-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;padding:0;line-height:1;transition:color 0.15s;}
+.chat-close:hover{color:var(--text);}
+.chat-examples{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0;}
+.chat-ex{font-family:var(--font-mono);font-size:8px;letter-spacing:0.06em;padding:3px 7px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;transition:all 0.12s;white-space:nowrap;}
+.chat-ex:hover{border-color:var(--rose);color:var(--rose);}
+.chat-body{flex:1;overflow-y:auto;padding:12px;}
+.chat-bubble{margin-bottom:10px;}
+.chat-bubble-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px;}
+.chat-bubble-text{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:12px;line-height:1.6;color:var(--text-mid);}
+.chat-bubble.user .chat-bubble-text{background:rgba(176,122,132,0.08);border-color:rgba(176,122,132,0.2);color:var(--text);}
+.chat-action-pill{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;border-radius:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:var(--s4);border:1px solid var(--border2);color:var(--text-mid);}
+.chat-action-pill.executed{border-color:#4d8f6a;color:#4d8f6a;background:rgba(77,143,106,0.08);}
+.chat-action-pill.download{border-color:#7b8fa8;color:#7b8fa8;cursor:pointer;transition:all 0.15s;}
+.chat-action-pill.download:hover{background:rgba(123,143,168,0.1);}
+.chat-thinking{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:0.1em;padding:4px 0;}
+.chat-thinking-dots span{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--rose);margin:0 1px;animation:chatDot 1.2s ease-in-out infinite;}
+.chat-thinking-dots span:nth-child(2){animation-delay:0.2s;}
+.chat-thinking-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes chatDot{0%,80%,100%{transform:scale(0.6);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
+.chat-input-wrap{padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;}
+.chat-input-row{display:flex;gap:7px;}
+.chat-input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:7px 11px;font-family:var(--font-ui);font-size:12px;color:var(--text);outline:none;transition:border-color 0.15s;resize:none;min-height:34px;max-height:90px;}
+.chat-input:focus{border-color:var(--rose);}
+.chat-input::placeholder{color:var(--text-dim);}
+.chat-send{padding:7px 13px;border-radius:4px;background:var(--rose);border:none;color:#fff;font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;cursor:pointer;transition:opacity 0.15s;flex-shrink:0;}
+.chat-send:hover:not(:disabled){opacity:0.85;}
+.chat-send:disabled{opacity:0.4;cursor:not-allowed;}
+</style>
 </head>
 <body>
 <div class="shell">
@@ -337,6 +371,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
       <a class="editor-link" href="dashboard.html">dashboard →</a>
       <a class="editor-link" href="upload.html">upload →</a>
       <a class="editor-link" href="index.html">editor →</a>
+      <button class="editor-link" onclick="toggleChat()" id="chat-toggle-btn" style="background:none;border:none;cursor:pointer;">✦ ask</button>
     </div>
   </header>
   <div class="body">
@@ -1259,6 +1294,146 @@ function docLbBgClick(e){
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeDocViewer();
 });
+</script>
+<!-- ══ CHAT PANEL ══ -->
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-header">
+    <div class="chat-title">✦ <span>Inventory</span> Assistant</div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-examples">
+    <button class="chat-ex" onclick="chatAsk('Navigate to Bedroom Closet')">Go: Bedroom Closet</button>
+    <button class="chat-ex" onclick="chatAsk('Find my MacBook Pro')">Find: MacBook Pro</button>
+    <button class="chat-ex" onclick="chatAsk('Where is my Glock?')">Where is my Glock?</button>
+    <button class="chat-ex" onclick="chatAsk('Show me all Military items')">Military items</button>
+    <button class="chat-ex" onclick="chatAsk('Export CSV of Bedroom items')">CSV: Bedroom</button>
+    <button class="chat-ex" onclick="chatAsk('What cameras do I have and where are they?')">Camera locations</button>
+    <button class="chat-ex" onclick="chatAsk('What is in my Tesla trunk?')">Tesla trunk</button>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <div class="chat-input-wrap">
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask about your inventory…" rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="chatSend()">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _chatOpen = false;
+
+function toggleChat(){
+  _chatOpen = !_chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', _chatOpen);
+  const btn = document.getElementById('chat-toggle-btn');
+  if (btn) btn.style.color = _chatOpen ? 'var(--rose)' : '';
+  if (_chatOpen) setTimeout(() => document.getElementById('chat-input').focus(), 350);
+}
+
+function chatSend(){
+  const inp = document.getElementById('chat-input');
+  const q = inp.value.trim(); if (!q) return;
+  inp.value = ''; chatAsk(q);
+}
+
+async function chatAsk(question){
+  if (!_chatOpen) toggleChat();
+  const body = document.getElementById('chat-body');
+
+  body.insertAdjacentHTML('beforeend',`<div class="chat-bubble user"><div class="chat-bubble-label">You</div><div class="chat-bubble-text">${esc(question)}</div></div>`);
+
+  const thinkId = 'think-' + Date.now();
+  body.insertAdjacentHTML('beforeend',`<div class="chat-bubble" id="${thinkId}"><div class="chat-bubble-label">Assistant</div><div class="chat-thinking"><div class="chat-thinking-dots"><span></span><span></span><span></span></div>thinking…</div></div>`);
+  body.scrollTop = body.scrollHeight;
+  document.getElementById('chat-send-btn').disabled = true;
+
+  const snapshot = inventory.map(i => ({
+    id:i.id, name:i.name, category:i.category,
+    location:(i.locationPath||[]).join(' > ')||'',
+    keep:i.keep||'', criticality:i.criticality||'',
+    value:i.estValue||'', condition:i.condition||'',
+    qty:i.qty||'1', inUse:i.inUse?1:0, milSub:i.milSub||'',
+  }));
+
+  const systemPrompt = `You are an inventory assistant for JD Meyers' personal inventory locate tool (${inventory.length} items).
+You help find items and navigate the location tree.
+
+Respond ONLY with JSON:
+{
+  "reply": "conversational answer",
+  "action": "search" | "navigate" | "export_csv" | "answer",
+  "search_query": "text to search for (action=search)",
+  "navigate_path": ["Bedroom","Closet"] (action=navigate — exact path segments),
+  "csv_data": "full CSV string (action=export_csv)",
+  "csv_filename": "filename.csv"
+}
+
+Actions:
+- "search": set the search box to find items by name/keyword
+- "navigate": navigate the location tree to a specific path
+- "export_csv": generate a CSV download of matching items
+- "answer": text only
+
+Be specific. For navigate_path use exact location names from the data.
+INVENTORY: ${JSON.stringify(snapshot)}`;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({chatMode:true, system:systemPrompt, question})
+    });
+
+    let parsed = {};
+    if(res.ok){
+      const data = await res.json();
+      const raw = data.content ? data.content.map(b=>b.text||'').join('') : JSON.stringify(data);
+      try{ parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+      catch{ parsed = {reply:raw, action:'answer'}; }
+    } else {
+      parsed = {reply:`Edge function error ${res.status} — needs chatMode support`, action:'answer'};
+    }
+
+    document.getElementById(thinkId)?.remove();
+
+    let actionPill = '';
+    if(parsed.action === 'search' && parsed.search_query){
+      const si = document.getElementById('search-input');
+      if(si){ si.value = parsed.search_query; si.dispatchEvent(new Event('input')); }
+      actionPill = `<div class="chat-action-pill executed">✓ Searching for "${esc(parsed.search_query)}"</div>`;
+    }
+    else if(parsed.action === 'navigate' && parsed.navigate_path?.length){
+      const path = parsed.navigate_path;
+      navigate(path);
+      actionPill = `<div class="chat-action-pill executed">✓ Navigated to ${path.join(' › ')}</div>`;
+    }
+    else if(parsed.action === 'export_csv' && parsed.csv_data){
+      const fname = parsed.csv_filename || 'inventory-export.csv';
+      const dlId = 'dl-' + Date.now();
+      actionPill = `<div class="chat-action-pill download" id="${dlId}" onclick="chatDownload('${dlId}')">↓ Download ${esc(fname)}</div>`;
+      window['_chatCsv_'+dlId] = {data:parsed.csv_data, name:fname};
+    }
+
+    body.insertAdjacentHTML('beforeend',`<div class="chat-bubble"><div class="chat-bubble-label">Assistant</div><div class="chat-bubble-text">${esc(parsed.reply||'—')}</div>${actionPill}</div>`);
+  } catch(err){
+    document.getElementById(thinkId)?.remove();
+    body.insertAdjacentHTML('beforeend',`<div class="chat-bubble"><div class="chat-bubble-label">Assistant</div><div class="chat-bubble-text" style="color:var(--rose)">Error: ${esc(err.message)}</div></div>`);
+  }
+
+  body.scrollTop = body.scrollHeight;
+  document.getElementById('chat-send-btn').disabled = false;
+}
+
+function chatDownload(dlId){
+  const d = window['_chatCsv_'+dlId]; if(!d) return;
+  const blob = new Blob([d.data],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=d.name; a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById(dlId).className='chat-action-pill executed';
+  document.getElementById(dlId).textContent='✓ Downloaded '+d.name;
+}
 </script>
 </body>
 </html>
