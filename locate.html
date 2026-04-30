@@ -1337,6 +1337,29 @@ function chatSend(){
   inp.value = ''; chatAsk(q);
 }
 
+function formatReply(text){
+  if(!text) return '—';
+  text = text
+    .replace(/```json[\s\S]*?```/g, '')
+    .replace(/`{3}[\s\S]*?`{3}/g, '')
+    .replace(/\{[\s\S]*?"action"\s*:\s*"[^"]*"[\s\S]*?\}/g, '')
+    .trim();
+  const lines = text.split('\n').filter(l => l.trim() !== '');
+  return lines.map(line => {
+    line = line
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    if(/^[-•*]\s+/.test(line.trim())){
+      return `<div style="display:flex;gap:6px;margin:1px 0"><span style="opacity:0.4;flex-shrink:0">·</span><span>${line.replace(/^[-•*]\s+/,'')}</span></div>`;
+    }
+    if(/^[A-Z][^:]{0,40}:$/.test(line.trim())){
+      return `<div style="font-weight:600;margin-top:8px;margin-bottom:2px;color:var(--text)">${line}</div>`;
+    }
+    return `<div style="margin:1px 0">${line}</div>`;
+  }).join('');
+}
+
 async function chatAsk(question){
   if (!_chatOpen) toggleChat();
   const body = document.getElementById('chat-body');
@@ -1415,7 +1438,7 @@ INVENTORY: ${JSON.stringify(snapshot)}`;
       window['_chatCsv_'+dlId] = {data:parsed.csv_data, name:fname};
     }
 
-    body.insertAdjacentHTML('beforeend',`<div class="chat-bubble"><div class="chat-bubble-label">Assistant</div><div class="chat-bubble-text">${esc(parsed.reply||'—')}</div>${actionPill}</div>`);
+    body.insertAdjacentHTML('beforeend',`<div class="chat-bubble"><div class="chat-bubble-label">Assistant</div><div class="chat-bubble-text">${formatReply(parsed.reply||'—')}</div>${actionPill}</div>`);
   } catch(err){
     document.getElementById(thinkId)?.remove();
     body.insertAdjacentHTML('beforeend',`<div class="chat-bubble"><div class="chat-bubble-label">Assistant</div><div class="chat-bubble-text" style="color:var(--rose)">Error: ${esc(err.message)}</div></div>`);
