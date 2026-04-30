@@ -1175,6 +1175,7 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
 
   const qty=item.qty&&item.qty!=='1'?`<span class="sr-qty">×${esc(item.qty)}</span>`:'';
   const srInUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40;margin-left:4px"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
+  const srDocBtn=item.docUrl?`<button class="doc-view-btn" onclick="openDocViewer('${esc(item.docUrl)}','${esc(item.name)}')" title="View document" style="margin-left:4px">📎</button>`:'';
 
   return`<div class="sr-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
     <div class="sr-row1">
@@ -1182,7 +1183,7 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
         <span class="sr-name-primary">${highlight(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${highlight(secondary)}</span>`:''}
       </div>
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text};flex-shrink:0;align-self:center">${esc(item.category)}</span>
-      ${qty}${srInUseBadge}
+      ${qty}${srInUseBadge}${srDocBtn}
     </div>
     ${locPath}
     ${kwIndicator}
