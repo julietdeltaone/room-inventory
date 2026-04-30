@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · JD Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+
+/* ── TOKENS ── */
+:root{
+  --bg:#070709;
+  --s1:#0e0e12;
+  --s2:#14141a;
+  --s3:#1c1c24;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.12);
+  --text:#f0f0f5;
+  --text-mid:#9090a8;
+  --text-dim:#484860;
+  --font-display:'Syne',sans-serif;
+  --font-serif:'Instrument Serif',Georgia,serif;
+  --font-mono:'DM Mono',monospace;
+
+  /* Zone colors */
+  --bedroom:#1e3a5f;
+  --bedroom-bright:#4a90d9;
+  --bedroom-glow:rgba(74,144,217,0.12);
+  --hallway:#1a3d2b;
+  --hallway-bright:#4ab87a;
+  --hallway-glow:rgba(74,184,122,0.12);
+  --tesla:#3d1515;
+  --tesla-bright:#d94a4a;
+  --tesla-glow:rgba(217,74,74,0.12);
+  --tote:#3d2e0a;
+  --tote-bright:#d9a84a;
+  --tote-glow:rgba(217,168,74,0.12);
+  --suny:#2a1a3d;
+  --suny-bright:#9a6dd9;
+  --suny-glow:rgba(154,109,217,0.12);
+  --military:#1a2e0a;
+  --military-bright:#6db84a;
+  --military-glow:rgba(109,184,74,0.12);
+}
+
+/* ── BACKGROUND ── */
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-display);
+  -webkit-font-smoothing:antialiased;
+  cursor:default;
+}
+
+/* Subtle grid bg */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;z-index:0;
+}
+
+/* Ambient glow orbs */
+.orb{
+  position:fixed;border-radius:50%;
+  filter:blur(120px);pointer-events:none;z-index:0;
+  animation:orbFloat 8s ease-in-out infinite;
+}
+.orb1{width:600px;height:600px;background:rgba(74,144,217,0.04);top:-200px;left:-100px;animation-delay:0s;}
+.orb2{width:500px;height:500px;background:rgba(154,109,217,0.04);bottom:-150px;right:-100px;animation-delay:-3s;}
+.orb3{width:400px;height:400px;background:rgba(74,184,122,0.03);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-5s;}
+@keyframes orbFloat{0%,100%{transform:translate(0,0);}50%{transform:translate(20px,-20px);}}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:52px;
+  background:rgba(7,7,9,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.hdr-left{display:flex;align-items:center;gap:20px;}
+.hdr-logo{
+  font-family:var(--font-display);font-size:11px;font-weight:700;
+  letter-spacing:0.3em;text-transform:uppercase;color:var(--text-dim);
+}
+.hdr-logo span{color:var(--text-mid);}
+.hdr-title{
+  font-family:var(--font-serif);font-size:17px;font-style:italic;
+  color:var(--text-mid);letter-spacing:0.02em;
+}
+.hdr-right{display:flex;align-items:center;gap:14px;}
+.hdr-stat{text-align:right;}
+.hdr-stat-val{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.02em;}
+.hdr-stat-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);}
+.hdr-divider{width:1px;height:28px;background:var(--border2);}
+.nav-link{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--text-dim);text-decoration:none;
+  padding:5px 10px;border:1px solid var(--border);border-radius:3px;
+  transition:all 0.2s;
+}
+.nav-link:hover{color:var(--text);border-color:var(--border2);}
+.refresh-dot{
+  width:6px;height:6px;border-radius:50%;background:#4ab87a;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.8);}}
+.refresh-dot.refreshing{animation:spin 1s linear infinite;border-radius:0;background:transparent;border:2px solid #4ab87a;border-top-color:transparent;width:10px;height:10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── MAIN CANVAS ── */
+.canvas{
+  position:fixed;inset:0;top:52px;bottom:80px;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 28px;
+  z-index:1;
+  overflow:hidden;
+}
+
+/* ── ZONE CARDS (floating hero) ── */
+.zones-wrap{
+  display:flex;
+  gap:16px;
+  align-items:stretch;
+  justify-content:center;
+  width:100%;height:100%;
+  flex-wrap:nowrap;
+}
+
+.zone-card{
+  flex:1;min-width:0;
+  border-radius:18px;
+  padding:18px;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform 0.4s cubic-bezier(0.16,1,0.3,1),
+             box-shadow 0.4s cubic-bezier(0.16,1,0.3,1),
+             flex 0.5s cubic-bezier(0.16,1,0.3,1);
+  border:1px solid var(--border);
+  will-change:transform;
+}
+.zone-card::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  opacity:0;transition:opacity 0.3s;
+  pointer-events:none;
+}
+.zone-card:hover::before{opacity:1;}
+.zone-card:hover{
+  transform:translateY(-6px);
+  z-index:10;
+}
+.zone-card.expanded{
+  flex:3.5;
+}
+
+/* Floating animation — each card gets unique keyframe */
+.zone-card:nth-child(1){animation:float1 6.2s ease-in-out infinite;}
+.zone-card:nth-child(2){animation:float2 7.1s ease-in-out infinite;}
+.zone-card:nth-child(3){animation:float3 5.8s ease-in-out infinite;}
+.zone-card:nth-child(4){animation:float4 6.8s ease-in-out infinite;}
+.zone-card:nth-child(5){animation:float5 7.4s ease-in-out infinite;}
+.zone-card:nth-child(6){animation:float6 6.5s ease-in-out infinite;}
+@keyframes float1{0%,100%{transform:translateY(0px);}50%{transform:translateY(-8px);}}
+@keyframes float2{0%,100%{transform:translateY(-4px);}50%{transform:translateY(5px);}}
+@keyframes float3{0%,100%{transform:translateY(2px);}50%{transform:translateY(-7px);}}
+@keyframes float4{0%,100%{transform:translateY(-2px);}50%{transform:translateY(6px);}}
+@keyframes float5{0%,100%{transform:translateY(3px);}50%{transform:translateY(-5px);}}
+@keyframes float6{0%,100%{transform:translateY(-3px);}50%{transform:translateY(4px);}}
+/* Pause float on hover, replace with lift */
+.zone-card:hover{animation-play-state:paused;}
+
+/* Zone color themes */
+.zone-bedroom{background:linear-gradient(145deg,#0c1f35 0%,#0e2440 100%);box-shadow:0 0 60px rgba(74,144,217,0.06);}
+.zone-bedroom::before{background:radial-gradient(ellipse at center,rgba(74,144,217,0.08),transparent 70%);}
+.zone-bedroom:hover{box-shadow:0 20px 60px rgba(74,144,217,0.18),0 0 0 1px rgba(74,144,217,0.2);}
+.zone-hallway{background:linear-gradient(145deg,#0a1f14 0%,#0c2418 100%);box-shadow:0 0 60px rgba(74,184,122,0.06);}
+.zone-hallway::before{background:radial-gradient(ellipse at center,rgba(74,184,122,0.08),transparent 70%);}
+.zone-hallway:hover{box-shadow:0 20px 60px rgba(74,184,122,0.18),0 0 0 1px rgba(74,184,122,0.2);}
+.zone-tesla{background:linear-gradient(145deg,#1f0a0a 0%,#240c0c 100%);box-shadow:0 0 60px rgba(217,74,74,0.06);}
+.zone-tesla::before{background:radial-gradient(ellipse at center,rgba(217,74,74,0.08),transparent 70%);}
+.zone-tesla:hover{box-shadow:0 20px 60px rgba(217,74,74,0.18),0 0 0 1px rgba(217,74,74,0.2);}
+.zone-tote{background:linear-gradient(145deg,#1f1605 0%,#241a06 100%);box-shadow:0 0 60px rgba(217,168,74,0.06);}
+.zone-tote::before{background:radial-gradient(ellipse at center,rgba(217,168,74,0.08),transparent 70%);}
+.zone-tote:hover{box-shadow:0 20px 60px rgba(217,168,74,0.18),0 0 0 1px rgba(217,168,74,0.2);}
+.zone-suny{background:linear-gradient(145deg,#140a1f 0%,#190c24 100%);box-shadow:0 0 60px rgba(154,109,217,0.06);}
+.zone-suny::before{background:radial-gradient(ellipse at center,rgba(154,109,217,0.08),transparent 70%);}
+.zone-suny:hover{box-shadow:0 20px 60px rgba(154,109,217,0.18),0 0 0 1px rgba(154,109,217,0.2);}
+.zone-military{background:linear-gradient(145deg,#0a1405 0%,#0c1a06 100%);box-shadow:0 0 60px rgba(109,184,74,0.06);}
+.zone-military::before{background:radial-gradient(ellipse at center,rgba(109,184,74,0.08),transparent 70%);}
+.zone-military:hover{box-shadow:0 20px 60px rgba(109,184,74,0.18),0 0 0 1px rgba(109,184,74,0.2);}
+
+/* ── CARD INTERIOR ── */
+.zone-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:14px;
+}
+.zone-name{
+  font-family:var(--font-display);
+  font-size:clamp(13px,1.4vw,17px);
+  font-weight:700;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  line-height:1.1;
+}
+.zone-count{
+  font-family:var(--font-mono);
+  font-size:clamp(28px,3vw,42px);
+  font-weight:400;
+  letter-spacing:-0.04em;
+  line-height:1;
+  opacity:0.9;
+}
+.zone-value{
+  font-family:var(--font-mono);
+  font-size:clamp(9px,0.8vw,11px);
+  letter-spacing:0.1em;
+  opacity:0.45;
+  margin-top:2px;
+}
+
+/* ── LOCATION PILLS ── */
+.loc-pills{
+  display:flex;flex-direction:column;gap:4px;
+  margin-bottom:12px;flex:1;
+  overflow:hidden;
+}
+.loc-pill{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 9px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  transition:background 0.2s,border-color 0.2s;
+  min-height:0;
+}
+.loc-pill:hover{
+  background:rgba(255,255,255,0.07);
+  border-color:rgba(255,255,255,0.12);
+}
+.loc-pill-name{
+  font-family:var(--font-mono);
+  font-size:clamp(8px,0.75vw,10px);
+  letter-spacing:0.06em;
+  color:rgba(255,255,255,0.55);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:1;
+}
+.loc-pill-bar-wrap{
+  flex:1;margin:0 8px;height:2px;
+  background:rgba(255,255,255,0.06);border-radius:1px;overflow:hidden;
+}
+.loc-pill-bar{height:100%;border-radius:1px;transition:width 0.6s ease;}
+.loc-pill-n{
+  font-family:var(--font-mono);font-size:clamp(7px,0.65vw,9px);
+  color:rgba(255,255,255,0.3);letter-spacing:0.04em;flex-shrink:0;
+}
+
+/* ── CATEGORY ICONS ── */
+.cat-icons{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-top:auto;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.cat-icon-chip{
+  display:flex;align-items:center;gap:4px;
+  padding:3px 7px;border-radius:6px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.07);
+  transition:all 0.2s;
+  cursor:default;
+}
+.cat-icon-chip:hover{background:rgba(255,255,255,0.09);transform:scale(1.06);}
+.cat-icon-chip .icon{font-size:clamp(11px,1.2vw,15px);}
+.cat-icon-chip .cat-n{font-family:var(--font-mono);font-size:clamp(7px,0.6vw,9px);color:rgba(255,255,255,0.4);letter-spacing:0.04em;}
+
+/* ── EXPANDED DETAIL (sub-locations deep tree) ── */
+.zone-detail{
+  display:none;
+  flex-direction:column;
+  gap:6px;
+  margin-top:10px;
+  overflow-y:auto;
+  max-height:60vh;
+  padding-right:4px;
+}
+.zone-card.expanded .zone-detail{display:flex;}
+.zone-card.expanded .loc-pills{display:none;}
+.zone-card.expanded .cat-icons{display:none;}
+.zone-card.expanded .zone-count{font-size:clamp(22px,2vw,30px);}
+.detail-node{
+  border-radius:10px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  overflow:hidden;
+}
+.detail-node-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;cursor:pointer;
+  transition:background 0.15s;
+}
+.detail-node-hdr:hover{background:rgba(255,255,255,0.04);}
+.detail-node-name{font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.6);text-transform:uppercase;}
+.detail-node-count{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);}
+.detail-node-arrow{font-size:8px;color:rgba(255,255,255,0.2);transition:transform 0.2s;}
+.detail-node.open .detail-node-arrow{transform:rotate(90deg);}
+.detail-items{display:none;padding:6px 10px 8px;}
+.detail-node.open .detail-items{display:block;}
+.detail-item-row{
+  display:flex;align-items:center;gap:6px;
+  padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  font-family:var(--font-mono);font-size:8px;
+  color:rgba(255,255,255,0.4);
+}
+.detail-item-row:last-child{border-bottom:none;}
+.detail-item-cat{font-size:10px;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+/* ── BOTTOM DRAWER ── */
+.drawer-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(7,7,9,0.92);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+}
+.drawer-tabs{
+  display:flex;align-items:center;gap:0;
+  padding:0 20px;height:80px;
+  overflow-x:auto;gap:6px;
+}
+.drawer-tab{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  border:1px solid transparent;
+  transition:all 0.2s;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.drawer-tab:hover{background:rgba(255,255,255,0.04);border-color:var(--border);}
+.drawer-tab.active{background:rgba(255,255,255,0.06);border-color:var(--border2);}
+.drawer-tab-icon{font-size:16px;}
+.drawer-tab-info{text-align:left;}
+.drawer-tab-val{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+.drawer-tab-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);}
+
+/* Expanded drawer panel */
+.drawer-panel{
+  display:none;
+  padding:0 24px 20px;
+  max-height:280px;
+  overflow-y:auto;
+}
+.drawer-panel.open{display:block;}
+.drawer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;padding-top:4px;}
+.stat-card{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+  transition:border-color 0.2s;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
+.stat-val{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+.stat-sub{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:2px;}
+.mini-bar-wrap{margin-top:6px;}
+.mini-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.mini-bar-label{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);width:80px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-bar-track{flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.mini-bar-fill{height:100%;border-radius:2px;transition:width 0.6s ease;}
+.mini-bar-n{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);width:20px;text-align:right;flex-shrink:0;}
+
+/* ── LOADING ── */
+.loading-screen{
+  position:fixed;inset:0;z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);gap:16px;
+  transition:opacity 0.5s;
+}
+.loading-screen.fade{opacity:0;pointer-events:none;}
+.loading-logo{font-family:var(--font-serif);font-size:28px;color:var(--text-mid);font-style:italic;}
+.loading-bar-wrap{width:200px;height:2px;background:var(--s3);border-radius:2px;overflow:hidden;}
+.loading-bar-fill{height:100%;width:0%;background:rgba(255,255,255,0.3);border-radius:2px;transition:width 0.3s;}
+.loading-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;}
+
+/* ── LAST REFRESH ── */
+.refresh-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;color:var(--text-dim);margin-left:8px;}
+</style>
+</head>
+<body>
+
+<!-- Ambient orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- Loading screen -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-logo">JD Meyers Inventory</div>
+  <div class="loading-bar-wrap"><div class="loading-bar-fill" id="loading-bar"></div></div>
+  <div class="loading-label" id="loading-label">Connecting…</div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="hdr-left">
+    <div class="hdr-logo">JD <span>·</span> Inventory</div>
+    <div class="hdr-title">Dashboard</div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-stat">
+      <div class="hdr-stat-val" id="hdr-total">—</div>
+      <div class="hdr-stat-label">Items</div>
+    </div>
+    <div class="hdr-divider"></div>
+    <div class="hdr-stat">
+      <div class="hdr-stat-val" id="hdr-value">—</div>
+      <div class="hdr-stat-label">Est. Value</div>
+    </div>
+    <div class="hdr-divider"></div>
+    <div class="hdr-stat">
+      <div class="hdr-stat-val" id="hdr-zones">—</div>
+      <div class="hdr-stat-label">Zones</div>
+    </div>
+    <div class="hdr-divider"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="refresh-dot" id="refresh-dot"></div>
+      <div class="refresh-label" id="refresh-label">—</div>
+    </div>
+    <div class="hdr-divider"></div>
+    <a class="nav-link" href="index.html">Editor</a>
+    <a class="nav-link" href="locate.html">Locate</a>
+    <a class="nav-link" href="upload.html">Upload</a>
+  </div>
+</header>
+
+<!-- Main canvas -->
+<div class="canvas">
+  <div class="zones-wrap" id="zones-wrap"></div>
+</div>
+
+<!-- Bottom drawer -->
+<div class="drawer-bar">
+  <div class="drawer-tabs" id="drawer-tabs"></div>
+  <div class="drawer-panel" id="drawer-panel"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://npdtjxjhepaqhrqtvueu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
+const REFRESH_MS = 60000;
+
+let inventory = [];
+let expandedZone = null;
+let activeDrawerTab = null;
+
+// ── CATEGORY ICONS ────────────────────────────────────────────────────────────
+const CAT_ICON = {
+  'Clothing':'👕','Cables & Charging':'🔌','Office Supplies':'📎',
+  'Camera/Photo Gear':'📷','Tools & Hardware':'🔧','Electronics':'💻',
+  'Personal Care & Grooming':'🧴','Accessories':'⌚','Automotive':'🚗',
+  'Identity Documents':'🪪','Legal Documents':'📋','Financial Documents':'💳',
+  'Cleaning & Home':'🧹','Health & Supplements':'💊','Footwear':'👟',
+  'Gym & Fitness':'🏋️','Books & Notebooks':'📚','Misc':'📦',
+  'Firearms & Ammo':'🔫','Bags & Carry':'🎒','Military Documents':'📄',
+  'Military':'🪖','Vehicle Documents':'🚘','Memorabilia & Keepsakes':'🏆',
+  'Furniture':'🛋️',
+};
+
+// ── ZONE CONFIG ───────────────────────────────────────────────────────────────
+const ZONE_CONFIG = {
+  'Bedroom':             {cls:'zone-bedroom', bright:'#4a90d9', bar:'rgba(74,144,217,0.5)'},
+  'Hallway':             {cls:'zone-hallway', bright:'#4ab87a', bar:'rgba(74,184,122,0.5)'},
+  'Tesla':               {cls:'zone-tesla',   bright:'#d94a4a', bar:'rgba(217,74,74,0.5)'},
+  'Long Term Tote 3':    {cls:'zone-tote',    bright:'#d9a84a', bar:'rgba(217,168,74,0.5)'},
+  'SUNY Potsdam (Maxcy)':{cls:'zone-suny',    bright:'#9a6dd9', bar:'rgba(154,109,217,0.5)'},
+  'Military':            {cls:'zone-military',bright:'#6db84a', bar:'rgba(109,184,74,0.5)'},
+};
+const ZONE_ORDER = ['Bedroom','Hallway','Tesla','Long Term Tote 3','SUNY Potsdam (Maxcy)'];
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+function setLoading(msg, pct) {
+  document.getElementById('loading-label').textContent = msg;
+  document.getElementById('loading-bar').style.width = pct + '%';
+}
+
+async function loadData() {
+  setLoading('Connecting to Supabase…', 10);
+  const dot = document.getElementById('refresh-dot');
+  dot.classList.add('refreshing');
+
+  try {
+    let all = [], page = 0, pageSize = 1000;
+    while (true) {
+      setLoading(`Loading items… ${all.length}`, 20 + Math.min(all.length / 7, 60));
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventory?select=id,name,location,category,keep,criticality,frequency,est_value,condition,in_use,doc_url&order=name.asc&limit=${pageSize}&offset=${page * pageSize}`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const rows = await res.json();
+      if (!Array.isArray(rows) || rows.length === 0) break;
+      rows.forEach(r => {
+        r.locationPath = r.location
+          ? r.location.split(' > ').map(s => s.trim()).filter(Boolean)
+          : [];
+      });
+      all = all.concat(rows);
+      if (rows.length < pageSize) break;
+      page++;
+    }
+    inventory = all;
+    setLoading('Rendering…', 90);
+    render();
+    setLoading('Ready', 100);
+    setTimeout(() => {
+      document.getElementById('loading-screen').classList.add('fade');
+      setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
+    }, 300);
+  } catch(e) {
+    setLoading('Load failed: ' + e.message, 0);
+  }
+  dot.classList.remove('refreshing');
+  const now = new Date();
+  document.getElementById('refresh-label').textContent =
+    `Refreshed ${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  renderHdr();
+  renderZones();
+  renderDrawer();
+}
+
+function renderHdr() {
+  const total = inventory.length;
+  const vals = inventory.map(i => parseFloat(i.est_value)).filter(v => !isNaN(v) && v > 0);
+  const totalVal = vals.reduce((a, b) => a + b, 0);
+  document.getElementById('hdr-total').textContent = total.toLocaleString();
+  document.getElementById('hdr-value').textContent = '$' + Math.round(totalVal / 1000) + 'k';
+  document.getElementById('hdr-zones').textContent = ZONE_ORDER.filter(z =>
+    inventory.some(i => i.locationPath[0] === z)).length;
+}
+
+// ── ZONE CARDS ────────────────────────────────────────────────────────────────
+function renderZones() {
+  const wrap = document.getElementById('zones-wrap');
+  wrap.innerHTML = '';
+
+  ZONE_ORDER.forEach((zoneName, zi) => {
+    const items = inventory.filter(i => i.locationPath[0] === zoneName);
+    if (!items.length) return;
+
+    const cfg = ZONE_CONFIG[zoneName] || {cls:'zone-bedroom',bright:'#888',bar:'rgba(128,128,128,0.4)'};
+
+    // L2 breakdown
+    const l2Map = {};
+    items.forEach(i => {
+      const l2 = i.locationPath[1] || '(root)';
+      if (!l2Map[l2]) l2Map[l2] = [];
+      l2Map[l2].push(i);
+    });
+    const l2Entries = Object.entries(l2Map).sort((a,b) => b[1].length - a[1].length);
+    const maxL2 = l2Entries[0]?.[1].length || 1;
+
+    // Category counts
+    const catMap = {};
+    items.forEach(i => { catMap[i.category] = (catMap[i.category]||0)+1; });
+    const topCats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+    // Est value
+    const vals = items.map(i => parseFloat(i.est_value)).filter(v => !isNaN(v) && v > 0);
+    const totalVal = vals.reduce((a,b) => a+b, 0);
+
+    // Build card
+    const card = document.createElement('div');
+    card.className = `zone-card ${cfg.cls}`;
+    card.dataset.zone = zoneName;
+
+    // Location pills
+    const pillsHTML = l2Entries.slice(0,7).map(([name, its]) => {
+      const pct = Math.round(its.length / maxL2 * 100);
+      return `<div class="loc-pill">
+        <span class="loc-pill-name">${esc(name)}</span>
+        <div class="loc-pill-bar-wrap">
+          <div class="loc-pill-bar" style="width:${pct}%;background:${cfg.bright};opacity:0.5"></div>
+        </div>
+        <span class="loc-pill-n">${its.length}</span>
+      </div>`;
+    }).join('');
+
+    // Cat icons
+    const iconsHTML = topCats.map(([cat, n]) => {
+      const icon = CAT_ICON[cat] || '📦';
+      return `<div class="cat-icon-chip" title="${esc(cat)}: ${n} items">
+        <span class="icon">${icon}</span>
+        <span class="cat-n">${n}</span>
+      </div>`;
+    }).join('');
+
+    // Expanded detail view — deep tree
+    const detailHTML = buildDetailTree(l2Entries, zoneName);
+
+    card.innerHTML = `
+      <div class="zone-header">
+        <div>
+          <div class="zone-name" style="color:${cfg.bright}">${esc(zoneName)}</div>
+          <div class="zone-value">${totalVal > 0 ? '$' + Math.round(totalVal).toLocaleString() + ' est.' : ''}</div>
+        </div>
+        <div class="zone-count" style="color:${cfg.bright}">${items.length}</div>
+      </div>
+      <div class="loc-pills">${pillsHTML}</div>
+      <div class="cat-icons">${iconsHTML}</div>
+      <div class="zone-detail">${detailHTML}</div>`;
+
+    card.addEventListener('click', e => {
+      if (e.target.closest('.detail-node-hdr')) return; // handled separately
+      toggleZone(card, zoneName);
+    });
+
+    // Wire detail node toggles after insertion
+    wrap.appendChild(card);
+
+    // Stagger entrance animation
+    card.style.opacity = '0';
+    card.style.transform += ' translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+      card.style.opacity = '1';
+      card.style.transform = '';
+      // Restore float animation after entrance
+      setTimeout(() => {
+        card.style.transition = '';
+      }, 600);
+    }, zi * 80);
+  });
+
+  // Wire detail toggles
+  document.querySelectorAll('.detail-node-hdr').forEach(hdr => {
+    hdr.addEventListener('click', e => {
+      e.stopPropagation();
+      const node = hdr.closest('.detail-node');
+      node.classList.toggle('open');
+    });
+  });
+}
+
+function buildDetailTree(l2Entries, zoneName) {
+  return l2Entries.map(([l2name, items]) => {
+    // Group by L3
+    const l3Map = {};
+    items.forEach(i => {
+      const l3 = i.locationPath[2] || null;
+      const key = l3 || '__items__';
+      if (!l3Map[key]) l3Map[key] = [];
+      l3Map[key].push(i);
+    });
+
+    const l3Entries = Object.entries(l3Map).sort((a,b) => b[1].length - a[1].length);
+
+    const innerHTML = l3Entries.map(([l3name, its]) => {
+      if (l3name === '__items__') {
+        const rows = its.slice(0,8).map(i => {
+          const icon = CAT_ICON[i.category] || '📦';
+          return `<div class="detail-item-row">
+            <span class="detail-item-cat">${icon}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(i.name)}</span>
+            ${i.doc_url ? '<span style="opacity:0.4">📎</span>' : ''}
+          </div>`;
+        }).join('') + (its.length > 8 ? `<div class="detail-item-row" style="color:rgba(255,255,255,0.2)">…+${its.length-8} more</div>` : '');
+        return rows;
+      }
+      return `<div class="detail-node" style="margin-bottom:3px;border-radius:6px;">
+        <div class="detail-node-hdr">
+          <span class="detail-node-name">${esc(l3name)}</span>
+          <span class="detail-node-count">${its.length}</span>
+          <span class="detail-node-arrow">›</span>
+        </div>
+        <div class="detail-items">
+          ${its.slice(0,10).map(i => {
+            const icon = CAT_ICON[i.category]||'📦';
+            return `<div class="detail-item-row">
+              <span class="detail-item-cat">${icon}</span>
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(i.name)}</span>
+              ${i.doc_url?'<span style="opacity:0.4">📎</span>':''}
+            </div>`;
+          }).join('')}
+          ${its.length > 10 ? `<div class="detail-item-row" style="color:rgba(255,255,255,0.2)">…+${its.length-10} more</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="detail-node">
+      <div class="detail-node-hdr">
+        <span class="detail-node-name">${esc(l2name)}</span>
+        <span class="detail-node-count">${items.length}</span>
+        <span class="detail-node-arrow">›</span>
+      </div>
+      <div class="detail-items">${innerHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleZone(card, zoneName) {
+  const wasExpanded = card.classList.contains('expanded');
+  // Collapse all
+  document.querySelectorAll('.zone-card').forEach(c => c.classList.remove('expanded'));
+  expandedZone = null;
+  if (!wasExpanded) {
+    card.classList.add('expanded');
+    expandedZone = zoneName;
+  }
+}
+
+// ── DRAWER TABS ───────────────────────────────────────────────────────────────
+const DRAWER_TABS = [
+  { id:'categories', icon:'📊', label:'Categories', fn: renderCatPanel },
+  { id:'health',     icon:'🎯', label:'Keep / Trash', fn: renderKeepPanel },
+  { id:'criticality',icon:'⚡', label:'Criticality', fn: renderCritPanel },
+  { id:'value',      icon:'💰', label:'Value', fn: renderValuePanel },
+  { id:'inuse',      icon:'🟢', label:'In Use', fn: renderInUsePanel },
+  { id:'docs',       icon:'📎', label:'Documents', fn: renderDocsPanel },
+];
+
+function renderDrawer() {
+  const tabsEl = document.getElementById('drawer-tabs');
+  tabsEl.innerHTML = DRAWER_TABS.map(t => `
+    <div class="drawer-tab" data-tab="${t.id}" onclick="toggleDrawerTab('${t.id}')">
+      <span class="drawer-tab-icon">${t.icon}</span>
+      <div class="drawer-tab-info">
+        <div class="drawer-tab-val" id="tab-val-${t.id}">—</div>
+        <div class="drawer-tab-label">${t.label}</div>
+      </div>
+    </div>`).join('');
+
+  // Pre-compute tab summary values
+  const cats = {};
+  inventory.forEach(i => { cats[i.category] = (cats[i.category]||0)+1; });
+  document.getElementById('tab-val-categories').textContent = Object.keys(cats).length + ' cats';
+
+  const keepCounts = {Keep:0,Maybe:0,Sell:0,Trash:0};
+  inventory.forEach(i => { if(keepCounts[i.keep]!==undefined) keepCounts[i.keep]++; });
+  document.getElementById('tab-val-health').textContent = (keepCounts.Sell + keepCounts.Trash) + ' to go';
+
+  const ess = inventory.filter(i=>i.criticality==='Essential').length;
+  document.getElementById('tab-val-criticality').textContent = ess + ' essential';
+
+  const vals = inventory.map(i=>parseFloat(i.est_value)).filter(v=>!isNaN(v)&&v>0);
+  document.getElementById('tab-val-value').textContent = '$'+Math.round(vals.reduce((a,b)=>a+b,0)/1000)+'k';
+
+  const inUse = inventory.filter(i=>i.in_use).length;
+  document.getElementById('tab-val-inuse').textContent = inUse + ' active';
+
+  const docs = inventory.filter(i=>i.doc_url).length;
+  document.getElementById('tab-val-docs').textContent = docs + ' linked';
+}
+
+function toggleDrawerTab(id) {
+  const panel = document.getElementById('drawer-panel');
+  const tabs = document.querySelectorAll('.drawer-tab');
+  if (activeDrawerTab === id) {
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    tabs.forEach(t => t.classList.remove('active'));
+    activeDrawerTab = null;
+    return;
+  }
+  activeDrawerTab = id;
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+  const tabDef = DRAWER_TABS.find(t => t.id === id);
+  if (tabDef) { panel.classList.add('open'); panel.innerHTML = ''; tabDef.fn(panel); }
+}
+
+// ── PANEL RENDERERS ───────────────────────────────────────────────────────────
+const BAR_COLORS = ['#4a90d9','#4ab87a','#d94a4a','#d9a84a','#9a6dd9','#6db84a','#d94aa0','#4ad9d9'];
+
+function miniBar(entries, max, colorFn) {
+  return entries.map(([label, n], i) => `
+    <div class="mini-bar-row">
+      <span class="mini-bar-label" title="${esc(label)}">${CAT_ICON[label]||''} ${esc(label)}</span>
+      <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(n/max*100)}%;background:${colorFn(i)}"></div></div>
+      <span class="mini-bar-n">${n}</span>
+    </div>`).join('');
+}
+
+function renderCatPanel(el) {
+  const cats = {};
+  inventory.forEach(i => { cats[i.category] = (cats[i.category]||0)+1; });
+  const entries = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const max = entries[0]?.[1]||1;
+  el.innerHTML = `<div class="mini-bar-wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:8px;">
+    <div>${miniBar(entries.slice(0,Math.ceil(entries.length/2)), max, i=>BAR_COLORS[i%BAR_COLORS.length])}</div>
+    <div>${miniBar(entries.slice(Math.ceil(entries.length/2)), max, i=>BAR_COLORS[(i+Math.ceil(entries.length/2))%BAR_COLORS.length])}</div>
+  </div>`;
+}
+
+function renderKeepPanel(el) {
+  const keep = {Keep:0,Maybe:0,Sell:0,Trash:0};
+  inventory.forEach(i => { if(keep[i.keep]!==undefined) keep[i.keep]++; });
+  const col = {Keep:'#4ab87a',Maybe:'#d9a84a',Sell:'#d94a4a',Trash:'#888'};
+  const max = Math.max(...Object.values(keep));
+  el.innerHTML = `<div class="drawer-grid">
+    ${Object.entries(keep).map(([k,n])=>`
+      <div class="stat-card">
+        <div class="stat-label">${k}</div>
+        <div class="stat-val" style="color:${col[k]}">${n}</div>
+        <div class="stat-sub">${Math.round(n/inventory.length*100)}% of total</div>
+        <div class="mini-bar-wrap"><div class="mini-bar-row"><div class="mini-bar-track" style="margin:0"><div class="mini-bar-fill" style="width:${Math.round(n/max*100)}%;background:${col[k]}"></div></div></div></div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderCritPanel(el) {
+  const crit = {'Essential':0,'Important':0,'Nice to Have':0,'Redundant':0};
+  inventory.forEach(i => { if(crit[i.criticality]!==undefined) crit[i.criticality]++; });
+  const col = {'Essential':'#d94a4a','Important':'#d9a84a','Nice to Have':'#4ab87a','Redundant':'#888'};
+  const max = Math.max(...Object.values(crit));
+  el.innerHTML = `<div class="drawer-grid">
+    ${Object.entries(crit).map(([k,n])=>`
+      <div class="stat-card">
+        <div class="stat-label">${k}</div>
+        <div class="stat-val" style="color:${col[k]}">${n}</div>
+        <div class="stat-sub">${Math.round(n/inventory.length*100)}% of inventory</div>
+        <div class="mini-bar-wrap"><div class="mini-bar-row"><div class="mini-bar-track" style="margin:0"><div class="mini-bar-fill" style="width:${Math.round(n/max*100)}%;background:${col[k]}"></div></div></div></div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderValuePanel(el) {
+  const zoneVals = ZONE_ORDER.map(z => {
+    const items = inventory.filter(i => i.locationPath[0] === z);
+    const v = items.map(i=>parseFloat(i.est_value)).filter(v=>!isNaN(v)&&v>0).reduce((a,b)=>a+b,0);
+    return [z, Math.round(v), items.length];
+  }).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const max = zoneVals[0]?.[1]||1;
+  const cfg = z => (ZONE_CONFIG[z]||{bright:'#888'}).bright;
+  el.innerHTML = `<div class="mini-bar-wrap" style="padding-top:8px;max-width:500px">
+    ${zoneVals.map(([z,v])=>`
+      <div class="mini-bar-row" style="margin-bottom:6px">
+        <span class="mini-bar-label" style="width:160px">${esc(z)}</span>
+        <div class="mini-bar-track" style="height:4px"><div class="mini-bar-fill" style="width:${Math.round(v/max*100)}%;background:${cfg(z)}"></div></div>
+        <span class="mini-bar-n" style="width:60px;text-align:right">$${v.toLocaleString()}</span>
+      </div>`).join('')}
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+      Total est. value: $${inventory.map(i=>parseFloat(i.est_value)).filter(v=>!isNaN(v)&&v>0).reduce((a,b)=>a+b,0).toLocaleString(undefined,{maximumFractionDigits:0})}
+    </div>
+  </div>`;
+}
+
+function renderInUsePanel(el) {
+  const inUseItems = inventory.filter(i=>i.in_use).slice(0,40);
+  el.innerHTML = `<div style="padding-top:8px;columns:2;column-gap:16px;">
+    ${inUseItems.map(i=>`
+      <div style="break-inside:avoid;display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:9px;color:var(--text-mid);">
+        <span style="font-size:11px">${CAT_ICON[i.category]||'📦'}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(i.name)}</span>
+      </div>`).join('')}
+    ${inUseItems.length === 0 ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">No items marked In Use</div>' : ''}
+  </div>`;
+}
+
+function renderDocsPanel(el) {
+  const docItems = inventory.filter(i=>i.doc_url).slice(0,40);
+  el.innerHTML = `<div style="padding-top:8px;columns:2;column-gap:16px;">
+    ${docItems.map(i=>`
+      <div style="break-inside:avoid;display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:9px;color:var(--text-mid);">
+        <span style="font-size:11px">${CAT_ICON[i.category]||'📦'}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(i.name)}</span>
+        <a href="${esc(i.doc_url)}" target="_blank" style="color:var(--text-dim);text-decoration:none;opacity:0.5;transition:opacity 0.15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">📎</a>
+      </div>`).join('')}
+    ${docItems.length === 0 ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">No documents linked yet — use Upload to add them</div>' : ''}
+  </div>`;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── AUTO REFRESH ──────────────────────────────────────────────────────────────
+setInterval(async () => {
+  await loadData();
+  // Re-render active drawer tab if open
+  if (activeDrawerTab) {
+    const panel = document.getElementById('drawer-panel');
+    const tabDef = DRAWER_TABS.find(t => t.id === activeDrawerTab);
+    if (tabDef && panel.classList.contains('open')) { panel.innerHTML = ''; tabDef.fn(panel); }
+  }
+}, REFRESH_MS);
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
