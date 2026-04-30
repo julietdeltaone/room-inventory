@@ -715,6 +715,8 @@ tbody tr:hover .row-actions { opacity: 1; }
 .row-btn.qs-btn:hover { border-color: var(--steel); background: var(--steel-dim); }
 .row-btn.enrich-btn { color: var(--steel); border-color: rgba(123,143,168,0.25); }
 .row-btn.enrich-btn:hover { border-color: var(--steel); background: var(--steel-dim); }
+.row-btn.cam-btn { color: var(--text-dim); border-color: rgba(255,255,255,0.08); font-size: 11px; }
+.row-btn.cam-btn:hover { border-color: var(--amber); color: var(--amber); }
 
 /* ── ENRICH LEVEL POPOVER ── */
 .el-overlay { display:none; position:fixed; inset:0; z-index:300; }
@@ -1848,6 +1850,64 @@ CSV FORMAT:
       <button class="btn btn-primary btn-sm" onclick="dupeSubmit(false)">Add + Close</button>
       <button class="btn btn-steel btn-sm" onclick="dupeSubmit(true)">Add + Another</button>
       <button class="btn btn-ghost btn-sm" onclick="closeDupeAdd()" style="margin-left:auto">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DOC UPLOAD ══ -->
+<div class="qa-overlay" id="docup-overlay" onclick="docupOverlayClick(event)">
+  <div class="qa-modal" style="width:480px;max-width:95vw">
+    <div class="qa-title">📷 Document Upload</div>
+    <div class="qa-loc" id="docup-item-label"><span>Item:</span> —</div>
+
+    <!-- Drop zone -->
+    <div id="docup-dropzone" style="border:1px dashed var(--border2);border-radius:4px;padding:24px 16px;text-align:center;cursor:pointer;background:var(--s2);position:relative;margin-bottom:10px;transition:border-color 0.15s,background 0.15s;">
+      <input type="file" id="docup-file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="docupFileSelect(event)">
+      <div style="font-size:22px;margin-bottom:6px;opacity:0.5">📄</div>
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:3px">Tap to choose from library</div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:0.08em">jpg · png · heic</div>
+      <label style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--rose);border:1px solid rgba(176,122,132,0.25);border-radius:4px;padding:4px 10px;cursor:pointer;position:relative;z-index:2;">
+        📷 Take photo
+        <input type="file" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="docupFileSelect(event)">
+      </label>
+    </div>
+
+    <!-- Preview -->
+    <div id="docup-preview" style="display:none;margin-bottom:10px;">
+      <img id="docup-img" style="width:100%;max-height:220px;object-fit:contain;border-radius:4px;border:1px solid var(--border);background:var(--s2);" alt="Preview">
+      <div style="display:flex;justify-content:space-between;margin-top:5px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">
+        <span id="docup-size"></span>
+        <span style="color:var(--rose);cursor:pointer;" onclick="docupClearPhoto()">✕ remove</span>
+      </div>
+    </div>
+
+    <!-- Extract button -->
+    <div id="docup-extract-wrap" style="display:none;margin-bottom:10px;">
+      <button class="btn btn-steel btn-sm" id="docup-extract-btn" onclick="docupExtract()" style="width:100%">
+        <span id="docup-extract-label">✦ Extract text &amp; keywords</span>
+      </button>
+    </div>
+
+    <!-- AI results -->
+    <div id="docup-ai-result" style="display:none;">
+      <div style="margin-bottom:8px;">
+        <div class="qa-label">Summary / notes</div>
+        <textarea class="qa-input" id="docup-summary" rows="2" style="resize:vertical;min-height:48px;" placeholder="Claude's summary of the document…"></textarea>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div class="qa-label">Keywords found <span style="font-size:9px;color:var(--text-dim)">(tap to toggle)</span></div>
+        <div id="docup-tags" style="display:flex;flex-wrap:wrap;gap:4px;min-height:20px;"></div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div class="qa-label">Serial / reference numbers</div>
+        <input class="qa-input" id="docup-sn" type="text" placeholder="Any S/N, policy #, account #…">
+      </div>
+    </div>
+
+    <div class="qa-added" id="docup-status"></div>
+    <div class="qa-actions">
+      <button class="btn btn-primary btn-sm" id="docup-save-btn" onclick="docupSave()" disabled>Save &amp; Link</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeDocUpload()" style="margin-left:auto">Cancel</button>
     </div>
   </div>
 </div>
@@ -3090,7 +3150,7 @@ function buildRow(item,dupMap){
     })())}
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
-    <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
+    <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn cam-btn" onclick="openDocUpload(${item.id},event)" title="Upload document photo">📷</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
   return tr;
 }
 
@@ -3627,6 +3687,248 @@ function closeDupeAdd(){
 }
 
 function dupeOverlayClick(e){if(e.target===document.getElementById('dupe-overlay'))closeDupeAdd();}
+
+// ─── DOC UPLOAD MODAL ─────────────────────────────────────────────────────────
+let _docupItemId = null;
+let _docupBlob   = null;
+let _docupDataUrl= null;
+let _docupTags   = new Set();
+
+function openDocUpload(id, e){
+  e && e.stopPropagation();
+  const item = inventory.find(i => i.id === id);
+  if (!item) return;
+  _docupItemId = id;
+  _docupBlob = null; _docupDataUrl = null; _docupTags.clear();
+  document.getElementById('docup-item-label').innerHTML = `<span>Item:</span> ${esc(item.name)}`;
+  document.getElementById('docup-dropzone').style.display = '';
+  document.getElementById('docup-preview').style.display  = 'none';
+  document.getElementById('docup-extract-wrap').style.display = 'none';
+  document.getElementById('docup-ai-result').style.display    = 'none';
+  document.getElementById('docup-summary').value = '';
+  document.getElementById('docup-sn').value      = '';
+  document.getElementById('docup-tags').innerHTML = '';
+  document.getElementById('docup-status').textContent = '';
+  document.getElementById('docup-save-btn').disabled = true;
+  document.getElementById('docup-extract-label').textContent = '✦ Extract text & keywords';
+  document.getElementById('docup-overlay').classList.add('open');
+}
+
+function closeDocUpload(){
+  document.getElementById('docup-overlay').classList.remove('open');
+  _docupItemId = null; _docupBlob = null; _docupDataUrl = null;
+}
+
+function docupOverlayClick(e){if(e.target===document.getElementById('docup-overlay'))closeDocUpload();}
+
+async function docupFileSelect(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  docupClearPhoto(true);
+  document.getElementById('docup-status').textContent = 'Compressing…';
+  try {
+    const origKB = Math.round(file.size / 1024);
+    const {blob, dataUrl} = await docupCompress(file);
+    _docupBlob    = blob;
+    _docupDataUrl = dataUrl;
+    const compKB  = Math.round(blob.size / 1024);
+    document.getElementById('docup-dropzone').style.display = 'none';
+    document.getElementById('docup-img').src = dataUrl;
+    document.getElementById('docup-preview').style.display = '';
+    document.getElementById('docup-size').textContent = `${origKB} KB → ${compKB} KB (${Math.round((1-compKB/origKB)*100)}% saved)`;
+    document.getElementById('docup-extract-wrap').style.display = '';
+    document.getElementById('docup-save-btn').disabled = false;
+    document.getElementById('docup-status').textContent = '';
+  } catch(err) {
+    document.getElementById('docup-status').textContent = 'Compression failed: ' + err.message;
+  }
+}
+
+async function docupCompress(file, targetKB=400){
+  if (file.type === 'application/pdf'){
+    const dataUrl = await docupReadUrl(file);
+    return {blob: file, dataUrl};
+  }
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = async () => {
+      URL.revokeObjectURL(url);
+      let quality = 0.85, scale = 1.0;
+      const MAX_DIM = 2400;
+      if (img.width > MAX_DIM || img.height > MAX_DIM)
+        scale = Math.min(MAX_DIM/img.width, MAX_DIM/img.height);
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const attempt = (q,s) => new Promise(res => {
+        canvas.width = Math.round(img.width*s); canvas.height = Math.round(img.height*s);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(b => res(b), 'image/jpeg', q);
+      });
+      let blob = await attempt(quality, scale);
+      let iters = 0;
+      while (blob.size/1024 > targetKB && iters < 8){
+        if (quality > 0.4) quality -= 0.12; else scale = Math.max(scale*0.8, 0.2);
+        blob = await attempt(quality, scale); iters++;
+      }
+      const dataUrl = await docupReadUrl(blob);
+      resolve({blob, dataUrl});
+    };
+    img.onerror = () => reject(new Error('Could not read image'));
+    img.src = url;
+  });
+}
+
+function docupReadUrl(blob){
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('FileReader failed'));
+    r.readAsDataURL(blob);
+  });
+}
+
+function docupClearPhoto(silent){
+  _docupBlob = null; _docupDataUrl = null;
+  document.getElementById('docup-dropzone').style.display = '';
+  document.getElementById('docup-preview').style.display  = 'none';
+  document.getElementById('docup-extract-wrap').style.display = 'none';
+  document.getElementById('docup-ai-result').style.display    = 'none';
+  document.getElementById('docup-save-btn').disabled = true;
+  if (!silent) document.getElementById('docup-status').textContent = '';
+}
+
+async function docupExtract(){
+  if (!_docupDataUrl) return;
+  const btn   = document.getElementById('docup-extract-btn');
+  const label = document.getElementById('docup-extract-label');
+  btn.disabled = true;
+  label.textContent = '⟳ Reading…';
+  try {
+    const base64 = _docupDataUrl.split(',')[1];
+    const mtype  = _docupDataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`, {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body: JSON.stringify({visionMode:true, imageBase64:base64, imageMediaType:mtype})
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    let parsed;
+    try {
+      const raw = data.content ? data.content.map(b=>b.text||'').join('') : JSON.stringify(data);
+      parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    } catch { parsed = {summary:String(data.summary||''), keywords:[], numbers:''}; }
+
+    document.getElementById('docup-summary').value = parsed.summary || '';
+    document.getElementById('docup-sn').value      = parsed.numbers || '';
+    _docupTags.clear();
+    document.getElementById('docup-tags').innerHTML = (parsed.keywords||[]).map(kw =>
+      `<span style="font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;background:var(--s3);color:var(--text-mid);" onclick="docupToggleTag(this,'${esc(kw)}')">${esc(kw)}</span>`
+    ).join('');
+    document.getElementById('docup-ai-result').style.display = '';
+    label.textContent = '✦ Re-extract';
+    btn.disabled = false;
+  } catch(err) {
+    // Fallback to manual
+    btn.disabled = false;
+    label.textContent = '✦ Extract (unavailable — fill manually)';
+    document.getElementById('docup-summary').placeholder = 'Type a summary manually…';
+    document.getElementById('docup-ai-result').style.display = '';
+  }
+}
+
+function docupToggleTag(el, tag){
+  if (_docupTags.has(tag)){
+    _docupTags.delete(tag);
+    el.style.color = 'var(--text-mid)';
+    el.style.borderColor = 'var(--border2)';
+    el.style.background = 'var(--s3)';
+  } else {
+    _docupTags.add(tag);
+    el.style.color = 'var(--rose)';
+    el.style.borderColor = 'var(--rose)';
+    el.style.background = 'var(--rose-glow)';
+  }
+}
+
+async function docupSave(){
+  if (!_docupItemId || !_docupBlob) return;
+  const item = inventory.find(i => i.id === _docupItemId);
+  if (!item) return;
+  const btn = document.getElementById('docup-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  document.getElementById('docup-status').textContent = 'Uploading to Supabase…';
+
+  try {
+    const ts    = Date.now();
+    const ext   = _docupBlob.type === 'application/pdf' ? 'pdf' : 'jpg';
+    const fname = `item_${item.id}_${ts}.${ext}`;
+
+    const upRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/documents/${fname}`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': _docupBlob.type || 'image/jpeg',
+          'x-upsert': 'true',
+        },
+        body: _docupBlob,
+      }
+    );
+    if (!upRes.ok) throw new Error(await upRes.text());
+
+    const docUrl = `${SUPABASE_URL}/storage/v1/object/public/documents/${fname}`;
+    const patch  = {doc_url: docUrl};
+
+    const summary  = document.getElementById('docup-summary').value.trim();
+    const sn       = document.getElementById('docup-sn').value.trim();
+    const tags     = [..._docupTags];
+
+    if (sn) patch.sn = sn;
+    if (tags.length) patch.keywords = tags.join(', ');
+    if (summary){
+      patch.notes = item.notes ? item.notes + '\n\n' + summary : summary;
+    }
+
+    const patchRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/inventory?id=eq.${item.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(patch),
+      }
+    );
+    if (!patchRes.ok) throw new Error(await patchRes.text());
+
+    // Update local item
+    snapshot();
+    item.docUrl = docUrl;
+    if (sn)           item.sn       = sn;
+    if (tags.length)  item.keywords = tags.join(', ');
+    if (summary)      item.notes    = patch.notes;
+    item.digitalCopy = true;
+    save(); render();
+
+    document.getElementById('docup-status').textContent = `✓ Saved — ${Math.round(_docupBlob.size/1024)}KB`;
+    btn.textContent = 'Saved ✓';
+    toast(`📄 Document linked to "${item.name}"`);
+    setTimeout(closeDocUpload, 1200);
+  } catch(err){
+    btn.disabled = false;
+    btn.textContent = 'Save & Link';
+    document.getElementById('docup-status').textContent = 'Error: ' + err.message;
+  }
+}
 
 function dupeSubmit(keepOpen){
   const source=inventory.find(i=>i.id===dupeSourceId);
