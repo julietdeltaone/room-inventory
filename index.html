@@ -1331,6 +1331,7 @@ tbody tr:hover .row-actions { opacity: 1; }
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openBulkEnrich()">Enrich</button>
       <button class="btn btn-ghost btn-sm" onclick="openKeywordsEnrich()">Keywords</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortCurrentViewByDate()" title="Sort visible items by date in their name (e.g. 15 Jan 2025)" style="color:var(--steel)">📅 Date Sort</button>
       <button class="btn btn-ghost btn-sm" style="color:var(--amber)" onclick="openAnomalyScan()">⚠ Scan</button>
       <button class="btn btn-ghost btn-sm" style="color:var(--steel)" onclick="openCustomEnrich()">✦ Custom</button>
 <button class="btn btn-ghost btn-sm" onclick="openLocMgr()">Locations</button>
@@ -1642,10 +1643,20 @@ CSV FORMAT:
         <div class="bulk-group"><span class="bulk-field-label">Year</span><input type="text" class="bulk-text-input" id="bulk-year" placeholder="2020" style="width:54px"></div>
         <div class="bulk-group"><span class="bulk-field-label">Fill</span><select class="bulk-select" id="bulk-filllevel"><option value="">--</option><option>Full</option><option>Most</option><option>Half</option><option>Low</option><option>Empty</option></select></div>
         <div class="bulk-group"><span class="bulk-field-label">Doc</span><select class="bulk-select" id="bulk-doctype"><option value="">--</option><option>Certificate</option><option>Title</option><option>Receipt</option><option>Permit</option><option>Application</option><option>ID</option><option>License</option><option>Insurance</option><option>Registration</option><option>Contract</option><option>Letter</option><option>Notes/Handouts</option><option>Financial</option><option>Book</option><option>Other</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Est $</span><input type="text" class="bulk-text-input" id="bulk-estvalue" placeholder="25" style="width:52px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">Qty</span><input type="text" class="bulk-text-input" id="bulk-qty" placeholder="1" style="width:40px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">SN</span><input type="text" class="bulk-text-input" id="bulk-sn" placeholder="serial" style="width:72px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">Last Used</span><input type="text" class="bulk-text-input" id="bulk-lastused" placeholder="2024-01" style="width:72px"></div>
         <div class="bulk-group"><span class="bulk-field-label">Digital</span><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSetDigital(true)">Has Copy</button><button class="btn btn-ghost btn-xs" onclick="bulkSetDigital(false)">No Copy</button></div>
         <div class="bulk-group" style="margin-left:4px">
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(true)">Flag</button>
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(false)">Unflag</button>
+          <button class="btn btn-ghost btn-xs" style="color:var(--green)" onclick="bulkSetInUse(true)">In Use</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetInUse(false)">Not In Use</button>
+          <button class="btn btn-ghost btn-xs" style="color:#c06060" onclick="bulkSetLockedItem(true)">🔒 Hide</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetLockedItem(false)">🔓 Show</button>
+          <button class="btn btn-ghost btn-xs" style="color:#c06060" onclick="bulkSetLockedNotes(true)">🔒 Notes</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetLockedNotes(false)">🔓 Notes</button>
           <select class="bulk-select" id="bulk-enrich-level" style="width:56px;font-size:10px">
             <option value="1">L1</option>
             <option value="2">L2</option>
@@ -3710,6 +3721,14 @@ function bulkApplyAll(){
   selFields.forEach(([elId,prop])=>{const v=document.getElementById(elId).value;if(v)mutations.push(i=>{i[prop]=v;});});
   const yr=document.getElementById('bulk-year').value.trim();
   if(yr)mutations.push(i=>{i.yearPurchased=yr;});
+  const ev=document.getElementById('bulk-estvalue').value.trim();
+  if(ev)mutations.push(i=>{i.estValue=ev;});
+  const qty=document.getElementById('bulk-qty').value.trim();
+  if(qty)mutations.push(i=>{i.qty=qty;});
+  const sn=document.getElementById('bulk-sn').value.trim();
+  if(sn)mutations.push(i=>{i.sn=sn;});
+  const lu=document.getElementById('bulk-lastused').value.trim();
+  if(lu)mutations.push(i=>{i.lastUsed=lu;});
   if(!mutations.length){toast('Set at least one field before applying');return;}
   snapshot();
   inventory.forEach(i=>{if(selectedIds.has(i.id))mutations.forEach(fn=>fn(i));});
@@ -3722,6 +3741,10 @@ function bulkResetFields(){
     .forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('bulk-loc').value='';
   document.getElementById('bulk-year').value='';
+  document.getElementById('bulk-estvalue').value='';
+  document.getElementById('bulk-qty').value='';
+  document.getElementById('bulk-sn').value='';
+  document.getElementById('bulk-lastused').value='';
 }
 
 function bulkSet(field,elId,elType){
@@ -3742,6 +3765,12 @@ function bulkSetLoc(){
   toast(`Set location to "${val}" for ${count} item${count>1?'s':''}`);
 }
 
+function bulkSetInUse(val){
+  const count=selectedIds.size;if(!count)return;
+  snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.inUse=val;});
+  save();render();toast(`${val?'Marked':'Cleared'} In Use for ${count} item${count>1?'s':''}`);
+}
+
 function bulkSetMisplaced(val){
   const count=selectedIds.size;if(!count)return;
   snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.misplaced=val;});
@@ -3758,6 +3787,19 @@ function bulkDelete(){
 // ─── ITEM ACTIONS ─────────────────────────────────────────────────────────────
 function adjustQty(id,delta){const item=inventory.find(i=>i.id===id);if(!item)return;const oldQty=item.qty;snapshot();item.qty=String(Math.max(1,(parseInt(item.qty)||1)+delta));logChange(item,'qty',oldQty,item.qty);save();renderTable();}
 function toggleDigital(id){const item=inventory.find(i=>i.id===id);if(!item)return;snapshot();const old=item.digitalCopy;item.digitalCopy=!item.digitalCopy;logChange(item,'Digital Copy',old?'Yes':'No',item.digitalCopy?'Yes':'No');save();render();toast(item.digitalCopy?'Marked as digitized':'Digital copy removed');}
+
+function bulkSetLockedItem(val){
+  const count=selectedIds.size;if(!count)return;
+  if(val&&!getPin()){if(!confirm('No PIN set. Set one now?'))return;promptSetPin();if(!getPin())return;}
+  if(val){snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedItem=true;});save();render();toast(`🔒 Hidden ${count} item${count>1?'s':''}`);}
+  else{verifyPin(()=>{snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedItem=false;});save();render();toast(`🔓 Visible ${count} item${count>1?'s':''}`);});}
+}
+function bulkSetLockedNotes(val){
+  const count=selectedIds.size;if(!count)return;
+  if(val&&!getPin()){if(!confirm('No PIN set. Set one now?'))return;promptSetPin();if(!getPin())return;}
+  if(val){snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedNotes=true;});save();render();toast(`🔒 Notes locked for ${count} item${count>1?'s':''}`);}
+  else{verifyPin(()=>{snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedNotes=false;});save();render();toast(`🔓 Notes unlocked for ${count} item${count>1?'s':''}`);});}
+}
 
 function bulkSetDigital(val){
   const count=selectedIds.size;if(!count)return;
@@ -5612,13 +5654,12 @@ function parseQty(raw){
 function isOutlineFormat(raw){
   // Has Location: header
   if(/location\s*:/i.test(raw)) return true;
-  // Has bullet points — always treat as outline regardless of commas
-  // (notes fields legitimately contain commas)
+  // Has bullet points — always outline regardless of commas in notes
   if(/^\s*[\*\-•]/m.test(raw)) return true;
+  // Has pipe-delimited fields
+  if(/\|\s*[a-z]+\s*:/i.test(raw)) return true;
   // Has "For all" defaults line
   if(/^for all/im.test(raw)) return true;
-  // Has pipe-delimited fields (name | category: X | notes: Y)
-  if(/\|\s*[a-z]+\s*:/i.test(raw)) return true;
   // Plain multi-line text with no commas — treat as outline
   const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
   if(lines.length>=2&&!raw.includes(',')) return true;
@@ -5646,8 +5687,7 @@ function detectDocType(name){
 }
 
 function parsePipeFields(rawName){
-  // Parses: "Item name | category: X | year: 2025 | notes: some text | freq: Daily | crit: Important | repl: Moderate | keep: Keep | cond: Good | est: 25 | qty: 2"
-  const out={name:rawName,category:'',year:'',notes:'',freq:'',crit:'',repl:'',keep:'',cond:'',est:'',qty:'',sn:''};
+  const out={name:rawName,category:'',year:'',notes:'',freq:'',crit:'',repl:'',keep:'',cond:'',est:'',qty:'',sn:'',loc:''};
   if(!rawName.includes('|')) return out;
   const parts=rawName.split('|').map(s=>s.trim());
   out.name=parts[0].trim();
@@ -5754,15 +5794,9 @@ function parseOutline(raw){
     // Defaults line
     if(/^for all/i.test(trimmed)){parseDefaults(trimmed);continue;}
 
-    // Location declaration — explicit "Location: X" or bare path line (contains '>')
+    // Location declaration — resets both base and sub path
     const locMatch=trimmed.match(/^locatio[n]?\s*:\s*(.+)/i);
-    // A bare path: contains '>', no bullet, not a note/sentence (no pipe fields, short enough)
-    const barePath=!locMatch
-      &&trimmed.includes('>')
-      &&!/^[\*\-•]/.test(trimmed)
-      &&!trimmed.includes('|')
-      &&trimmed.length<120
-      &&!/[.!?]\s/.test(trimmed);  // no sentence punctuation
+    const barePath=!locMatch&&trimmed.includes('>')&&!/^[\*\-•]/.test(trimmed)&&!trimmed.includes('|')&&trimmed.length<120&&!/[.!?]\s/.test(trimmed);
     if(locMatch||barePath){
       const locStr=locMatch?locMatch[1].trim():trimmed;
       basePath=stringToPath(locStr);
@@ -5775,26 +5809,17 @@ function parseOutline(raw){
       const rawName=trimmed.replace(/^[\*\-•]\s*/,'').trim();
       if(!rawName) continue;
 
-      // Extract pipe-delimited fields first: "Name | category: X | year: Y | notes: Z ..."
+      // Parse pipe-delimited fields: "Name | category: X | year: Y | notes: Z"
       const pf=parsePipeFields(rawName);
-
-      // Then extract qty suffix and embedded notes from the cleaned name
       const{qty:qtyFromName,name:nameAfterQty}=extractQtyFromName(pf.name);
       const{name:cleanName,notes:autoNotes,sn:autoSn}=extractNotes(nameAfterQty);
 
-      // Merge: pipe fields take priority over auto-extracted
       const finalNotes=pf.notes||(autoNotes||'');
       const finalSn=pf.sn||autoSn||'';
       const finalQty=pf.qty?parseInt(pf.qty):qtyFromName;
-      const finalYear=pf.year||'';
-      const finalEst=pf.est||'';
-      const finalCond=pf.cond||(defaults.condition||'Good');
-
       const finalPath=pf.loc?stringToPath(pf.loc):[...basePath,...subPath];
       const cat=pf.category||guessCategory(cleanName,finalNotes);
       const docType=detectDocType(cleanName);
-
-      // Scoring — pipe fields override defaults
       const freq=pf.freq?matchField(pf.freq,FREQ_MATCH)||defaults.frequency:defaults.frequency;
       const crit=pf.crit?matchField(pf.crit,CRIT_MATCH)||defaults.criticality:defaults.criticality;
       const repl=pf.repl?matchField(pf.repl,REPL_MATCH)||defaults.replaceability:defaults.replaceability;
@@ -5804,22 +5829,13 @@ function parseOutline(raw){
         name:cleanName,
         locationPath:finalPath,
         qty:String(finalQty),
-        condition:finalCond,
-        notes:finalNotes,
-        sn:finalSn,
-        category:cat,
-        docType,
-        digitalCopy:false,
-        fillLevel:'',
-        frequency:freq,
-        criticality:crit,
-        replaceability:repl,
-        keep,
-        yearPurchased:finalYear,
-        lastUsed:'',
-        estValue:finalEst,
-        misplaced:false,
-        _guessed:[],
+        condition:pf.cond||(defaults.condition||'Good'),
+        notes:finalNotes,sn:finalSn,
+        category:cat,docType,
+        digitalCopy:false,fillLevel:'',
+        frequency:freq,criticality:crit,replaceability:repl,keep,
+        yearPurchased:pf.year||'',lastUsed:'',estValue:pf.est||'',
+        misplaced:false,_guessed:[],
       });
       continue;
     }
@@ -6273,6 +6289,61 @@ function toggleLockedNotes(id){
       save();render();openInspector(id,null);toast('🔓 Notes unlocked');
     });
   }
+}
+
+// ─── SORT BY DATE ─────────────────────────────────────────────────────────────
+const MONTH_MAP={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+  january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+
+function parseTitleDate(name){
+  const n=name.toLowerCase();
+  // "15 Jan 2025" or "15 January 2025"
+  let m=n.match(/\b(\d{1,2})\s+([a-z]{3,9})\s+(\d{4})\b/);
+  if(m){const mo=MONTH_MAP[m[2]];if(mo)return new Date(+m[3],mo-1,+m[1]);}
+  // "Jan 15 2025" or "January 15, 2025"
+  m=n.match(/\b([a-z]{3,9})\s+(\d{1,2})[,\s]+(\d{4})\b/);
+  if(m){const mo=MONTH_MAP[m[1]];if(mo)return new Date(+m[3],mo-1,+m[2]);}
+  // "Jan 2025" (no day)
+  m=n.match(/\b([a-z]{3,9})\s+(\d{4})\b/);
+  if(m){const mo=MONTH_MAP[m[1]];if(mo)return new Date(+m[2],mo-1,1);}
+  // "2025-01-15" ISO
+  m=n.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  // "2025" alone — sort by year only
+  m=n.match(/\b(20\d{2}|19\d{2})\b/);
+  if(m)return new Date(+m[1],0,1);
+  return null;
+}
+
+function sortCurrentViewByDate(){
+  // Get IDs of currently visible/filtered items in table order
+  const rows=[...document.querySelectorAll('#item-tbody tr[data-id]')];
+  if(!rows.length){toast('No items visible to sort');return;}
+  const visibleIds=rows.map(r=>parseInt(r.dataset.id));
+  const visibleItems=visibleIds.map(id=>inventory.find(i=>i.id===id)).filter(Boolean);
+
+  // Check how many have parseable dates
+  const dated=visibleItems.filter(i=>parseTitleDate(i.name));
+  if(!dated.length){toast('No dates found in item names — add dates like "15 Jan 2025" to titles');return;}
+
+  snapshot();
+
+  // Sort: items with parseable dates go first (chronological), undated items stay at end
+  const sorted=[...visibleItems].sort((a,b)=>{
+    const da=parseTitleDate(a.name),db=parseTitleDate(b.name);
+    if(da&&db)return da-db;
+    if(da)return -1;
+    if(db)return 1;
+    return 0;
+  });
+
+  // Re-insert sorted items into the inventory array at the positions they occupied
+  // Find their positions in the full inventory array
+  const positions=visibleIds.map(id=>inventory.findIndex(i=>i.id===id));
+  sorted.forEach((item,idx)=>{inventory[positions[idx]]=item;});
+
+  save();render();
+  toast(`📅 Sorted ${sorted.length} items by date in title (${dated.length} had parseable dates)`);
 }
 
 // ─── INSPECTOR ────────────────────────────────────────────────────────────────
