@@ -2755,7 +2755,7 @@ let currentView='all',currentCat='all',currentScoreFilter='all',currentFillFilte
 // Which tree nodes are expanded: Set of pathKey strings
 let expandedNodes=new Set(); // default all closed
 let sortKey=null,sortDir=1,editingCell=null;
-let previewItems=[],selectedIds=new Set(),qsItemId=null,_lastCheckedId=null;
+let previewItems=[],selectedIds=new Set(),qsItemId=null,_lastCheckedId=null,_shiftDown=false,_metaDown=false;
 
 // ─── UNDO/REDO ────────────────────────────────────────────────────────────────
 const MAX_HISTORY=50;
@@ -2764,7 +2764,7 @@ function snapshot(){histStack.push(JSON.stringify(inventory));if(histStack.lengt
 function undo(){if(!histStack.length)return;redoStack.push(JSON.stringify(inventory));inventory=JSON.parse(histStack.pop()).map(migrateItem);nextId=inventory.length?Math.max(...inventory.map(i=>i.id))+1:1;save();render();updateUndoRedo();toast('Undone');}
 function redo(){if(!redoStack.length)return;histStack.push(JSON.stringify(inventory));inventory=JSON.parse(redoStack.pop()).map(migrateItem);nextId=inventory.length?Math.max(...inventory.map(i=>i.id))+1:1;save();render();updateUndoRedo();toast('Redone');}
 function updateUndoRedo(){document.getElementById('undo-btn').disabled=!histStack.length;document.getElementById('redo-btn').disabled=!redoStack.length;}
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='z'){e.preventDefault();undo();}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='z'))){e.preventDefault();redo();}});
+document.addEventListener('keydown',e=>{_shiftDown=e.shiftKey;_metaDown=e.metaKey||e.ctrlKey;if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='z'){e.preventDefault();undo();}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='z'))){e.preventDefault();redo();}});
 
 // save() is called synchronously throughout the app after mutations.
 // We write to localStorage immediately (so undo/offline always works), then
@@ -3362,7 +3362,6 @@ function renderTable(){
   }
   tbody.innerHTML='';
   items.forEach(item=>tbody.appendChild(buildRow(item,{})));
-  attachCheckboxListener();
   const sa=document.getElementById('select-all');
   if(sa){const vids=items.map(i=>i.id);const all=vids.length>0&&vids.every(id=>selectedIds.has(id));sa.checked=all;sa.indeterminate=!all&&vids.some(id=>selectedIds.has(id));}
   applyColPrefs();
@@ -3455,7 +3454,7 @@ function buildRow(item,dupMap){
     tr.classList.add('locked-row');
     if(selectedIds.has(item.id))tr.classList.add('selected');
     tr.innerHTML=`
-      <td class="check-col"><input type="checkbox" class="row-check" data-rowid="${item.id}" ${selectedIds.has(item.id)?'checked':''} data-rowid="${item.id}" onclick="handleRowCheck(event,${item.id})"></td>
+      <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onclick="toggleSelect(${item.id},this.checked)"></td>
       <td colspan="16" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:0 10px;letter-spacing:1px">
         🔒 <span style="letter-spacing:3px;opacity:0.5">████████████████████</span>
         <span style="margin-left:14px;letter-spacing:0;font-size:9px">locked · open inspector to unlock</span>
@@ -3483,7 +3482,7 @@ function buildRow(item,dupMap){
   }
 
   tr.innerHTML=`
-    <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} data-rowid="${item.id}" onclick="handleRowCheck(event,${item.id})"></td>
+    <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onclick="toggleSelect(${item.id},this.checked)"></td>
     ${etd('name',`<div style="display:flex;align-items:center;gap:3px">${esc(item.name)}${item.docUrl?`<span title="Has document" style="font-size:10px;opacity:0.6;cursor:pointer;" onclick="event.stopPropagation();window.open('${esc(item.docUrl)}','_blank')">📎</span>`:''}${item.milSub==='OCIE'?`<span class="mil-sub-pill ocie" style="font-size:7px;padding:1px 4px">OCIE</span>`:item.milSub==='Personal'?`<span class="mil-sub-pill personal" style="font-size:7px;padding:1px 4px">Personal</span>`:''}</div>${snVal?`<div><span class="sn-badge">S/N ${esc(snVal)}</span></div>`:''}${mergedBadge}`,'min-width:120px;font-weight:500;font-size:13px')}
     ${etd('_loc', item.inUse
       ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
@@ -3698,37 +3697,38 @@ function cancelInlineEdit(){
   if(!editingCell)return;
   const{tdEl,origHTML}=editingCell;tdEl.classList.remove('active-edit');tdEl.innerHTML=origHTML;editingCell=null;
 }
+document.addEventListener('keyup',e=>{
+  _shiftDown=e.shiftKey;_metaDown=e.metaKey||e.ctrlKey;
+  const tb=document.getElementById('item-tbody');
+  if(tb) tb.style.userSelect='';
+});
+document.addEventListener('keydown',e=>{
+  if(e.shiftKey){const tb=document.getElementById('item-tbody');if(tb)tb.style.userSelect='none';}
+});
 document.addEventListener('mousedown',e=>{if(editingCell&&!editingCell.tdEl.contains(e.target))commitInlineEdit();});
 
 // ─── SELECTION ────────────────────────────────────────────────────────────────
-function handleRowCheck(event,id){
-  // Read shiftKey/metaKey BEFORE we call preventDefault
-  const shift=event.shiftKey;
-  const meta=event.metaKey||event.ctrlKey;
-  // For shift-click: prevent default browser toggle, we'll set state manually
-  if(shift) event.preventDefault();
-  const willBeChecked = shift ? true : (meta ? !selectedIds.has(id) : !selectedIds.has(id));
-  toggleSelect(id, willBeChecked, event);
-}
-
-function toggleSelect(id,checked,event){
-  if(event&&event.shiftKey&&_lastCheckedId!==null&&_lastCheckedId!==id){
+function toggleSelect(id,checked){
+  if(_shiftDown&&_lastCheckedId!==null&&_lastCheckedId!==id){
+    // Shift held: select everything between last clicked and this one
     const rows=[...document.querySelectorAll('#item-tbody tr[data-id]')];
     const ids=rows.map(r=>parseInt(r.dataset.id));
-    const a=ids.indexOf(_lastCheckedId), b=ids.indexOf(id);
+    const a=ids.indexOf(_lastCheckedId),b=ids.indexOf(id);
     if(a!==-1&&b!==-1){
-      const lo=Math.min(a,b), hi=Math.max(a,b);
+      const lo=Math.min(a,b),hi=Math.max(a,b);
       for(let i=lo;i<=hi;i++) selectedIds.add(ids[i]);
     }
-  } else if(event&&(event.metaKey||event.ctrlKey)){
+    _lastCheckedId=id;
+  } else if(_metaDown){
+    // Cmd/Ctrl held: toggle just this one without affecting others
     if(selectedIds.has(id)) selectedIds.delete(id);
-    else selectedIds.add(id);
+    else { selectedIds.add(id); _lastCheckedId=id; }
   } else {
-    if(checked) selectedIds.add(id);
-    else selectedIds.delete(id);
+    // Normal click
+    if(checked) { selectedIds.add(id); _lastCheckedId=id; }
+    else { selectedIds.delete(id); if(_lastCheckedId===id) _lastCheckedId=null; }
   }
-  _lastCheckedId = selectedIds.has(id) ? id : ((_lastCheckedId===id) ? null : _lastCheckedId);
-  // Update DOM directly without full re-render
+  // Update checkboxes and row highlight directly — no full table rebuild
   document.querySelectorAll('#item-tbody tr[data-id]').forEach(tr=>{
     const tid=parseInt(tr.dataset.id);
     const cb=tr.querySelector('.row-check');
