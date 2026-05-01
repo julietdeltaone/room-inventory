@@ -2755,7 +2755,7 @@ let currentView='all',currentCat='all',currentScoreFilter='all',currentFillFilte
 // Which tree nodes are expanded: Set of pathKey strings
 let expandedNodes=new Set(); // default all closed
 let sortKey=null,sortDir=1,editingCell=null;
-let previewItems=[],selectedIds=new Set(),qsItemId=null;
+let previewItems=[],selectedIds=new Set(),qsItemId=null,_lastCheckedId=null;
 
 // ─── UNDO/REDO ────────────────────────────────────────────────────────────────
 const MAX_HISTORY=50;
@@ -3449,11 +3449,12 @@ function cycleMilSub(id, e){
 function buildRow(item,dupMap){
   dupMap=dupMap||{};
   const tr=document.createElement('tr');
+  tr.dataset.id=item.id;
   if(item.lockedItem){
     tr.classList.add('locked-row');
     if(selectedIds.has(item.id))tr.classList.add('selected');
     tr.innerHTML=`
-      <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onchange="toggleSelect(${item.id},this.checked)"></td>
+      <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onclick="toggleSelect(${item.id},this.checked,event)"></td>
       <td colspan="16" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:0 10px;letter-spacing:1px">
         🔒 <span style="letter-spacing:3px;opacity:0.5">████████████████████</span>
         <span style="margin-left:14px;letter-spacing:0;font-size:9px">locked · open inspector to unlock</span>
@@ -3481,7 +3482,7 @@ function buildRow(item,dupMap){
   }
 
   tr.innerHTML=`
-    <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onchange="toggleSelect(${item.id},this.checked)"></td>
+    <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onclick="toggleSelect(${item.id},this.checked,event)"></td>
     ${etd('name',`<div style="display:flex;align-items:center;gap:3px">${esc(item.name)}${item.docUrl?`<span title="Has document" style="font-size:10px;opacity:0.6;cursor:pointer;" onclick="event.stopPropagation();window.open('${esc(item.docUrl)}','_blank')">📎</span>`:''}${item.milSub==='OCIE'?`<span class="mil-sub-pill ocie" style="font-size:7px;padding:1px 4px">OCIE</span>`:item.milSub==='Personal'?`<span class="mil-sub-pill personal" style="font-size:7px;padding:1px 4px">Personal</span>`:''}</div>${snVal?`<div><span class="sn-badge">S/N ${esc(snVal)}</span></div>`:''}${mergedBadge}`,'min-width:120px;font-weight:500;font-size:13px')}
     ${etd('_loc', item.inUse
       ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
@@ -3699,9 +3700,31 @@ function cancelInlineEdit(){
 document.addEventListener('mousedown',e=>{if(editingCell&&!editingCell.tdEl.contains(e.target))commitInlineEdit();});
 
 // ─── SELECTION ────────────────────────────────────────────────────────────────
-function toggleSelect(id,checked){if(checked)selectedIds.add(id);else selectedIds.delete(id);updateBulkBar();renderTable();}
-function toggleSelectAll(checked){getFiltered().forEach(i=>{if(checked)selectedIds.add(i.id);else selectedIds.delete(i.id);});updateBulkBar();renderTable();}
-function clearSelection(){selectedIds.clear();updateBulkBar();renderTable();}
+function toggleSelect(id,checked,event){
+  if(event&&event.shiftKey&&_lastCheckedId!==null&&_lastCheckedId!==id){
+    // Shift-click: select range between _lastCheckedId and id in current filtered+rendered order
+    const rows=[...document.querySelectorAll('#item-tbody tr[data-id]')];
+    const ids=rows.map(r=>parseInt(r.dataset.id));
+    const a=ids.indexOf(_lastCheckedId), b=ids.indexOf(id);
+    if(a!==-1&&b!==-1){
+      const lo=Math.min(a,b), hi=Math.max(a,b);
+      for(let i=lo;i<=hi;i++) selectedIds.add(ids[i]);
+    }
+  } else if(event&&(event.metaKey||event.ctrlKey)){
+    // Cmd/Ctrl-click: toggle only this item
+    if(selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+  } else {
+    // Normal click
+    if(checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+  }
+  if(selectedIds.has(id)) _lastCheckedId=id;
+  else if(_lastCheckedId===id) _lastCheckedId=null;
+  updateBulkBar();renderTable();
+}
+function toggleSelectAll(checked){getFiltered().forEach(i=>{if(checked)selectedIds.add(i.id);else selectedIds.delete(i.id);});if(!checked)_lastCheckedId=null;updateBulkBar();renderTable();}
+function clearSelection(){selectedIds.clear();_lastCheckedId=null;updateBulkBar();renderTable();}
 function updateBulkBar(){
   const bar=document.getElementById('bulk-bar'),lbl=document.getElementById('bulk-label');
   if(selectedIds.size>0){bar.classList.add('visible');lbl.textContent=`${selectedIds.size} selected`;}
