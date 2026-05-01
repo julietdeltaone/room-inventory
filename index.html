@@ -1642,10 +1642,20 @@ CSV FORMAT:
         <div class="bulk-group"><span class="bulk-field-label">Year</span><input type="text" class="bulk-text-input" id="bulk-year" placeholder="2020" style="width:54px"></div>
         <div class="bulk-group"><span class="bulk-field-label">Fill</span><select class="bulk-select" id="bulk-filllevel"><option value="">--</option><option>Full</option><option>Most</option><option>Half</option><option>Low</option><option>Empty</option></select></div>
         <div class="bulk-group"><span class="bulk-field-label">Doc</span><select class="bulk-select" id="bulk-doctype"><option value="">--</option><option>Certificate</option><option>Title</option><option>Receipt</option><option>Permit</option><option>Application</option><option>ID</option><option>License</option><option>Insurance</option><option>Registration</option><option>Contract</option><option>Letter</option><option>Notes/Handouts</option><option>Financial</option><option>Book</option><option>Other</option></select></div>
+        <div class="bulk-group"><span class="bulk-field-label">Est $</span><input type="text" class="bulk-text-input" id="bulk-estvalue" placeholder="25" style="width:52px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">Qty</span><input type="text" class="bulk-text-input" id="bulk-qty" placeholder="1" style="width:40px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">SN</span><input type="text" class="bulk-text-input" id="bulk-sn" placeholder="serial" style="width:72px"></div>
+        <div class="bulk-group"><span class="bulk-field-label">Last Used</span><input type="text" class="bulk-text-input" id="bulk-lastused" placeholder="2024-01" style="width:72px"></div>
         <div class="bulk-group"><span class="bulk-field-label">Digital</span><button class="btn btn-xs" style="background:var(--rose-dim);border-color:var(--rose-dim);color:var(--rose)" onclick="bulkSetDigital(true)">Has Copy</button><button class="btn btn-ghost btn-xs" onclick="bulkSetDigital(false)">No Copy</button></div>
         <div class="bulk-group" style="margin-left:4px">
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(true)">Flag</button>
           <button class="btn btn-ghost btn-xs" onclick="bulkSetMisplaced(false)">Unflag</button>
+          <button class="btn btn-ghost btn-xs" style="color:var(--green)" onclick="bulkSetInUse(true)">In Use</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetInUse(false)">Not In Use</button>
+          <button class="btn btn-ghost btn-xs" style="color:#c06060" onclick="bulkSetLockedItem(true)">🔒 Hide</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetLockedItem(false)">🔓 Show</button>
+          <button class="btn btn-ghost btn-xs" style="color:#c06060" onclick="bulkSetLockedNotes(true)">🔒 Notes</button>
+          <button class="btn btn-ghost btn-xs" onclick="bulkSetLockedNotes(false)">🔓 Notes</button>
           <select class="bulk-select" id="bulk-enrich-level" style="width:56px;font-size:10px">
             <option value="1">L1</option>
             <option value="2">L2</option>
@@ -3710,6 +3720,14 @@ function bulkApplyAll(){
   selFields.forEach(([elId,prop])=>{const v=document.getElementById(elId).value;if(v)mutations.push(i=>{i[prop]=v;});});
   const yr=document.getElementById('bulk-year').value.trim();
   if(yr)mutations.push(i=>{i.yearPurchased=yr;});
+  const ev=document.getElementById('bulk-estvalue').value.trim();
+  if(ev)mutations.push(i=>{i.estValue=ev;});
+  const qty=document.getElementById('bulk-qty').value.trim();
+  if(qty)mutations.push(i=>{i.qty=qty;});
+  const sn=document.getElementById('bulk-sn').value.trim();
+  if(sn)mutations.push(i=>{i.sn=sn;});
+  const lu=document.getElementById('bulk-lastused').value.trim();
+  if(lu)mutations.push(i=>{i.lastUsed=lu;});
   if(!mutations.length){toast('Set at least one field before applying');return;}
   snapshot();
   inventory.forEach(i=>{if(selectedIds.has(i.id))mutations.forEach(fn=>fn(i));});
@@ -3722,6 +3740,10 @@ function bulkResetFields(){
     .forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('bulk-loc').value='';
   document.getElementById('bulk-year').value='';
+  document.getElementById('bulk-estvalue').value='';
+  document.getElementById('bulk-qty').value='';
+  document.getElementById('bulk-sn').value='';
+  document.getElementById('bulk-lastused').value='';
 }
 
 function bulkSet(field,elId,elType){
@@ -3742,6 +3764,12 @@ function bulkSetLoc(){
   toast(`Set location to "${val}" for ${count} item${count>1?'s':''}`);
 }
 
+function bulkSetInUse(val){
+  const count=selectedIds.size;if(!count)return;
+  snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.inUse=val;});
+  save();render();toast(`${val?'Marked':'Cleared'} In Use for ${count} item${count>1?'s':''}`);
+}
+
 function bulkSetMisplaced(val){
   const count=selectedIds.size;if(!count)return;
   snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.misplaced=val;});
@@ -3758,6 +3786,34 @@ function bulkDelete(){
 // ─── ITEM ACTIONS ─────────────────────────────────────────────────────────────
 function adjustQty(id,delta){const item=inventory.find(i=>i.id===id);if(!item)return;const oldQty=item.qty;snapshot();item.qty=String(Math.max(1,(parseInt(item.qty)||1)+delta));logChange(item,'qty',oldQty,item.qty);save();renderTable();}
 function toggleDigital(id){const item=inventory.find(i=>i.id===id);if(!item)return;snapshot();const old=item.digitalCopy;item.digitalCopy=!item.digitalCopy;logChange(item,'Digital Copy',old?'Yes':'No',item.digitalCopy?'Yes':'No');save();render();toast(item.digitalCopy?'Marked as digitized':'Digital copy removed');}
+
+function bulkSetLockedItem(val){
+  const count=selectedIds.size;if(!count)return;
+  if(val&&!getPin()){if(!confirm('No PIN set. Set one now?'))return;promptSetPin();if(!getPin())return;}
+  if(val){
+    snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedItem=true;});
+    save();render();toast(`🔒 Hidden ${count} item${count>1?'s':''}`);
+  } else {
+    verifyPin(()=>{
+      snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedItem=false;});
+      save();render();toast(`🔓 Visible ${count} item${count>1?'s':''}`);
+    });
+  }
+}
+
+function bulkSetLockedNotes(val){
+  const count=selectedIds.size;if(!count)return;
+  if(val&&!getPin()){if(!confirm('No PIN set. Set one now?'))return;promptSetPin();if(!getPin())return;}
+  if(val){
+    snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedNotes=true;});
+    save();render();toast(`🔒 Notes locked for ${count} item${count>1?'s':''}`);
+  } else {
+    verifyPin(()=>{
+      snapshot();inventory.forEach(i=>{if(selectedIds.has(i.id))i.lockedNotes=false;});
+      save();render();toast(`🔓 Notes unlocked for ${count} item${count>1?'s':''}`);
+    });
+  }
+}
 
 function bulkSetDigital(val){
   const count=selectedIds.size;if(!count)return;
