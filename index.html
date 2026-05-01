@@ -3362,6 +3362,7 @@ function renderTable(){
   }
   tbody.innerHTML='';
   items.forEach(item=>tbody.appendChild(buildRow(item,{})));
+  attachCheckboxListener();
   const sa=document.getElementById('select-all');
   if(sa){const vids=items.map(i=>i.id);const all=vids.length>0&&vids.every(id=>selectedIds.has(id));sa.checked=all;sa.indeterminate=!all&&vids.some(id=>selectedIds.has(id));}
   applyColPrefs();
@@ -3454,7 +3455,7 @@ function buildRow(item,dupMap){
     tr.classList.add('locked-row');
     if(selectedIds.has(item.id))tr.classList.add('selected');
     tr.innerHTML=`
-      <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onclick="toggleSelect(${item.id},this.checked,event)"></td>
+      <td class="check-col"><input type="checkbox" class="row-check" data-rowid="${item.id}" ${selectedIds.has(item.id)?'checked':''} data-rowid="${item.id}" onclick="handleRowCheck(event,${item.id})"></td>
       <td colspan="16" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:0 10px;letter-spacing:1px">
         🔒 <span style="letter-spacing:3px;opacity:0.5">████████████████████</span>
         <span style="margin-left:14px;letter-spacing:0;font-size:9px">locked · open inspector to unlock</span>
@@ -3482,7 +3483,7 @@ function buildRow(item,dupMap){
   }
 
   tr.innerHTML=`
-    <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} onclick="toggleSelect(${item.id},this.checked,event)"></td>
+    <td class="check-col"><input type="checkbox" class="row-check" ${selectedIds.has(item.id)?'checked':''} data-rowid="${item.id}" onclick="handleRowCheck(event,${item.id})"></td>
     ${etd('name',`<div style="display:flex;align-items:center;gap:3px">${esc(item.name)}${item.docUrl?`<span title="Has document" style="font-size:10px;opacity:0.6;cursor:pointer;" onclick="event.stopPropagation();window.open('${esc(item.docUrl)}','_blank')">📎</span>`:''}${item.milSub==='OCIE'?`<span class="mil-sub-pill ocie" style="font-size:7px;padding:1px 4px">OCIE</span>`:item.milSub==='Personal'?`<span class="mil-sub-pill personal" style="font-size:7px;padding:1px 4px">Personal</span>`:''}</div>${snVal?`<div><span class="sn-badge">S/N ${esc(snVal)}</span></div>`:''}${mergedBadge}`,'min-width:120px;font-weight:500;font-size:13px')}
     ${etd('_loc', item.inUse
       ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
@@ -3700,9 +3701,18 @@ function cancelInlineEdit(){
 document.addEventListener('mousedown',e=>{if(editingCell&&!editingCell.tdEl.contains(e.target))commitInlineEdit();});
 
 // ─── SELECTION ────────────────────────────────────────────────────────────────
+function handleRowCheck(event,id){
+  // Read shiftKey/metaKey BEFORE we call preventDefault
+  const shift=event.shiftKey;
+  const meta=event.metaKey||event.ctrlKey;
+  // For shift-click: prevent default browser toggle, we'll set state manually
+  if(shift) event.preventDefault();
+  const willBeChecked = shift ? true : (meta ? !selectedIds.has(id) : !selectedIds.has(id));
+  toggleSelect(id, willBeChecked, event);
+}
+
 function toggleSelect(id,checked,event){
   if(event&&event.shiftKey&&_lastCheckedId!==null&&_lastCheckedId!==id){
-    // Shift-click: select range between _lastCheckedId and id in current filtered+rendered order
     const rows=[...document.querySelectorAll('#item-tbody tr[data-id]')];
     const ids=rows.map(r=>parseInt(r.dataset.id));
     const a=ids.indexOf(_lastCheckedId), b=ids.indexOf(id);
@@ -3711,17 +3721,22 @@ function toggleSelect(id,checked,event){
       for(let i=lo;i<=hi;i++) selectedIds.add(ids[i]);
     }
   } else if(event&&(event.metaKey||event.ctrlKey)){
-    // Cmd/Ctrl-click: toggle only this item
     if(selectedIds.has(id)) selectedIds.delete(id);
     else selectedIds.add(id);
   } else {
-    // Normal click
     if(checked) selectedIds.add(id);
     else selectedIds.delete(id);
   }
-  if(selectedIds.has(id)) _lastCheckedId=id;
-  else if(_lastCheckedId===id) _lastCheckedId=null;
-  updateBulkBar();renderTable();
+  _lastCheckedId = selectedIds.has(id) ? id : ((_lastCheckedId===id) ? null : _lastCheckedId);
+  // Update DOM directly without full re-render
+  document.querySelectorAll('#item-tbody tr[data-id]').forEach(tr=>{
+    const tid=parseInt(tr.dataset.id);
+    const cb=tr.querySelector('.row-check');
+    const sel=selectedIds.has(tid);
+    if(cb) cb.checked=sel;
+    tr.classList.toggle('selected',sel);
+  });
+  updateBulkBar();
 }
 function toggleSelectAll(checked){getFiltered().forEach(i=>{if(checked)selectedIds.add(i.id);else selectedIds.delete(i.id);});if(!checked)_lastCheckedId=null;updateBulkBar();renderTable();}
 function clearSelection(){selectedIds.clear();_lastCheckedId=null;updateBulkBar();renderTable();}
