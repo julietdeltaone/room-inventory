@@ -5754,10 +5754,17 @@ function parseOutline(raw){
     // Defaults line
     if(/^for all/i.test(trimmed)){parseDefaults(trimmed);continue;}
 
-    // Location declaration — resets both base and sub path
+    // Location declaration — explicit "Location: X" or bare path line (contains '>')
     const locMatch=trimmed.match(/^locatio[n]?\s*:\s*(.+)/i);
-    if(locMatch){
-      const locStr=locMatch[1].trim();
+    // A bare path: contains '>', no bullet, not a note/sentence (no pipe fields, short enough)
+    const barePath=!locMatch
+      &&trimmed.includes('>')
+      &&!/^[\*\-•]/.test(trimmed)
+      &&!trimmed.includes('|')
+      &&trimmed.length<120
+      &&!/[.!?]\s/.test(trimmed);  // no sentence punctuation
+    if(locMatch||barePath){
+      const locStr=locMatch?locMatch[1].trim():trimmed;
       basePath=stringToPath(locStr);
       subPath=[];
       continue;
