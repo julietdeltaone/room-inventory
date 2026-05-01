@@ -5612,10 +5612,13 @@ function parseQty(raw){
 function isOutlineFormat(raw){
   // Has Location: header
   if(/location\s*:/i.test(raw)) return true;
-  // Has bullet points
-  if(/^\s*[\*\-•]/m.test(raw)&&!/,.*,.*,/m.test(raw)) return true;
+  // Has bullet points — always treat as outline regardless of commas
+  // (notes fields legitimately contain commas)
+  if(/^\s*[\*\-•]/m.test(raw)) return true;
   // Has "For all" defaults line
   if(/^for all/im.test(raw)) return true;
+  // Has pipe-delimited fields (name | category: X | notes: Y)
+  if(/\|\s*[a-z]+\s*:/i.test(raw)) return true;
   // Plain multi-line text with no commas — treat as outline
   const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
   if(lines.length>=2&&!raw.includes(',')) return true;
