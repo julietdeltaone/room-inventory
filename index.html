@@ -1285,6 +1285,122 @@ tbody tr:hover .row-actions { opacity: 1; }
   transform: translateX(0);
 }
 
+/* ── NOTES EDITOR MODAL ── */
+.ne-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72); z-index: 1200;
+  align-items: center; justify-content: center;
+}
+.ne-overlay.open { display: flex; }
+.ne-modal {
+  background: var(--s1); border: 1px solid var(--border2);
+  border-radius: 10px; width: 720px; max-width: 96vw; max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+  overflow: hidden;
+}
+.ne-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ne-title {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--rose);
+}
+.ne-item-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  font-family: var(--font-sans); margin-top: 2px;
+}
+.ne-close {
+  background: transparent; border: none; color: var(--text-dim);
+  font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.ne-close:hover { color: var(--text); }
+.ne-body { padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+.ne-section-label {
+  font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px;
+}
+.ne-textarea {
+  width: 100%; background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+  color: var(--text); font-family: var(--font-sans); font-size: 13px;
+  line-height: 1.7; resize: vertical; min-height: 160px;
+  outline: none; transition: border-color 0.15s;
+}
+.ne-textarea:focus { border-color: var(--rose); background: var(--s3); }
+.ne-keywords-wrap {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  min-height: 32px; align-items: flex-start;
+}
+.ne-kw-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 12px;
+  background: var(--s3); border: 1px solid var(--border2);
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-mid);
+  cursor: pointer; transition: all 0.12s;
+}
+.ne-kw-chip:hover { border-color: var(--rose); color: var(--rose); background: var(--rose-glow); }
+.ne-kw-chip .ne-kw-del { opacity: 0.4; margin-left: 2px; font-size: 10px; }
+.ne-kw-chip:hover .ne-kw-del { opacity: 1; color: var(--rose); }
+.ne-kw-add-row {
+  display: flex; gap: 6px; align-items: center; margin-top: 4px;
+}
+.ne-kw-input {
+  flex: 1; background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 5px 10px;
+  color: var(--text); font-family: var(--font-mono); font-size: 11px;
+  outline: none; transition: border-color 0.15s;
+}
+.ne-kw-input:focus { border-color: var(--rose); }
+.ne-kw-input::placeholder { color: var(--text-dim); }
+.ne-ai-row {
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  padding: 10px 12px; background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.ne-ai-label {
+  font-family: var(--font-mono); font-size: 9px; color: var(--rose);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-right: 4px;
+  flex-shrink: 0;
+}
+.ne-ai-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: var(--radius);
+  font-family: var(--font-sans); font-size: 11px; font-weight: 500;
+  cursor: pointer; border: 1px solid; transition: all 0.13s;
+  white-space: nowrap;
+}
+.ne-ai-btn-kw { background: transparent; color: var(--steel); border-color: rgba(110,143,168,0.35); }
+.ne-ai-btn-kw:hover { background: var(--steel-dim); }
+.ne-ai-btn-notes { background: transparent; color: var(--amber); border-color: rgba(158,122,50,0.35); }
+.ne-ai-btn-notes:hover { background: rgba(158,122,50,0.1); }
+.ne-ai-btn-rewrite { background: transparent; color: var(--text-mid); border-color: var(--border2); }
+.ne-ai-btn-rewrite:hover { background: var(--s3); color: var(--text); }
+.ne-ai-status {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-dim);
+  width: 100%; margin-top: 4px; min-height: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ne-ai-think {
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.ne-ai-think span {
+  display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--rose); margin: 0 1px;
+  animation: chatDot 1.2s ease-in-out infinite;
+}
+.ne-ai-think span:nth-child(2){animation-delay:0.2s;}
+.ne-ai-think span:nth-child(3){animation-delay:0.4s;}
+.ne-footer {
+  display: flex; gap: 8px; align-items: center;
+  padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.ne-char-count {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-dim);
+  margin-left: auto;
+}
 /* ── SIDEBAR RESIZER ── */
 .sidebar-resizer {
   width: 5px;
@@ -3516,14 +3632,14 @@ function buildRow(item,dupMap){
     ${etd('docType',item.docType?`<span class="doctype-badge">${esc(item.docType)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
     <td data-col="digital" style="text-align:center"><button class="digital-toggle-btn ${item.digitalCopy?'has-copy':''}" onclick="toggleDigital(${item.id})" title="${item.digitalCopy?'Has digital copy — click to unmark':'No digital copy — click to mark as digitized'}">${item.digitalCopy?'[+] yes':'[ ] no'}</button></td>
     ${etd('fillLevel',item.fillLevel?`<span class="fill-badge fill-${item.fillLevel.toLowerCase().replace('/','')}">${esc(item.fillLevel)}</span>`:'<span style="color:var(--text-dim);font-size:10px">--</span>')}
-    ${etd('notes',(()=>{
+    <td data-col="notes" data-id="${item.id}" data-field="notes" onclick="openNotesEditor(${item.id})" style="cursor:pointer" title="Click to edit notes">${(()=>{
       const raw=notes||item.notes||'';
-      // Strip any legacy keywords from notes display
       const clean=raw.replace(/\s*\|\s*keywords:.*$/i,'').trim();
-      if(!clean)return'<span style="color:var(--text-dim);font-size:10px">--</span>';
+      const kwText=item.keywords?`<span class="notes-keywords">🏷 ${esc(item.keywords)}</span>`:'';
       if(item.lockedNotes)return'<span style="font-family:var(--font-mono);font-size:10px;color:#b06060;letter-spacing:1px">🔒 locked</span>';
-      return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)}</span>`;
-    })())}
+      if(!clean&&!item.keywords)return'<span style="color:var(--text-dim);font-size:10px">--</span>';
+      return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)||'<span style="color:var(--text-dim);font-size:10px">--</span>'}</span>${kwText}`;
+    })()}</td>
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn cam-btn" onclick="openDocUpload(${item.id},event)" title="Upload document photo">📷</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
@@ -6735,6 +6851,60 @@ boot();
 
 </script>
 
+<!-- ══ NOTES EDITOR MODAL ══ -->
+<div class="ne-overlay" id="ne-overlay" onclick="neOverlayClick(event)">
+  <div class="ne-modal" id="ne-modal">
+    <div class="ne-header">
+      <div>
+        <div class="ne-title">✎ Editor's Notes</div>
+        <div class="ne-item-name" id="ne-item-name">—</div>
+      </div>
+      <button class="ne-close" onclick="closeNotesEditor()">✕</button>
+    </div>
+
+    <div class="ne-body">
+
+      <!-- Notes textarea -->
+      <div>
+        <div class="ne-section-label">Notes</div>
+        <textarea class="ne-textarea" id="ne-notes-ta" placeholder="Enter notes for this item…" oninput="neUpdateCharCount()"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:3px">
+          <span class="ne-char-count" id="ne-char-count">0 chars</span>
+        </div>
+      </div>
+
+      <!-- Keywords -->
+      <div>
+        <div class="ne-section-label">Keywords</div>
+        <div class="ne-keywords-wrap" id="ne-kw-wrap"></div>
+        <div class="ne-kw-add-row" style="margin-top:8px">
+          <input class="ne-kw-input" id="ne-kw-input" placeholder="Add keyword…" onkeydown="neKwInputKey(event)">
+          <button class="btn btn-ghost btn-sm" onclick="neAddKwFromInput()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- AI Tools -->
+      <div class="ne-ai-row">
+        <span class="ne-ai-label">✦ AI</span>
+        <button class="ne-ai-btn ne-ai-btn-kw" onclick="neAiSuggestKeywords()">Suggest Keywords</button>
+        <button class="ne-ai-btn ne-ai-btn-kw" onclick="neAiAddMoreKeywords()">Add More Keywords</button>
+        <button class="ne-ai-btn ne-ai-btn-notes" onclick="neAiDraftNotes()">Draft Notes</button>
+        <button class="ne-ai-btn ne-ai-btn-rewrite" onclick="neAiImproveNotes()">Improve Notes</button>
+        <div class="ne-ai-status" id="ne-ai-status" style="display:none">
+          <div class="ne-ai-think"><span></span><span></span><span></span></div>
+          <span id="ne-ai-status-text">Thinking…</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ne-footer">
+      <button class="btn btn-primary btn-sm" onclick="commitNotesEditor()">Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeNotesEditor()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ CHAT PANEL ══ -->
 <div class="chat-panel" id="chat-panel">
   <div class="chat-header">
@@ -6958,6 +7128,205 @@ function chatDownload(dlId){
   URL.revokeObjectURL(url);
   document.getElementById(dlId).className = 'chat-action-pill executed';
   document.getElementById(dlId).textContent = '✓ Downloaded ' + d.name;
+}
+
+// ── NOTES EDITOR MODAL ────────────────────────────────────────────────────────
+let _neItemId = null;
+let _neKeywords = [];
+
+function openNotesEditor(itemId) {
+  const item = inventory.find(i => i.id === itemId);
+  if (!item) return;
+  if (item.lockedNotes) { toast('🔒 Notes are locked for this item'); return; }
+  _neItemId = itemId;
+  _neKeywords = item.keywords ? item.keywords.split(',').map(k => k.trim()).filter(Boolean) : [];
+  document.getElementById('ne-item-name').textContent = item.name || '—';
+  document.getElementById('ne-notes-ta').value = item.notes || '';
+  document.getElementById('ne-kw-input').value = '';
+  neHideAiStatus();
+  neRenderKeywords();
+  neUpdateCharCount();
+  document.getElementById('ne-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('ne-notes-ta').focus(), 80);
+}
+
+function closeNotesEditor() {
+  document.getElementById('ne-overlay').classList.remove('open');
+  _neItemId = null;
+}
+
+function neOverlayClick(e) {
+  if (e.target === document.getElementById('ne-overlay')) closeNotesEditor();
+}
+
+function commitNotesEditor() {
+  if (_neItemId === null) return;
+  const item = inventory.find(i => i.id === _neItemId);
+  if (!item) return;
+  const newNotes = document.getElementById('ne-notes-ta').value.trim();
+  const newKw = _neKeywords.join(', ');
+  snapshot();
+  if (newNotes !== item.notes) logChange(item, 'notes', item.notes, newNotes);
+  if (newKw !== (item.keywords || '')) logChange(item, 'keywords', item.keywords, newKw);
+  item.notes = newNotes;
+  item.keywords = newKw;
+  save();
+  render();
+  closeNotesEditor();
+  toast('✓ Notes & keywords saved');
+}
+
+function neUpdateCharCount() {
+  const len = document.getElementById('ne-notes-ta').value.length;
+  document.getElementById('ne-char-count').textContent = len + ' char' + (len !== 1 ? 's' : '');
+}
+
+function neRenderKeywords() {
+  const wrap = document.getElementById('ne-kw-wrap');
+  if (!_neKeywords.length) {
+    wrap.innerHTML = '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);font-style:italic">No keywords yet</span>';
+    return;
+  }
+  wrap.innerHTML = _neKeywords.map((kw, i) =>
+    `<span class="ne-kw-chip" onclick="neRemoveKw(${i})">
+      ${esc(kw)} <span class="ne-kw-del">✕</span>
+    </span>`
+  ).join('');
+}
+
+function neRemoveKw(idx) {
+  _neKeywords.splice(idx, 1);
+  neRenderKeywords();
+}
+
+function neAddKwFromInput() {
+  const inp = document.getElementById('ne-kw-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  val.split(',').forEach(k => {
+    const t = k.trim();
+    if (t && !_neKeywords.includes(t)) _neKeywords.push(t);
+  });
+  inp.value = '';
+  neRenderKeywords();
+}
+
+function neKwInputKey(e) {
+  if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); neAddKwFromInput(); }
+  if (e.key === 'Escape') closeNotesEditor();
+}
+
+function neShowAiStatus(msg) {
+  const s = document.getElementById('ne-ai-status');
+  document.getElementById('ne-ai-status-text').textContent = msg;
+  s.style.display = 'flex';
+}
+function neHideAiStatus() {
+  document.getElementById('ne-ai-status').style.display = 'none';
+}
+
+async function neCallClaude(systemPrompt, userPrompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+  });
+  if (!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+async function neAiSuggestKeywords() {
+  if (_neItemId === null) return;
+  const item = inventory.find(i => i.id === _neItemId);
+  if (!item) return;
+  neShowAiStatus('Generating keywords…');
+  try {
+    const ctx = `Item: "${item.name}" | Category: ${item.category || '—'} | Condition: ${item.condition || '—'} | Notes: ${document.getElementById('ne-notes-ta').value.trim() || '—'}`;
+    const raw = await neCallClaude(
+      'You are an inventory tagging assistant. Return ONLY a comma-separated list of 5–12 concise, useful keywords for the given item. No preamble, no explanation, no quotes. Just the keywords.',
+      ctx
+    );
+    const newKws = raw.split(',').map(k => k.trim().replace(/^"|"$/g, '')).filter(k => k.length > 0);
+    _neKeywords = [...new Set(newKws)];
+    neRenderKeywords();
+    neHideAiStatus();
+    toast('✓ Keywords replaced');
+  } catch (err) {
+    neHideAiStatus();
+    toast('AI error: ' + err.message);
+  }
+}
+
+async function neAiAddMoreKeywords() {
+  if (_neItemId === null) return;
+  const item = inventory.find(i => i.id === _neItemId);
+  if (!item) return;
+  neShowAiStatus('Suggesting additional keywords…');
+  try {
+    const ctx = `Item: "${item.name}" | Category: ${item.category || '—'} | Existing keywords: ${_neKeywords.join(', ') || 'none'} | Notes: ${document.getElementById('ne-notes-ta').value.trim() || '—'}`;
+    const raw = await neCallClaude(
+      'You are an inventory tagging assistant. The user already has some keywords. Return ONLY a comma-separated list of 3–8 NEW keywords that add value and are not already in the existing list. No preamble, no explanation.',
+      ctx
+    );
+    const newKws = raw.split(',').map(k => k.trim().replace(/^"|"$/g, '')).filter(k => k.length > 0 && !_neKeywords.includes(k));
+    _neKeywords = [..._neKeywords, ...newKws];
+    neRenderKeywords();
+    neHideAiStatus();
+    toast(`✓ Added ${newKws.length} keyword${newKws.length !== 1 ? 's' : ''}`);
+  } catch (err) {
+    neHideAiStatus();
+    toast('AI error: ' + err.message);
+  }
+}
+
+async function neAiDraftNotes() {
+  if (_neItemId === null) return;
+  const item = inventory.find(i => i.id === _neItemId);
+  if (!item) return;
+  neShowAiStatus('Drafting notes…');
+  try {
+    const ctx = `Item: "${item.name}" | Category: ${item.category || '—'} | Condition: ${item.condition || '—'} | Frequency: ${item.frequency || '—'} | Criticality: ${item.criticality || '—'} | Replaceability: ${item.replaceability || '—'} | Keep: ${item.keep || '—'} | Est. Value: ${item.estValue ? '$'+item.estValue : '—'} | Keywords: ${item.keywords || '—'}`;
+    const raw = await neCallClaude(
+      'You are an inventory note writer for a personal inventory system. Write a concise, practical 1–3 sentence note for the given item. Focus on useful details: what it is, its condition/purpose, any important storage or maintenance tips, or why it is kept. Write in plain prose, no bullet points. Be specific and factual.',
+      ctx
+    );
+    document.getElementById('ne-notes-ta').value = raw.trim();
+    neUpdateCharCount();
+    neHideAiStatus();
+    toast('✓ Notes drafted — review and save');
+  } catch (err) {
+    neHideAiStatus();
+    toast('AI error: ' + err.message);
+  }
+}
+
+async function neAiImproveNotes() {
+  if (_neItemId === null) return;
+  const currentNotes = document.getElementById('ne-notes-ta').value.trim();
+  if (!currentNotes) { toast('Write some notes first for AI to improve'); return; }
+  const item = inventory.find(i => i.id === _neItemId);
+  if (!item) return;
+  neShowAiStatus('Improving notes…');
+  try {
+    const ctx = `Item: "${item.name}" | Category: ${item.category || '—'}\n\nExisting notes:\n${currentNotes}`;
+    const raw = await neCallClaude(
+      'You are an inventory note editor. Rewrite the provided notes to be clearer, more informative, and better organized. Keep the same length or slightly shorter. Preserve any specific facts, serial numbers, or important details. Output only the improved notes — no preamble, no explanation.',
+      ctx
+    );
+    document.getElementById('ne-notes-ta').value = raw.trim();
+    neUpdateCharCount();
+    neHideAiStatus();
+    toast('✓ Notes improved — review and save');
+  } catch (err) {
+    neHideAiStatus();
+    toast('AI error: ' + err.message);
+  }
 }
 </script>
 </body>
