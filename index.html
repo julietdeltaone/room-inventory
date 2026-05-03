@@ -7226,19 +7226,26 @@ function neHideAiStatus() {
 }
 
 async function neCallClaude(systemPrompt, userPrompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  if (!SUPABASE_ENABLED) throw new Error('Supabase not configured — AI unavailable');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
-    }),
+    headers: {
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ chatMode: true, system: systemPrompt, question: userPrompt }),
   });
-  if (!res.ok) throw new Error('API error ' + res.status);
+  if (!res.ok) throw new Error(`Edge function error ${res.status}`);
   const data = await res.json();
-  return data.content.map(b => b.text || '').join('');
+  // chatMode returns content array; extract text
+  const raw = data.content ? data.content.map(b => b.text || '').join('') : JSON.stringify(data);
+  // chatMode wraps response in {reply:...} JSON — unwrap if present, else use raw text
+  try {
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    return parsed.reply || raw;
+  } catch {
+    return raw;
+  }
 }
 
 async function neAiSuggestKeywords() {
