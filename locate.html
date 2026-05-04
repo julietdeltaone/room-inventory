@@ -1513,7 +1513,10 @@ function setSyncStatus(s){
   document.getElementById('sync-dot').className=s==='ok'?'ok':s==='loading'?'loading':'';
   document.getElementById('sync-label').textContent=s==='ok'?`${inventory.length} items`:s==='loading'?'loading':'error';
   const md=document.getElementById('mob-sync');if(md)md.className='mob-sync '+(s==='ok'?'ok':'loading');
-  if(s==='ok'&&document.body.classList.contains('mob-mode')){mobRenderFind('');mobRenderBrowseAt([]);}
+  if(s==='ok'&&document.body.classList.contains('mob-mode')){
+    mobRenderBrowseAt([]);
+    mobRenderFind('');
+  }
 }
 load();
 
@@ -1527,6 +1530,10 @@ function setViewMode(mode){
     document.body.classList.add('mob-mode');
     if(btn){btn.textContent='Desktop';btn.onclick=function(){setViewMode('desktop');};}
     if(inventory.length){mobRenderBrowseAt([]);}
+    else{
+      var el=document.getElementById('mob-browse-inner');
+      if(el)el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon">&#9900;</div>Loading&hellip;</div>';
+    }
   } else {
     document.body.classList.remove('mob-mode');
     if(btn){btn.textContent='Mobile';btn.onclick=function(){setViewMode('mobile');};}
