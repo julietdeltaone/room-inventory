@@ -1419,6 +1419,231 @@ tbody tr:hover .row-actions { opacity: 1; }
 .loc-node-row[data-hue] { border-left: 2px solid transparent; }
 .loc-node-row[data-hue]:hover, .loc-node-row[data-hue].active { border-left-color: var(--node-hue-color, var(--border)); }
 
+/* ── LOCATION PICKER MODAL ── */
+.locpick-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.82); z-index: 1100;
+  align-items: center; justify-content: center;
+}
+.locpick-overlay.open { display: flex; }
+.locpick-modal {
+  background: #0d0d10;
+  border: 1px solid #2a2a35;
+  border-radius: 12px;
+  width: 96vw; height: 92vh;
+  max-width: 1100px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(176,122,132,0.08);
+  overflow: hidden;
+}
+.locpick-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 22px; border-bottom: 1px solid #1e1e26;
+  background: #0f0f13; flex-shrink: 0;
+}
+.locpick-title {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--rose);
+}
+.locpick-item-name {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  font-family: var(--font-sans); margin-top: 3px;
+}
+.locpick-close {
+  background: transparent; border: none; color: var(--text-dim);
+  font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1;
+  transition: color 0.1s;
+}
+.locpick-close:hover { color: var(--rose); }
+.locpick-body {
+  display: flex; flex: 1; overflow: hidden;
+}
+.locpick-tree-panel {
+  flex: 1; overflow-y: auto; padding: 16px 10px 16px 16px;
+  border-right: 1px solid #1a1a22;
+}
+.locpick-search {
+  width: 100%; background: #16161c; border: 1px solid #2a2a35;
+  border-radius: 6px; padding: 8px 12px; color: var(--text);
+  font-family: var(--font-mono); font-size: 11px; outline: none;
+  margin-bottom: 14px; transition: border-color 0.15s;
+}
+.locpick-search:focus { border-color: var(--rose); }
+.locpick-search::placeholder { color: var(--text-dim); }
+
+/* tree nodes inside locpick */
+.locpick-node { }
+.locpick-node-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border-radius: 6px;
+  cursor: pointer; border: 1px solid transparent;
+  transition: all 0.1s; margin-bottom: 2px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-mid);
+  border-left: 3px solid transparent;
+}
+.locpick-node-row:hover { background: #18181e; color: var(--text); border-color: #2a2a35; }
+.locpick-node-row.selected {
+  background: rgba(176,122,132,0.12); color: var(--rose);
+  border-color: rgba(176,122,132,0.3); border-left-color: var(--rose);
+}
+.locpick-expand {
+  width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: var(--text-dim); flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer; transition: color 0.1s;
+}
+.locpick-expand:hover { color: var(--text); }
+.locpick-depth-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.locpick-node-label { flex: 1; font-size: 12px; }
+.locpick-count {
+  font-size: 9px; color: var(--text-dim); background: #1a1a22;
+  border-radius: 3px; padding: 1px 5px; flex-shrink: 0;
+}
+.locpick-children {
+  padding-left: 20px; border-left: 1px solid #1e1e26; margin-left: 12px;
+}
+
+/* right panel - breadcrumb + confirm */
+.locpick-right-panel {
+  width: 320px; flex-shrink: 0; display: flex; flex-direction: column;
+  background: #0f0f13; padding: 20px;
+}
+.locpick-selection-label {
+  font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px;
+}
+.locpick-breadcrumb {
+  background: #16161c; border: 1px solid #2a2a35; border-radius: 8px;
+  padding: 14px 16px; margin-bottom: 16px; min-height: 56px;
+  font-family: var(--font-mono); font-size: 12px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+  color: var(--text-mid); transition: border-color 0.15s;
+}
+.locpick-breadcrumb.has-selection { border-color: rgba(176,122,132,0.4); }
+.locpick-bc-seg {
+  color: var(--text);
+  background: rgba(176,122,132,0.1);
+  border: 1px solid rgba(176,122,132,0.2);
+  border-radius: 4px; padding: 2px 8px;
+}
+.locpick-bc-arrow { color: var(--text-dim); font-size: 10px; }
+.locpick-bc-empty { color: var(--text-dim); font-style: italic; font-size: 11px; }
+.locpick-clear {
+  background: transparent; border: 1px solid #2a2a35; border-radius: 5px;
+  padding: 5px 12px; color: var(--text-dim); font-family: var(--font-mono);
+  font-size: 10px; cursor: pointer; transition: all 0.12s; width: 100%; margin-bottom: 10px;
+}
+.locpick-clear:hover { border-color: var(--rose); color: var(--rose); }
+.locpick-footer {
+  margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+}
+.locpick-confirm {
+  background: var(--rose); color: #fff; border: none; border-radius: 6px;
+  padding: 11px; font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.12s; width: 100%;
+}
+.locpick-confirm:hover { background: #c97882; }
+.locpick-confirm:disabled { background: #3a2d30; color: #7a5a5f; cursor: not-allowed; }
+.locpick-cancel {
+  background: transparent; color: var(--text-dim); border: 1px solid #2a2a35;
+  border-radius: 6px; padding: 9px; font-family: var(--font-sans); font-size: 12px;
+  cursor: pointer; transition: all 0.12s; width: 100%;
+}
+.locpick-cancel:hover { border-color: var(--text-dim); color: var(--text); }
+
+/* ── MANAGE LOCATIONS — FULL SCREEN UPGRADE ── */
+.locmgr-fullscreen-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88); z-index: 900;
+  align-items: center; justify-content: center;
+}
+.locmgr-fullscreen-overlay.open { display: flex; }
+.locmgr-fullscreen-modal {
+  background: #0d0d10;
+  border: 1px solid #252530;
+  border-radius: 12px;
+  width: 96vw; height: 94vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 32px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(176,122,132,0.06);
+  overflow: hidden;
+}
+.locmgr-fs-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 24px; border-bottom: 1px solid #1c1c24;
+  background: #0f0f13; flex-shrink: 0;
+}
+.locmgr-fs-title {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--rose);
+  flex-shrink: 0;
+}
+.locmgr-fs-search {
+  flex: 1; max-width: 320px;
+  background: #16161c; border: 1px solid #2a2a35;
+  border-radius: 6px; padding: 7px 12px; color: var(--text);
+  font-family: var(--font-mono); font-size: 11px; outline: none;
+  transition: border-color 0.15s;
+}
+.locmgr-fs-search:focus { border-color: var(--rose); }
+.locmgr-fs-search::placeholder { color: var(--text-dim); }
+.locmgr-fs-close {
+  background: transparent; border: none; color: var(--text-dim);
+  font-size: 20px; cursor: pointer; padding: 0 4px; margin-left: auto;
+  transition: color 0.12s;
+}
+.locmgr-fs-close:hover { color: var(--rose); }
+.locmgr-fs-body {
+  flex: 1; overflow-y: auto; padding: 20px 28px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.locmgr-fs-footer {
+  padding: 14px 24px; border-top: 1px solid #1c1c24;
+  background: #0f0f13; display: flex; gap: 10px; align-items: center;
+  flex-shrink: 0;
+}
+.locmgr-fs-add-input {
+  flex: 1; max-width: 340px;
+  background: #16161c; border: 1px solid #2a2a35;
+  border-radius: 6px; padding: 8px 12px; color: var(--text);
+  font-family: var(--font-mono); font-size: 11px; outline: none;
+  transition: border-color 0.15s;
+}
+.locmgr-fs-add-input:focus { border-color: var(--rose); }
+.locmgr-fs-add-input::placeholder { color: var(--text-dim); }
+
+/* Upgraded manager rows */
+.locmgr-fs-node { margin: 2px 0; }
+.locmgr-fs-row {
+  display: flex; align-items: center; gap: 8px; padding: 9px 14px;
+  border: 1px solid #1e1e28; border-radius: 8px; background: #13131a;
+  margin-bottom: 3px; transition: all 0.1s; border-left: 3px solid transparent;
+}
+.locmgr-fs-row:hover { background: #18181f; border-color: #2a2a38; }
+.locmgr-fs-depth-tag {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.locmgr-fs-name { flex: 1; color: var(--text); font-family: var(--font-mono); font-size: 12px; }
+.locmgr-fs-count {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+  background: #1a1a24; border-radius: 3px; padding: 2px 7px; flex-shrink: 0;
+}
+.locmgr-fs-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.locmgr-fs-btn {
+  padding: 3px 10px; border-radius: 4px; border: 1px solid #2a2a38;
+  background: transparent; color: var(--text-dim); cursor: pointer;
+  font-family: var(--font-mono); font-size: 9px; transition: all 0.12s; white-space: nowrap;
+}
+.locmgr-fs-btn:hover { border-color: var(--rose); color: var(--rose); background: rgba(176,122,132,0.07); }
+.locmgr-fs-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(143,72,72,0.1); }
+.locmgr-fs-btn.steel:hover { border-color: var(--steel); color: var(--steel); background: rgba(110,143,168,0.1); }
+.locmgr-fs-input {
+  background: #0d0d10; border: 1px solid var(--rose); border-radius: 5px;
+  padding: 4px 9px; color: var(--text); font-family: var(--font-mono);
+  font-size: 11px; outline: none; width: 160px;
+}
+.locmgr-fs-indent { padding-left: 24px; border-left: 1px solid #1e1e28; margin-left: 14px; margin-top: 2px; }
+
 </style>
 </head>
 <body>
@@ -2263,20 +2488,50 @@ CSV FORMAT:
   </div>
 </div>
 
-<!-- ══ LOCATION MANAGER ══ -->
-<div class="modal-overlay" id="locmgr-overlay">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <div class="modal-title">Manage Locations</div>
-      <button class="modal-close" onclick="closeLocMgr()">✕</button>
-    </div>
-    <div class="modal-body" id="locmgr-body" style="min-height:300px"></div>
-    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
-      <div style="display:flex;gap:5px;align-items:center;width:100%">
-        <input type="text" id="new-loc-input" class="cell-editor" placeholder="New top-level location…" style="flex:1">
-        <button class="btn btn-primary btn-sm" onclick="addTopLevelLoc()">+ Add</button>
+<!-- ══ LOCATION PICKER MODAL ══ -->
+<div class="locpick-overlay" id="locpick-overlay">
+  <div class="locpick-modal">
+    <div class="locpick-header">
+      <div>
+        <div class="locpick-title">Set Location</div>
+        <div class="locpick-item-name" id="locpick-item-name">—</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="closeLocMgr()">Done</button>
+      <button class="locpick-close" onclick="closeLocPicker()">✕</button>
+    </div>
+    <div class="locpick-body">
+      <div class="locpick-tree-panel">
+        <input type="text" class="locpick-search" id="locpick-search" placeholder="Filter locations…" autocomplete="off" oninput="renderLocPickerTree(this.value)">
+        <div id="locpick-tree"></div>
+      </div>
+      <div class="locpick-right-panel">
+        <div class="locpick-selection-label">Selected Location</div>
+        <div class="locpick-breadcrumb" id="locpick-breadcrumb">
+          <span class="locpick-bc-empty">Click a location in the tree</span>
+        </div>
+        <button class="locpick-clear" onclick="locPickerClearSelection()">✕ Clear selection</button>
+        <div style="flex:1"></div>
+        <div class="locpick-footer">
+          <button class="locpick-confirm" id="locpick-confirm-btn" onclick="commitLocPicker()">Set Location</button>
+          <button class="locpick-cancel" onclick="closeLocPicker()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOCATION MANAGER (full-screen) ══ -->
+<div class="locmgr-fullscreen-overlay" id="locmgr-overlay">
+  <div class="locmgr-fullscreen-modal">
+    <div class="locmgr-fs-header">
+      <div class="locmgr-fs-title">Manage Locations</div>
+      <input type="text" class="locmgr-fs-search" id="locmgr-search" placeholder="Filter tree…" autocomplete="off" oninput="renderLocMgr(this.value)">
+      <button class="locmgr-fs-close" onclick="closeLocMgr()">✕</button>
+    </div>
+    <div class="locmgr-fs-body" id="locmgr-body"></div>
+    <div class="locmgr-fs-footer">
+      <input type="text" id="new-loc-input" class="locmgr-fs-add-input" placeholder="New top-level location name…">
+      <button class="btn btn-primary btn-sm" onclick="addTopLevelLoc()">+ Add Location</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeLocMgr()" style="margin-left:auto">Done</button>
     </div>
   </div>
 </div>
@@ -3686,43 +3941,11 @@ function startInlineEdit(itemId,field,tdEl){
   let el;
 
   if(field==='_loc'){
-    // Path editor: text input with autocomplete showing all existing paths
-    const suggestions=getAllPaths();
-    const wrapper=document.createElement('div');wrapper.style.cssText='position:relative;width:100%;';
-    el=document.createElement('input');el.className='cell-editor';
-    el.value=pathToString(item.locationPath||[]);el.placeholder='Org > Shelf 2 > Box';
-    const dd=document.createElement('div');
-    dd.style.cssText='position:absolute;top:100%;left:0;right:0;background:var(--surface3);border:1px solid var(--accent);border-top:none;border-radius:0 0 3px 3px;z-index:500;max-height:150px;overflow-y:auto;';
-    let ddIdx=-1;
-    function showDD(q){
-      const f=suggestions.filter(s=>!q||s.toLowerCase().includes(q.toLowerCase()));
-      dd.innerHTML='';ddIdx=-1;if(!f.length){dd.style.display='none';return;}
-      dd.style.display='block';
-      f.slice(0,12).forEach(s=>{
-        const opt=document.createElement('div');
-        opt.style.cssText='padding:4px 8px;font-family:IBM Plex Mono,monospace;font-size:11px;cursor:pointer;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-        opt.textContent=s;
-        opt.onmouseenter=()=>{opt.style.background='var(--surface2)';opt.style.color='var(--accent)';};
-        opt.onmouseleave=()=>{opt.style.background='';opt.style.color='var(--text-mid)';};
-        opt.onmousedown=(e)=>{e.preventDefault();el.value=s;dd.style.display='none';};
-        dd.appendChild(opt);
-      });
-    }
-    el.addEventListener('input',()=>showDD(el.value));
-    el.addEventListener('focus',()=>showDD(el.value));
-    el.addEventListener('keydown',e=>{
-      const opts=dd.querySelectorAll('div');
-      if(e.key==='ArrowDown'){e.preventDefault();ddIdx=Math.min(ddIdx+1,opts.length-1);opts.forEach((o,i)=>{o.style.background=i===ddIdx?'var(--surface2)':'';o.style.color=i===ddIdx?'var(--accent)':'var(--text-mid)';});}
-      else if(e.key==='ArrowUp'){e.preventDefault();ddIdx=Math.max(ddIdx-1,0);opts.forEach((o,i)=>{o.style.background=i===ddIdx?'var(--surface2)':'';o.style.color=i===ddIdx?'var(--accent)':'var(--text-mid)';});}
-      else if(e.key==='Enter'&&ddIdx>=0){e.preventDefault();el.value=opts[ddIdx].textContent;dd.style.display='none';}
-      else if(e.key==='Enter'){e.preventDefault();dd.style.display='none';commitInlineEdit();}
-      else if(e.key==='Escape'){e.preventDefault();cancelInlineEdit();}
-      else if(e.key==='Tab'){e.preventDefault();dd.style.display='none';const dir=e.shiftKey?-1:1;commitInlineEdit(false);navigateCell(itemId,field,dir);}
-    });
-    el.addEventListener('blur',()=>{setTimeout(()=>{if(editingCell&&editingCell.tdEl===tdEl)commitInlineEdit();},120);});
-    wrapper.appendChild(el);wrapper.appendChild(dd);
-    tdEl.innerHTML='';tdEl.appendChild(wrapper);
-    el.focus();el.select();showDD('');
+    // Open the full-screen location picker modal instead of inline edit
+    // First restore the cell to its original display state
+    tdEl.classList.remove('active-edit');
+    editingCell = null;
+    openLocPicker(itemId);
     return;
   } else if(def.type==='select'){
     el=document.createElement('select');el.className='cell-editor-select';
@@ -4522,17 +4745,197 @@ function dupeSubmit(keepOpen){
   }
 }
 
+// ─── LOCATION PICKER MODAL ────────────────────────────────────────────────────
+let _locPickItemId = null;
+let _locPickSelected = null; // array path or null
+let _locPickExpanded = new Set();
+
+function openLocPicker(itemId) {
+  const item = inventory.find(i => i.id === itemId);
+  if(!item) return;
+  _locPickItemId = itemId;
+  _locPickSelected = item.locationPath ? [...item.locationPath] : null;
+  // Pre-expand to show current selection
+  if(_locPickSelected && _locPickSelected.length) {
+    for(let len = 1; len <= _locPickSelected.length; len++) {
+      _locPickExpanded.add(pathKey(_locPickSelected.slice(0, len)));
+    }
+  }
+  document.getElementById('locpick-item-name').textContent = item.name || '—';
+  document.getElementById('locpick-search').value = '';
+  renderLocPickerTree('');
+  updateLocPickerBreadcrumb();
+  document.getElementById('locpick-overlay').classList.add('open');
+}
+
+function closeLocPicker() {
+  document.getElementById('locpick-overlay').classList.remove('open');
+  _locPickItemId = null;
+}
+
+function locPickerClearSelection() {
+  _locPickSelected = null;
+  updateLocPickerBreadcrumb();
+  renderLocPickerTree(document.getElementById('locpick-search').value);
+}
+
+function updateLocPickerBreadcrumb() {
+  const bc = document.getElementById('locpick-breadcrumb');
+  const btn = document.getElementById('locpick-confirm-btn');
+  if(!_locPickSelected || !_locPickSelected.length) {
+    bc.innerHTML = '<span class="locpick-bc-empty">Click a location in the tree</span>';
+    bc.classList.remove('has-selection');
+    btn.disabled = false;
+    btn.textContent = 'Set Location (clear)';
+  } else {
+    bc.classList.add('has-selection');
+    bc.innerHTML = _locPickSelected.map((seg, i) =>
+      `${i > 0 ? '<span class="locpick-bc-arrow"> › </span>' : ''}<span class="locpick-bc-seg">${esc(seg)}</span>`
+    ).join('');
+    btn.disabled = false;
+    btn.textContent = 'Set Location';
+  }
+}
+
+function commitLocPicker() {
+  if(_locPickItemId === null) return;
+  const item = inventory.find(i => i.id === _locPickItemId);
+  if(!item) return;
+  const newPath = _locPickSelected ? [..._locPickSelected] : [];
+  const oldVal = pathToString(item.locationPath || []);
+  const newVal = pathToString(newPath);
+  if(oldVal !== newVal) {
+    snapshot();
+    logChange(item, '_loc', oldVal, newVal || '(none)');
+    item.locationPath = newPath;
+    save();
+    render();
+  }
+  closeLocPicker();
+  toast(`✓ Location set to "${newVal || '(none)'}" `);
+}
+
+function renderLocPickerTree(query) {
+  const container = document.getElementById('locpick-tree');
+  const tree = buildLocTree();
+  container.innerHTML = '';
+
+  const q = (query || '').toLowerCase().trim();
+
+  function renderNode(children, parentPath, depth) {
+    const wrap = document.createElement('div');
+    const DEPTH_HUES_LP = [200, 160, 45, 280, 20, 320, 90, 260];
+    const hue = DEPTH_HUES_LP[depth % DEPTH_HUES_LP.length];
+
+    Object.entries(children)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .forEach(([name, node]) => {
+        const path = [...parentPath, name];
+        const pk = pathKey(path);
+        const hasChildren = Object.keys(node.children).length > 0;
+        const isExpanded = _locPickExpanded.has(pk);
+        const isSelected = _locPickSelected && pathToString(_locPickSelected) === pathToString(path);
+
+        // Filter: if query set, only show nodes whose path includes the query
+        if(q && !path.join(' > ').toLowerCase().includes(q)) {
+          // Still recurse to find child matches
+          if(hasChildren) {
+            const childWrap = renderNode(node.children, path, depth + 1);
+            if(childWrap.hasChildNodes()) wrap.appendChild(childWrap);
+          }
+          return;
+        }
+
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'locpick-node';
+
+        const row = document.createElement('div');
+        row.className = 'locpick-node-row' + (isSelected ? ' selected' : '');
+        row.style.setProperty('--lp-hue', hue);
+        row.style.borderLeftColor = isSelected ? `hsla(${hue},65%,60%,0.9)` : `hsla(${hue},65%,60%,0.25)`;
+        row.style.paddingLeft = `${10 + depth * 4}px`;
+
+        // Expand toggle
+        const expBtn = document.createElement('button');
+        expBtn.className = 'locpick-expand';
+        expBtn.textContent = hasChildren ? (isExpanded ? '▾' : '▸') : ' ';
+        if(hasChildren) {
+          expBtn.onclick = (e) => {
+            e.stopPropagation();
+            if(_locPickExpanded.has(pk)) _locPickExpanded.delete(pk);
+            else _locPickExpanded.add(pk);
+            renderLocPickerTree(document.getElementById('locpick-search').value);
+          };
+        }
+        row.appendChild(expBtn);
+
+        // Depth color dot
+        const dot = document.createElement('span');
+        dot.className = 'locpick-depth-dot';
+        dot.style.background = `hsla(${hue},65%,60%,0.85)`;
+        row.appendChild(dot);
+
+        // Label
+        const label = document.createElement('span');
+        label.className = 'locpick-node-label';
+        if(q) {
+          const idx = name.toLowerCase().indexOf(q);
+          if(idx !== -1) {
+            label.innerHTML = esc(name.slice(0,idx)) +
+              `<mark style="background:rgba(176,122,132,0.35);color:var(--text);border-radius:2px;padding:0 1px">${esc(name.slice(idx,idx+q.length))}</mark>` +
+              esc(name.slice(idx+q.length));
+          } else { label.textContent = name; }
+        } else { label.textContent = name; }
+        row.appendChild(label);
+
+        // Item count
+        const cnt = document.createElement('span');
+        cnt.className = 'locpick-count';
+        cnt.textContent = node.total;
+        row.appendChild(cnt);
+
+        // Click = select
+        row.addEventListener('click', () => {
+          _locPickSelected = path;
+          if(hasChildren) _locPickExpanded.add(pk);
+          updateLocPickerBreadcrumb();
+          renderLocPickerTree(document.getElementById('locpick-search').value);
+        });
+
+        nodeEl.appendChild(row);
+
+        if(hasChildren && (isExpanded || q)) {
+          const childContainer = document.createElement('div');
+          childContainer.className = 'locpick-children';
+          childContainer.appendChild(renderNode(node.children, path, depth + 1));
+          nodeEl.appendChild(childContainer);
+        }
+
+        wrap.appendChild(nodeEl);
+      });
+    return wrap;
+  }
+
+  if(!Object.keys(tree.children).length) {
+    container.innerHTML = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:20px 8px">No locations yet. Add items with locations to populate the tree.</div>';
+    return;
+  }
+
+  container.appendChild(renderNode(tree.children, [], 0));
+}
+
 // ─── LOCATION MANAGER ─────────────────────────────────────────────────────────
 function openLocMgr(){renderLocMgr();document.getElementById('locmgr-overlay').classList.add('open');}
 function closeLocMgr(){document.getElementById('locmgr-overlay').classList.remove('open');render();}
 
-function renderLocMgr(){
+function renderLocMgr(filterQ){
+  const q=(filterQ||'').toLowerCase().trim();
   const tree=buildLocTree();
   const body=document.getElementById('locmgr-body');
   body.innerHTML='';
 
   if(!Object.keys(tree.children).length){
-    body.innerHTML='<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--text-dim);padding:20px">No locations yet.</div>';
+    body.innerHTML='<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:40px 20px;text-align:center">No locations yet. Add items with locations to populate the tree.</div>';
     return;
   }
 
@@ -4547,83 +4950,113 @@ function renderLocMgr(){
   }
   collectPaths(tree.children,[]);
 
-  function renderMgrNode(children,parentPath,container){
+  const DEPTH_HUES_MGR=[200,160,45,280,20,320,90,260];
+
+  function renderMgrNode(children,parentPath,container,depth){
     Object.entries(children).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([name,node])=>{
       const path=[...parentPath,name];
-      const nodeEl=document.createElement('div');nodeEl.className='loc-mgr-node';
-      const row=document.createElement('div');row.className='loc-mgr-row';
+      const fullPath=path.join(' > ').toLowerCase();
 
-      // Indent indicator
-      if(parentPath.length>0){
-        const ind=document.createElement('span');
-        ind.style.cssText=`display:inline-block;width:${parentPath.length*12}px;flex-shrink:0;`;
-        row.appendChild(ind);
-        const arrow=document.createElement('span');
-        arrow.style.cssText='color:var(--text-dim);font-size:10px;margin-right:4px;flex-shrink:0;';
-        arrow.textContent='>';
-        row.appendChild(arrow);
+      // Filter
+      if(q && !fullPath.includes(q)) {
+        // Still recurse for child matches
+        if(Object.keys(node.children).length) {
+          const childEl=document.createElement('div');
+          childEl.className='locmgr-fs-indent';
+          renderMgrNode(node.children,path,childEl,depth+1);
+          if(childEl.hasChildNodes()) container.appendChild(childEl);
+        }
+        return;
       }
 
-      const nameSpan=document.createElement('span');nameSpan.className='loc-mgr-name';nameSpan.textContent=name;
-      const countSpan=document.createElement('span');countSpan.className='loc-mgr-count';countSpan.textContent=`${node.total}`;
+      const hue=DEPTH_HUES_MGR[depth%DEPTH_HUES_MGR.length];
+      const hueColor=`hsla(${hue},65%,60%,0.85)`;
+      const nodeEl=document.createElement('div');nodeEl.className='locmgr-fs-node';
+      const row=document.createElement('div');row.className='locmgr-fs-row';
+      row.style.borderLeftColor=`hsla(${hue},65%,60%,0.4)`;
+
+      // Depth color dot
+      const dot=document.createElement('span');
+      dot.className='locmgr-fs-depth-tag';
+      dot.style.background=hueColor;
+      row.appendChild(dot);
+
+      // Name
+      const nameSpan=document.createElement('span');nameSpan.className='locmgr-fs-name';
+      if(q&&name.toLowerCase().includes(q)){
+        const idx=name.toLowerCase().indexOf(q);
+        nameSpan.innerHTML=esc(name.slice(0,idx))+`<mark style="background:rgba(176,122,132,0.35);color:var(--text);border-radius:2px;padding:0 1px">${esc(name.slice(idx,idx+q.length))}</mark>`+esc(name.slice(idx+q.length));
+      } else {
+        nameSpan.textContent=name;
+      }
+
+      // Path hint for depth > 0
+      if(parentPath.length>0){
+        const hint=document.createElement('span');
+        hint.style.cssText='font-size:9px;color:var(--text-dim);margin-left:6px;font-family:var(--font-mono);';
+        hint.textContent=parentPath.join(' › ');
+        nameSpan.appendChild(hint);
+      }
+
+      // Count badge
+      const countSpan=document.createElement('span');countSpan.className='locmgr-fs-count';countSpan.textContent=`${node.total} item${node.total!==1?'s':''}`;
       row.appendChild(nameSpan);row.appendChild(countSpan);
 
-      const acts=document.createElement('div');acts.className='loc-mgr-actions';
+      const acts=document.createElement('div');acts.className='locmgr-fs-actions';
 
       // RENAME button
-      const renBtn=document.createElement('button');renBtn.className='loc-mgr-btn';renBtn.textContent='Rename';
+      const renBtn=document.createElement('button');renBtn.className='locmgr-fs-btn';renBtn.textContent='Rename';
       renBtn.onclick=()=>{
-        // Replace name span with input inline
-        const inp=document.createElement('input');inp.className='loc-mgr-input';inp.value=name;
+        const inp=document.createElement('input');inp.className='locmgr-fs-input';inp.value=name;
         nameSpan.replaceWith(inp);inp.focus();inp.select();
         renBtn.textContent='Save';
         renBtn.onclick=()=>{
           const newName=inp.value.trim();
           if(newName&&newName!==name) renameLoc(path,newName);
-          else renderLocMgr();
+          else renderLocMgr(document.getElementById('locmgr-search').value);
         };
         inp.addEventListener('keydown',e=>{
           if(e.key==='Enter'){renBtn.onclick();}
-          if(e.key==='Escape'){renderLocMgr();}
+          if(e.key==='Escape'){renderLocMgr(document.getElementById('locmgr-search').value);}
         });
       };
       acts.appendChild(renBtn);
 
-      // MOVE UNDER button — dropdown of all other paths
-      const moveBtn=document.createElement('button');moveBtn.className='loc-mgr-btn';moveBtn.textContent='Move Under';
+      // MOVE UNDER button
+      const moveBtn=document.createElement('button');moveBtn.className='locmgr-fs-btn steel';moveBtn.textContent='Move Under';
       moveBtn.onclick=()=>{
-        // Toggle a mini dropdown below this row
         const existing=nodeEl.querySelector('.loc-move-panel');
         if(existing){existing.remove();return;}
         const panel=document.createElement('div');panel.className='loc-move-panel';
-        panel.style.cssText='padding:6px 8px;background:var(--bg);border:1px solid var(--accent);border-radius:3px;margin-top:4px;';
-        const sel=document.createElement('select');sel.className='cell-editor-select';sel.style.cssText='width:100%;margin-bottom:6px;';
+        panel.style.cssText='padding:8px 10px;background:#0d0d10;border:1px solid var(--rose);border-radius:6px;margin-top:6px;display:flex;flex-direction:column;gap:6px;';
+        const sel=document.createElement('select');sel.className='cell-editor-select';sel.style.cssText='width:100%;background:#16161c;border-color:#2a2a38;';
         const blank=document.createElement('option');blank.value='';blank.textContent='-- Top level (no parent) --';sel.appendChild(blank);
         allPaths.filter(p=>pathToString(p)!==pathToString(path)&&!pathStartsWith(p,path)).forEach(p=>{
           const opt=document.createElement('option');opt.value=pathToString(p);opt.textContent=pathToString(p);sel.appendChild(opt);
         });
-        const confirmBtn=document.createElement('button');confirmBtn.className='loc-mgr-btn';confirmBtn.textContent='Move';confirmBtn.style.marginRight='4px';
+        const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:6px;';
+        const confirmBtn=document.createElement('button');confirmBtn.className='btn btn-primary btn-sm';confirmBtn.textContent='Move Here';
         confirmBtn.onclick=()=>{
           const dest=sel.value;
-          const newParentPath=dest?stringToPath(dest):path.slice(0,-1); // empty = make top-level sibling of current parent
-          const destPath=dest?[...stringToPath(dest),name]:[name]; // new path for this node
+          const destPath=dest?[...stringToPath(dest),name]:[name];
           moveLoc(path,destPath);
         };
-        const cancelBtn=document.createElement('button');cancelBtn.className='loc-mgr-btn';cancelBtn.textContent='Cancel';
+        const cancelBtn=document.createElement('button');cancelBtn.className='btn btn-ghost btn-sm';cancelBtn.textContent='Cancel';
         cancelBtn.onclick=()=>panel.remove();
-        panel.appendChild(sel);panel.appendChild(confirmBtn);panel.appendChild(cancelBtn);
+        btnRow.appendChild(confirmBtn);btnRow.appendChild(cancelBtn);
+        panel.appendChild(sel);panel.appendChild(btnRow);
         nodeEl.appendChild(panel);
       };
       acts.appendChild(moveBtn);
 
       // WRAP IN PARENT button
-      const wrapBtn=document.createElement('button');wrapBtn.className='loc-mgr-btn';wrapBtn.textContent='+ Parent';
+      const wrapBtn=document.createElement('button');wrapBtn.className='locmgr-fs-btn';wrapBtn.textContent='+ Parent';
       wrapBtn.onclick=()=>{
         const existing=nodeEl.querySelector('.loc-wrap-panel');if(existing){existing.remove();return;}
         const panel=document.createElement('div');panel.className='loc-wrap-panel';
-        panel.style.cssText='padding:6px 8px;background:var(--bg);border:1px solid var(--accent);border-radius:3px;margin-top:4px;display:flex;gap:5px;';
-        const inp=document.createElement('input');inp.className='loc-mgr-input';inp.placeholder='New parent name...';inp.style.flex='1';
-        const confirmBtn=document.createElement('button');confirmBtn.className='loc-mgr-btn';confirmBtn.textContent='Wrap';
+        panel.style.cssText='padding:8px 10px;background:#0d0d10;border:1px solid var(--rose);border-radius:6px;margin-top:6px;display:flex;gap:6px;align-items:center;';
+        const inp=document.createElement('input');inp.className='locmgr-fs-input';inp.placeholder='New parent name…';inp.style.flex='1';
+        const confirmBtn=document.createElement('button');confirmBtn.className='btn btn-primary btn-sm';confirmBtn.textContent='Wrap';
         confirmBtn.onclick=()=>{
           const parentName=inp.value.trim();if(!parentName)return;
           wrapInParent(path,parentName);
@@ -4637,22 +5070,22 @@ function renderLocMgr(){
 
       // DELETE (only if 0 items)
       if(node.total===0){
-        const delBtn=document.createElement('button');delBtn.className='loc-mgr-btn danger';delBtn.textContent='Del';
-        delBtn.onclick=()=>{if(confirm(`Remove empty location "${pathToString(path)}"?`))renderLocMgr();};
+        const delBtn=document.createElement('button');delBtn.className='locmgr-fs-btn danger';delBtn.textContent='Delete';
+        delBtn.onclick=()=>{if(confirm(`Remove empty location "${pathToString(path)}"?`))renderLocMgr(document.getElementById('locmgr-search').value);};
         acts.appendChild(delBtn);
       }
 
       row.appendChild(acts);nodeEl.appendChild(row);
 
       if(Object.keys(node.children).length){
-        const childEl=document.createElement('div');childEl.className='loc-mgr-indent';
-        renderMgrNode(node.children,path,childEl);
+        const childEl=document.createElement('div');childEl.className='locmgr-fs-indent';
+        renderMgrNode(node.children,path,childEl,depth+1);
         nodeEl.appendChild(childEl);
       }
       container.appendChild(nodeEl);
     });
   }
-  renderMgrNode(tree.children,[],body);
+  renderMgrNode(tree.children,[],body,0);
 }
 
 function renameLoc(path,newName){
