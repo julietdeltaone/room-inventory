@@ -939,7 +939,6 @@ function sortItems(items){
 }
 
 // ── PIN ──────────────────────────────────────────────────────────────────────
-const PIN_KEY='inv_pin';
 function getPin(){return localStorage.getItem(PIN_KEY)||'';}
 
 // Shows a styled modal overlay instead of browser prompt/alert
@@ -1670,30 +1669,8 @@ function mobDrawInUse(){
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 setViewMode(getViewMode());
 load();
-
-<script>
-function openDocViewer(url, name){
-  document.getElementById('doc-lb-title').textContent = name;
-  document.getElementById('doc-lb-img').src = url;
-  document.getElementById('doc-lb-open').href = url;
-  document.getElementById('doc-lb-dl').href = url;
-  document.getElementById('doc-lb-dl').download = name.replace(/[^a-z0-9]/gi,'_') + '.jpg';
-  document.getElementById('doc-lightbox').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeDocViewer(){
-  document.getElementById('doc-lightbox').classList.remove('open');
-  document.getElementById('doc-lb-img').src = '';
-  document.body.style.overflow = '';
-}
-function docLbBgClick(e){
-  if(e.target === document.getElementById('doc-lightbox')) closeDocViewer();
-}
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') closeDocViewer();
-});
 </script>
-<!-- ══ CHAT PANEL ══ -->
+
 <div class="chat-panel" id="chat-panel">
   <div class="chat-header">
     <div class="chat-title">✦ <span>Inventory</span> Assistant</div>
