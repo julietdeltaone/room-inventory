@@ -729,7 +729,7 @@ const ADMIN_PIN = '1776'; // ← change this to your PIN
 let inventory=[], currentPath=[], expandedSb=new Set(), searchQuery='', inUseView=false;
 let _pinUnlocked=false, _catView=null, _sortMode='default';
 let _mobTab='find', _mobBrowsePath=[], _mobDrExp=new Set();
-const RECENT_KEY='inv_recent_locs', SB_COLLAPSE_KEY='inv_sb_collapse', VIEW_KEY='inv_locate_view', PIN_KEY='inv_pin';
+const RECENT_KEY='inv_recent_locs', SB_COLLAPSE_KEY='inv_sb_collapse', VIEW_KEY='inv_locate_view';
 const _paths={};let _pid=0;
 function regPath(arr){const id='p'+(++_pid);_paths[id]=arr;return id;}
 function nav(id){navigate(_paths[id]||[]);}
