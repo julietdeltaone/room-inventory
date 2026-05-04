@@ -35,6 +35,18 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 .editor-link{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--text-dim);text-decoration:none;text-transform:uppercase;transition:color 0.15s;}
 .editor-link:hover{color:var(--text-mid);}
+.view-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  background: var(--s2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em;
+  color: var(--text-mid); text-decoration: none; text-transform: uppercase;
+  transition: all 0.15s; white-space: nowrap;
+}
+.view-toggle:hover { border-color: var(--rose); color: var(--rose); background: rgba(176,122,132,0.08); }
+.view-toggle-icon { font-size: 11px; }
 
 /* ── BODY ── */
 .body{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:calc(100vh - 52px);overflow:hidden;}
@@ -370,8 +382,11 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
       <div class="sync-pill"><div id="sync-dot" class="loading"></div><span id="sync-label">loading</span></div>
       <a class="editor-link" href="dashboard.html">dashboard →</a>
       <a class="editor-link" href="upload.html">upload →</a>
-      <a class="editor-link" href="index.html">editor →</a>
       <button class="editor-link" onclick="toggleChat()" id="chat-toggle-btn" style="background:none;border:none;cursor:pointer;">✦ ask</button>
+      <a class="view-toggle" href="index.html" title="Switch to Desktop Editor">
+        <span class="view-toggle-icon">⊞</span>
+        <span>Desktop</span>
+      </a>
     </div>
   </header>
   <div class="body">
