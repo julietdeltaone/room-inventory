@@ -1419,6 +1419,17 @@ tbody tr:hover .row-actions { opacity: 1; }
 .loc-node-row[data-hue] { border-left: 2px solid transparent; }
 .loc-node-row[data-hue]:hover, .loc-node-row[data-hue].active { border-left-color: var(--node-hue-color, var(--border)); }
 
+/* ── LOC COPY BUTTON ── */
+.loc-copy-btn {
+  display: none; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid var(--border2);
+  border-radius: 3px; color: var(--text-dim); cursor: pointer;
+  font-size: 11px; width: 18px; height: 18px; flex-shrink: 0;
+  transition: all 0.1s; padding: 0; line-height: 1;
+}
+.loc-copy-btn:hover { border-color: var(--steel); color: var(--steel); background: var(--steel-dim); }
+td:hover .loc-copy-btn { display: flex; }
+
 /* ── LOCATION PICKER MODAL ── */
 .locpick-overlay {
   display: none; position: fixed; inset: 0;
@@ -3859,8 +3870,9 @@ function buildRow(item,dupMap){
       ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
           <span style="width:7px;height:7px;border-radius:50%;background:#4d8f6a;box-shadow:0 0 6px rgba(77,143,106,0.8);flex-shrink:0;animation:inUsePulse 2s ease infinite"></span>
           <span style="font-size:11px;color:#4d8f6a;font-weight:500">In Use</span>
+          ${(item.locationPath||[]).length?`<button class="loc-copy-btn" onclick="event.stopPropagation();copyLocPath('${esc((item.locationPath||[]).join(' > '))}')" title="Copy path">⎘</button>`:''}
         </div>`
-      : `<div style="font-size:11px">${renderPath(item.locationPath||[])}</div>`
+      : `<div style="display:flex;align-items:center;gap:4px;"><div style="font-size:11px;flex:1">${renderPath(item.locationPath||[])}</div>${(item.locationPath||[]).length?`<button class="loc-copy-btn" onclick="event.stopPropagation();copyLocPath('${esc((item.locationPath||[]).join(' > '))}')" title="Copy path">⎘</button>`:''}</div>`
     ,'min-width:130px')}
     <td data-col="qty"><div class="qty-ctrl"><button class="qty-btn" onclick="adjustQty(${item.id},-1)">-</button><span class="qty-val">${qty}</span><button class="qty-btn" onclick="adjustQty(${item.id},1)">+</button></div></td>
     ${etd('category',(()=>{
@@ -6613,6 +6625,8 @@ function copyVoiceTemplate(){
   const text=`[Type Spec - Brand], [Location > Sub > Sub], [Qty], [Condition], [Frequency], [Criticality], [Replaceability], [Keep], [Year]`;
   navigator.clipboard.writeText(text).then(()=>toast('Template copied'));
 }
+
+function copyLocPath(path){ navigator.clipboard.writeText(path).then(()=>toast('📋 Copied: '+path)); }
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
