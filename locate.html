@@ -49,6 +49,137 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .view-toggle-icon { font-size: 11px; }
 
 /* ── BODY ── */
+/* ── VIEW TOGGLE BUTTON ── */
+.view-mode-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 11px; border-radius: 20px;
+  background: var(--s2); border: 1px solid var(--border2);
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em;
+  color: var(--text-mid); cursor: pointer; text-transform: uppercase;
+  transition: all 0.15s; white-space: nowrap;
+}
+.view-mode-toggle:hover { border-color: var(--rose); color: var(--rose); background: rgba(176,122,132,0.08); }
+
+/* ── MOBILE SHELL ── */
+.mob-shell { display: none; flex-direction: column; height: 100vh; height: -webkit-fill-available; background: var(--bg); position: fixed; inset: 0; z-index: 500; }
+body.mob-mode .mob-shell { display: flex; }
+body.mob-mode .shell { display: none; }
+.mob-hdr { height: 54px; display: flex; align-items: center; padding: 0 14px; gap: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg); }
+.mob-logo { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.24em; color: var(--text-dim); text-transform: uppercase; flex-shrink: 0; }
+.mob-hdr-center { flex: 1; min-width: 0; }
+.mob-search-hdr { width: 100%; background: var(--s2); border: 1px solid var(--border2); border-radius: 8px; padding: 7px 12px; color: var(--text); font-family: var(--font-ui); font-size: 15px; outline: none; -webkit-appearance: none; transition: border-color 0.15s; }
+.mob-search-hdr:focus { border-color: var(--rose); }
+.mob-search-hdr::placeholder { color: var(--text-dim); }
+.mob-hdr-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.mob-sync { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.4s; flex-shrink: 0; }
+.mob-sync.ok { background: var(--green); box-shadow: 0 0 5px rgba(77,143,106,0.4); }
+.mob-sync.loading { background: var(--amber); animation: blink 1s ease infinite; }
+.mob-hamburger { background: none; border: none; color: var(--text-mid); cursor: pointer; font-size: 20px; padding: 3px; line-height: 1; -webkit-tap-highlight-color: transparent; }
+.mob-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.mob-content::-webkit-scrollbar { display: none; }
+/* MOB PAGES */
+.mob-page { display: none; flex-direction: column; height: 100%; }
+.mob-page.active { display: flex; }
+/* MOB ITEM CARDS */
+.mob-card { padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; border-left: 3px solid transparent; -webkit-tap-highlight-color: transparent; }
+.mob-card:active { background: var(--s1); }
+.mob-card-name { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.25; margin-bottom: 5px; }
+.mob-card-name-sec { font-weight: 300; font-style: italic; color: var(--text-mid); margin-left: 4px; font-size: 14px; }
+.mob-card-loc { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; overflow: hidden; margin-bottom: 6px; }
+.mob-loc-seg { font-size: 12px; color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
+.mob-loc-seg.leaf { color: var(--text); font-weight: 600; flex-shrink: 0; }
+.mob-loc-arr { color: var(--border2); font-size: 11px; flex-shrink: 0; }
+.mob-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mob-cat-badge { font-family: var(--font-mono); font-size: 9px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
+.mob-pill { font-size: 11px; color: var(--text-mid); }
+.mob-pill span { color: var(--text-dim); font-size: 9px; margin-right: 1px; }
+.mob-inuse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 5px rgba(77,143,106,0.7); animation: inUsePulse 2s ease infinite; flex-shrink: 0; display: inline-block; vertical-align: middle; margin-left: 5px; }
+.mob-results-count { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--text-dim); padding: 8px 16px 2px; text-transform: uppercase; }
+.mob-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; gap: 10px; color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-align: center; }
+.mob-empty-icon { font-size: 28px; opacity: 0.3; margin-bottom: 4px; }
+/* MOB BROWSE */
+.mob-browse-hdr { padding: 14px 16px 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.mob-back-btn { background: none; border: none; color: var(--text-mid); cursor: pointer; font-size: 22px; padding: 2px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+.mob-back-btn:active { color: var(--rose); }
+.mob-browse-title { font-size: 20px; font-weight: 600; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mob-browse-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+.mob-bc { display: flex; gap: 5px; padding: 6px 16px 4px; overflow-x: auto; flex-wrap: nowrap; flex-shrink: 0; scrollbar-width: none; }
+.mob-bc::-webkit-scrollbar { display: none; }
+.mob-bc-seg { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); cursor: pointer; white-space: nowrap; transition: color 0.12s; background: none; border: none; padding: 0; }
+.mob-bc-sep { font-family: var(--font-mono); font-size: 10px; color: var(--border2); }
+.mob-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px; }
+.mob-box { background: var(--s1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; cursor: pointer; transition: background 0.1s; border-left: 3px solid transparent; -webkit-tap-highlight-color: transparent; }
+.mob-box:active { background: var(--s2); }
+.mob-box-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.2; margin-bottom: 4px; }
+.mob-box-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+.mob-section-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 10px 16px 4px; display: flex; align-items: center; gap: 10px; }
+.mob-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* MOB STATS */
+.mob-stats { display: flex; padding: 12px 0; }
+.mob-stat { flex: 1; text-align: center; }
+.mob-stat-num { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--text); }
+.mob-stat-lbl { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-top: 2px; }
+/* MOB TABS */
+.mob-tabs { display: flex; border-top: 1px solid var(--border); height: 60px; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
+.mob-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: color 0.15s; -webkit-tap-highlight-color: transparent; }
+.mob-tab.active { color: var(--rose); }
+.mob-tab-icon { font-size: 18px; line-height: 1; transition: transform 0.18s cubic-bezier(0.16,1,0.3,1); }
+.mob-tab.active .mob-tab-icon { transform: scale(1.15); }
+.mob-tab-lbl { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+/* MOB DRAWER */
+.mob-drawer-overlay { position: fixed; inset: 0; z-index: 600; display: none; }
+.mob-drawer-overlay.open { display: block; }
+.mob-drawer-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
+.mob-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 82vw; max-width: 300px; background: var(--s1); border-right: 1px solid var(--border2); overflow-y: auto; transform: translateX(-100%); transition: transform 0.28s cubic-bezier(0.16,1,0.3,1); padding-bottom: env(safe-area-inset-bottom, 16px); }
+.mob-drawer-overlay.open .mob-drawer { transform: translateX(0); }
+.mob-drawer-hdr { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.mob-drawer-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; color: var(--text-dim); text-transform: uppercase; }
+.mob-drawer-close { background: none; border: none; color: var(--text-dim); font-size: 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.mob-drawer-sec-lbl { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); padding: 10px 16px 5px; }
+.mob-drawer-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; cursor: pointer; transition: background 0.1s; font-family: var(--font-ui); font-size: 14px; font-weight: 500; color: var(--text-mid); -webkit-tap-highlight-color: transparent; }
+.mob-drawer-item:active { background: var(--s2); }
+.mob-drawer-item.active { color: var(--rose); background: rgba(176,122,132,0.06); }
+.mob-drawer-item-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.mob-drawer-item.active .mob-drawer-item-count { color: var(--rose); opacity: 0.7; }
+.mob-tree-row { display: flex; align-items: center; gap: 8px; padding: 9px 16px; cursor: pointer; transition: background 0.1s; border-left: 2px solid transparent; -webkit-tap-highlight-color: transparent; }
+.mob-tree-row:active { background: var(--s2); }
+.mob-tree-row.active { border-left-color: var(--rose); background: rgba(176,122,132,0.06); }
+.mob-tree-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.mob-tree-name { flex: 1; font-size: 13px; color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mob-tree-row.active .mob-tree-name { color: var(--rose); font-weight: 500; }
+.mob-tree-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+.mob-tree-expand { background: none; border: none; color: var(--text-dim); font-size: 12px; cursor: pointer; padding: 0 2px; flex-shrink: 0; transition: transform 0.15s; -webkit-tap-highlight-color: transparent; }
+.mob-tree-expand.open { transform: rotate(90deg); }
+.mob-tree-children { padding-left: 14px; border-left: 1px solid var(--border); margin-left: 18px; display: none; }
+.mob-tree-children.open { display: block; }
+.mob-drawer-link { display: flex; align-items: center; padding: 11px 16px; color: var(--text-dim); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; transition: color 0.12s; background: none; border: none; width: 100%; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.mob-drawer-link:active { color: var(--text-mid); }
+/* MOB DETAIL */
+.mob-detail-overlay { position: fixed; inset: 0; z-index: 700; pointer-events: none; }
+.mob-detail-overlay.open { pointer-events: auto; }
+.mob-detail-bg { position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background 0.28s ease; }
+.mob-detail-overlay.open .mob-detail-bg { background: rgba(0,0,0,0.7); }
+.mob-detail-sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--s1); border-radius: 18px 18px 0 0; border-top: 1px solid var(--border2); padding-bottom: env(safe-area-inset-bottom, 16px); max-height: 86vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 -16px 48px rgba(0,0,0,0.6); }
+.mob-detail-overlay.open .mob-detail-sheet { transform: translateY(0); }
+.mob-detail-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 10px auto 0; }
+.mob-detail-hdr { padding: 12px 18px 10px; border-bottom: 1px solid var(--border); }
+.mob-detail-name { font-size: 21px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.mob-detail-name-sec { font-size: 14px; font-weight: 300; font-style: italic; color: var(--text-mid); display: block; margin-top: 2px; }
+.mob-detail-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.mob-detail-loc { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.25); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 12px; flex-wrap: wrap; }
+.mob-detail-loc-seg { font-size: 13px; color: var(--text-mid); }
+.mob-detail-loc-seg.leaf { color: var(--rose); font-weight: 600; font-size: 14px; }
+.mob-detail-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.mob-detail-field { background: var(--s2); border-radius: 8px; padding: 9px 11px; }
+.mob-detail-lbl { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 3px; }
+.mob-detail-val { font-size: 14px; font-weight: 500; color: var(--text); }
+.mob-detail-notes { background: var(--s2); border-radius: 8px; padding: 10px 12px; }
+.mob-detail-notes-lbl { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; }
+.mob-detail-notes-txt { font-size: 13px; color: var(--text-mid); line-height: 1.65; }
+.mob-detail-actions { display: flex; gap: 8px; padding: 4px 16px 10px; }
+.mob-detail-btn { flex: 1; padding: 13px; border-radius: 10px; border: 1px solid var(--border2); background: var(--s2); color: var(--text-mid); font-family: var(--font-ui); font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; text-decoration: none; transition: background 0.1s; -webkit-tap-highlight-color: transparent; }
+.mob-detail-btn:active { background: var(--s3); }
+
 .body{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:calc(100vh - 52px);overflow:hidden;}
 
 /* ── SIDEBAR ── */
@@ -383,10 +514,8 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
       <a class="editor-link" href="dashboard.html">dashboard →</a>
       <a class="editor-link" href="upload.html">upload →</a>
       <button class="editor-link" onclick="toggleChat()" id="chat-toggle-btn" style="background:none;border:none;cursor:pointer;">✦ ask</button>
-      <a class="view-toggle" href="index.html" title="Switch to Desktop Editor">
-        <span class="view-toggle-icon">⊞</span>
-        <span>Desktop</span>
-      </a>
+      <a class="editor-link" href="index.html">editor →</a>
+      <button class="view-mode-toggle" id="view-toggle-btn" onclick="toggleViewMode()">📱 Mobile</button>
     </div>
   </header>
   <div class="body">
@@ -471,7 +600,69 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
   </div>
 </div>
 
-<script>
+<!-- ══ MOBILE SHELL ══ -->
+<div class="mob-shell" id="mob-shell">
+  <!-- Mobile Header -->
+  <div class="mob-hdr">
+    <div class="mob-logo">Inv</div>
+    <div class="mob-hdr-center">
+      <input class="mob-search-hdr" id="mob-search" type="search" placeholder="Search…" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="mob-hdr-right">
+      <div class="mob-sync loading" id="mob-sync"></div>
+      <button class="mob-hamburger" onclick="mobOpenDrawer()" aria-label="Menu">☰</button>
+    </div>
+  </div>
+
+  <!-- Mobile Content (tab pages) -->
+  <div class="mob-content" id="mob-content">
+    <!-- FIND tab page -->
+    <div class="mob-page active" id="mob-page-find">
+      <div id="mob-find-results">
+        <div class="mob-empty"><div class="mob-empty-icon">◎</div>Loading…</div>
+      </div>
+    </div>
+    <!-- BROWSE tab page -->
+    <div class="mob-page" id="mob-page-browse">
+      <div id="mob-browse-inner"></div>
+    </div>
+  </div>
+
+  <!-- Mobile Tab Bar -->
+  <div class="mob-tabs">
+    <button class="mob-tab active" id="mob-tab-find" onclick="mobSwitchTab('find')">
+      <div class="mob-tab-icon">⌕</div><div class="mob-tab-lbl">Find</div>
+    </button>
+    <button class="mob-tab" id="mob-tab-browse" onclick="mobSwitchTab('browse')">
+      <div class="mob-tab-icon">◎</div><div class="mob-tab-lbl">Browse</div>
+    </button>
+  </div>
+</div>
+
+<!-- MOBILE DRAWER -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay">
+  <div class="mob-drawer-bg" onclick="mobCloseDrawer()"></div>
+  <div class="mob-drawer" id="mob-drawer">
+    <div class="mob-drawer-hdr">
+      <span class="mob-drawer-title">Inventory</span>
+      <button class="mob-drawer-close" onclick="mobCloseDrawer()">✕</button>
+    </div>
+    <div id="mob-drawer-content"></div>
+  </div>
+</div>
+
+<!-- MOBILE DETAIL SHEET -->
+<div class="mob-detail-overlay" id="mob-detail-overlay">
+  <div class="mob-detail-bg" onclick="mobCloseDetail()"></div>
+  <div class="mob-detail-sheet">
+    <div class="mob-detail-handle"></div>
+    <div class="mob-detail-hdr" id="mob-detail-hdr"></div>
+    <div class="mob-detail-body" id="mob-detail-body"></div>
+    <div class="mob-detail-actions" id="mob-detail-actions"></div>
+  </div>
+</div>
+
+
 const SUPABASE_URL='https://npdtjxjhepaqhrqtvueu.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
 
@@ -1270,8 +1461,284 @@ async function load(){
 function setSyncStatus(s){
   document.getElementById('sync-dot').className=s==='ok'?'ok':s==='loading'?'loading':'';
   document.getElementById('sync-label').textContent=s==='ok'?`${inventory.length} items`:s==='loading'?'loading':'error';
+  // also update mobile sync dot
+  const md=document.getElementById('mob-sync');
+  if(md)md.className='mob-sync '+(s==='ok'?'ok':s==='loading'?'loading':'');
 }
 load();
+</script>
+
+<script>
+// ══ MOBILE VIEW JS ══════════════════════════════════════════════════════════
+const VIEW_KEY='inv_locate_view'; // 'desktop'|'mobile'
+const DEPTH_HUES_M=[200,160,45,280,20,320,90,260];
+function mDepthColor(d){return`hsla(${DEPTH_HUES_M[d%DEPTH_HUES_M.length]},65%,68%,1)`;}
+
+let _mobTab='find';
+let _mobBrowsePath=[];
+let _mobDrawerExpanded=new Set();
+
+// ── VIEW TOGGLE ──────────────────────────────────────────────────────────────
+function getViewMode(){
+  // Auto-detect on first visit: mobile if screen width <= 768px
+  const saved=localStorage.getItem(VIEW_KEY);
+  if(saved)return saved;
+  return window.innerWidth<=768?'mobile':'desktop';
+}
+function applyViewMode(mode){
+  localStorage.setItem(VIEW_KEY,mode);
+  const btn=document.getElementById('view-toggle-btn');
+  if(mode==='mobile'){
+    document.body.classList.add('mob-mode');
+    if(btn)btn.textContent='🖥 Desktop';
+    // sync data to mobile if already loaded
+    if(inventory.length){mobRenderFind('');mobRenderBrowse();}
+  } else {
+    document.body.classList.remove('mob-mode');
+    if(btn)btn.textContent='📱 Mobile';
+  }
+}
+function toggleViewMode(){
+  const cur=getViewMode();
+  applyViewMode(cur==='mobile'?'desktop':'mobile');
+}
+
+// Apply on page load
+applyViewMode(getViewMode());
+
+// ── MOBILE TAB SWITCHING ─────────────────────────────────────────────────────
+function mobSwitchTab(tab){
+  _mobTab=tab;
+  document.querySelectorAll('.mob-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('mob-page-'+tab).classList.add('active');
+  document.getElementById('mob-tab-'+tab).classList.add('active');
+  if(tab==='find')setTimeout(()=>document.getElementById('mob-search').focus(),200);
+}
+
+// ── MOBILE SEARCH ────────────────────────────────────────────────────────────
+document.getElementById('mob-search').addEventListener('input',e=>mobRenderFind(e.target.value));
+
+function mobRenderFind(q){
+  const el=document.getElementById('mob-find-results');
+  q=(q||'').trim();
+  if(!inventory.length){el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon">◎</div>Loading…</div>';return;}
+  let results;
+  if(!q){
+    results=[...inventory].filter(i=>!i.lockedItem).sort((a,b)=>b.id-a.id).slice(0,80);
+  } else {
+    const ql=q.toLowerCase();
+    results=inventory.filter(i=>{
+      if(i.lockedItem&&!_pinUnlocked)return false;
+      return i.name.toLowerCase().includes(ql)||(i.keywords||'').toLowerCase().includes(ql)||(i.notes||'').toLowerCase().includes(ql)||(i.locationPath||[]).join(' > ').toLowerCase().includes(ql)||(i.category||'').toLowerCase().includes(ql);
+    });
+  }
+  if(!results.length){el.innerHTML=`<div class="mob-empty"><div class="mob-empty-icon">◎</div>No results for "${esc(q)}"</div>`;return;}
+  const hl=(txt)=>{if(!q||!txt)return esc(txt||'');const idx=txt.toLowerCase().indexOf(q.toLowerCase());if(idx===-1)return esc(txt);return esc(txt.slice(0,idx))+`<mark style="background:rgba(176,122,132,0.28);color:var(--text);border-radius:2px;padding:0 2px">${esc(txt.slice(idx,idx+q.length))}</mark>`+esc(txt.slice(idx+q.length));};
+  el.innerHTML=`<div class="mob-results-count">${results.length} item${results.length!==1?'s':''}</div>`+results.map(i=>mobBuildCard(i,q,hl)).join('');
+}
+
+function mobBuildCard(item,q,hl){
+  const cs=catC(item.category);
+  const loc=item.locationPath||[];
+  const{primary,secondary}=splitName(item.name);
+  const locH=loc.length?loc.map((seg,i)=>(i>0?'<span class="mob-loc-arr">›</span>':'')+`<span class="mob-loc-seg${i===loc.length-1?' leaf':''}">${esc(seg)}</span>`).join(''):`<span class="mob-loc-seg" style="font-style:italic;color:var(--text-dim)">No location</span>`;
+  const inUseDot=item.inUse?'<span class="mob-inuse-dot"></span>':'';
+  const qty=(parseInt(item.qty)||1)>1?`<span class="mob-pill"><span>×</span>${esc(item.qty)}</span>`:'';
+  const cond=item.condition?`<span class="mob-pill"><span>COND </span>${esc(item.condition)}</span>`:'';
+  return`<div class="mob-card" style="border-left-color:${cs.text}" onclick="mobOpenDetail(${item.id})">
+    <div class="mob-card-name">${hl(primary)}${secondary?`<span class="mob-card-name-sec">${esc(secondary)}</span>`:''}${inUseDot}</div>
+    <div class="mob-card-loc">${locH}</div>
+    <div class="mob-card-meta"><span class="mob-cat-badge" style="background:${cs.bg};color:${cs.text}">${esc(item.category||'Misc')}</span>${qty}${cond}</div>
+  </div>`;
+}
+
+// ── MOBILE BROWSE ────────────────────────────────────────────────────────────
+function mobRenderBrowse(){
+  _mobBrowsePath=[];
+  mobRenderBrowseAt([]);
+}
+
+function mobRenderBrowseAt(path){
+  _mobBrowsePath=path;
+  const tree=buildTree();
+  const el=document.getElementById('mob-browse-inner');
+  // Navigate tree to path
+  let node=tree;
+  path.forEach(seg=>{if(node.children[seg])node=node.children[seg];});
+  const children=Object.entries(node.children).sort((a,b)=>b[1].total-a[1].total);
+  const directItems=inventory.filter(i=>!i.lockedItem&&(i.locationPath||[]).length===path.length&&pathStartsWith(i.locationPath||[],path));
+  const allItems=inventory.filter(i=>!i.lockedItem&&pathStartsWith(i.locationPath||[],path));
+  const title=path.length?path[path.length-1]:'All Locations';
+  const depth=path.length;
+
+  // Breadcrumb
+  let bcHtml='';
+  if(path.length){
+    const segs=['All',...path];
+    bcHtml='<div class="mob-bc">'+segs.map((seg,i)=>{
+      const p=i===0?[]:path.slice(0,i);
+      return`<button class="mob-bc-seg" onclick="mobRenderBrowseAt(${JSON.stringify(p)})">${esc(seg)}</button>${i<segs.length-1?'<span class="mob-bc-sep">›</span>':''}`;
+    }).join('')+'</div>';
+  }
+
+  // Header
+  const headerHtml=`<div class="mob-browse-hdr">
+    ${path.length?`<button class="mob-back-btn" onclick="mobRenderBrowseAt(${JSON.stringify(path.slice(0,-1))})">‹</button>`:''}
+    <div class="mob-browse-title" style="color:${depth>0?mDepthColor(depth-1):'var(--text)'}">${esc(title)}</div>
+    <div class="mob-browse-count">${allItems.length}</div>
+  </div>${bcHtml}`;
+
+  // Stats (root only)
+  let statsHtml='';
+  if(!path.length){
+    const vis=inventory.filter(i=>!i.lockedItem);
+    const inUse=vis.filter(i=>i.inUse).length;
+    statsHtml=`<div class="mob-stats">
+      <div class="mob-stat"><div class="mob-stat-num">${vis.length}</div><div class="mob-stat-lbl">Items</div></div>
+      <div class="mob-stat"><div class="mob-stat-num">${inUse}</div><div class="mob-stat-lbl">In Use</div></div>
+      <div class="mob-stat"><div class="mob-stat-num">${new Set(vis.map(i=>(i.locationPath||[])[0]).filter(Boolean)).size}</div><div class="mob-stat-lbl">Locations</div></div>
+    </div>`;
+  }
+
+  // Child location boxes
+  let boxesHtml='';
+  if(children.length){
+    const childColor=mDepthColor(depth);
+    boxesHtml='<div class="mob-boxes">'+children.map(([name,cnode])=>{
+      const childPath=[...path,name];
+      return`<div class="mob-box" style="border-left-color:${childColor}40" onclick="mobRenderBrowseAt(${JSON.stringify(childPath)})">
+        <div class="mob-box-name" style="color:${childColor}">${esc(name)}</div>
+        <div class="mob-box-count">${cnode.total} item${cnode.total!==1?'s':''}</div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
+  // Direct items
+  let itemsHtml='';
+  if(directItems.length){
+    itemsHtml=`<div class="mob-section-label">Items here</div>`+directItems.map(i=>mobBuildCard(i,'',s=>esc(s))).join('');
+  }
+
+  el.innerHTML=headerHtml+statsHtml+boxesHtml+itemsHtml;
+  document.getElementById('mob-content').scrollTop=0;
+}
+
+// ── MOBILE DETAIL ────────────────────────────────────────────────────────────
+function mobOpenDetail(id){
+  const item=inventory.find(i=>i.id===id);if(!item)return;
+  const cs=catC(item.category);
+  const loc=item.locationPath||[];
+  const{primary,secondary}=splitName(item.name);
+  const locH=loc.length?loc.map((seg,i)=>(i>0?'<span style="color:var(--border2)"> › </span>':'')+`<span class="mob-detail-loc-seg${i===loc.length-1?' leaf':''}">${esc(seg)}</span>`).join(''):`<span style="color:var(--text-dim);font-style:italic">No location</span>`;
+  document.getElementById('mob-detail-hdr').innerHTML=`
+    <div class="mob-detail-name">${esc(primary)}${secondary?`<span class="mob-detail-name-sec">${esc(secondary)}</span>`:''}</div>
+    ${item.inUse?'<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><span class="mob-inuse-dot"></span><span style="font-size:12px;color:var(--green)">In Use</span></div>':''}`;
+  const fields=[['Category',item.category],['Condition',item.condition],['Keep',item.keep],['Qty',item.qty],['Est. Value',item.estValue?'$'+item.estValue:null],['Year',item.yearPurchased]].filter(([,v])=>v);
+  let fieldsHtml='<div class="mob-detail-fields">'+fields.map(([l,v])=>`<div class="mob-detail-field"><div class="mob-detail-lbl">${esc(l)}</div><div class="mob-detail-val">${esc(v)}</div></div>`).join('')+'</div>';
+  const rawNote=item.notes||'';
+  const kwIdx=rawNote.toLowerCase().indexOf('| keywords:');
+  const dispNote=kwIdx!==-1?rawNote.slice(0,kwIdx).trim():rawNote;
+  const notesHtml=dispNote?`<div class="mob-detail-notes"><div class="mob-detail-notes-lbl">Notes</div><div class="mob-detail-notes-txt">${esc(dispNote)}</div></div>`:'';
+  document.getElementById('mob-detail-body').innerHTML=`<div class="mob-detail-loc">${locH}</div>${fieldsHtml}${notesHtml}`;
+  document.getElementById('mob-detail-actions').innerHTML=`<button class="mob-detail-btn" onclick="mobCloseDetail()">Close</button><a class="mob-detail-btn" href="index.html" style="text-decoration:none;text-align:center">Open Editor →</a>`;
+  document.getElementById('mob-detail-overlay').classList.add('open');
+}
+function mobCloseDetail(){document.getElementById('mob-detail-overlay').classList.remove('open');}
+
+// ── MOBILE DRAWER ────────────────────────────────────────────────────────────
+function mobOpenDrawer(){
+  mobRenderDrawer();
+  document.getElementById('mob-drawer-overlay').classList.add('open');
+}
+function mobCloseDrawer(){document.getElementById('mob-drawer-overlay').classList.remove('open');}
+
+function mobRenderDrawer(){
+  const tree=buildTree();
+  const vis=inventory.filter(i=>!i.lockedItem);
+  const inUseCount=vis.filter(i=>i.inUse).length;
+  let html='';
+  // Quick filters
+  html+=`<div style="padding:6px 0;border-bottom:1px solid var(--border)">`;
+  html+=`<div class="mob-drawer-sec-lbl">Quick Filter</div>`;
+  html+=`<div class="mob-drawer-item${!searchQuery&&!inUseView?' active':''}" onclick="mobDrawerAll()"><span>All Items</span><span class="mob-drawer-item-count">${vis.length}</span></div>`;
+  html+=`<div class="mob-drawer-item${inUseView?' active':''}" onclick="mobDrawerInUse()"><span style="display:flex;align-items:center;gap:6px"><span class="mob-inuse-dot" style="animation:none"></span>In Use</span><span class="mob-drawer-item-count">${inUseCount}</span></div>`;
+  html+=`</div>`;
+  // Location tree
+  html+=`<div style="padding:6px 0;border-bottom:1px solid var(--border)">`;
+  html+=`<div class="mob-drawer-sec-lbl">Locations</div>`;
+  html+=buildMobDrawerTree(tree.children,[],0);
+  html+=`</div>`;
+  // Links
+  html+=`<div style="padding:6px 0">`;
+  html+=`<button class="mob-drawer-link" onclick="toggleViewMode();mobCloseDrawer()">🖥 Switch to Desktop View</button>`;
+  html+=`<a class="mob-drawer-link" href="index.html">Editor →</a>`;
+  html+=`<a class="mob-drawer-link" href="dashboard.html">Dashboard →</a>`;
+  html+=`</div>`;
+  document.getElementById('mob-drawer-content').innerHTML=html;
+}
+
+function buildMobDrawerTree(children,path,depth){
+  let html='';
+  const DEPTH_H=[200,160,45,280,20,320,90,260];
+  Object.entries(children).sort((a,b)=>b[1].total-a[1].total).forEach(([name,node])=>{
+    const p=[...path,name];const pk=p.join('::');
+    const hasCh=Object.keys(node.children).length>0;
+    const isExp=_mobDrawerExpanded.has(pk);
+    const hue=DEPTH_H[depth%DEPTH_H.length];
+    const color=`hsla(${hue},65%,68%,0.9)`;
+    html+=`<div class="mob-tree-row" style="padding-left:${16+depth*14}px" onclick="mobDrawerNav(${JSON.stringify(p)})">
+      <div class="mob-tree-dot" style="background:${color}"></div>
+      <span class="mob-tree-name" style="color:${color}">${esc(name)}</span>
+      <span class="mob-tree-count">${node.total}</span>
+      ${hasCh?`<button class="mob-tree-expand${isExp?' open':''}" onclick="event.stopPropagation();mobToggleDrawerNode('${pk}')">›</button>`:''}
+    </div>`;
+    if(hasCh&&isExp){html+=`<div class="mob-tree-children open">${buildMobDrawerTree(node.children,p,depth+1)}</div>`;}
+  });
+  return html;
+}
+
+function mobToggleDrawerNode(pk){
+  if(_mobDrawerExpanded.has(pk))_mobDrawerExpanded.delete(pk);else _mobDrawerExpanded.add(pk);
+  mobRenderDrawer();
+}
+
+function mobDrawerNav(path){
+  mobCloseDrawer();
+  // Switch to browse tab at that path
+  mobSwitchTab('browse');
+  mobRenderBrowseAt(path);
+}
+
+function mobDrawerAll(){
+  mobCloseDrawer();
+  document.getElementById('mob-search').value='';
+  mobRenderFind('');
+  mobSwitchTab('find');
+}
+
+function mobDrawerInUse(){
+  mobCloseDrawer();
+  const results=inventory.filter(i=>i.inUse&&!i.lockedItem);
+  const el=document.getElementById('mob-find-results');
+  el.innerHTML=`<div class="mob-results-count">${results.length} in use</div>`+results.map(i=>mobBuildCard(i,'',s=>esc(s))).join('');
+  document.getElementById('mob-search').value='';
+  mobSwitchTab('find');
+}
+
+// Re-render mobile whenever inventory loads
+const _origLoad=load;
+// Hook: after data loads, also render mobile if in mob mode
+const _origSyncOk=setSyncStatus;
+function setSyncStatus(s){
+  document.getElementById('sync-dot').className=s==='ok'?'ok':s==='loading'?'loading':'';
+  document.getElementById('sync-label').textContent=s==='ok'?`${inventory.length} items`:s==='loading'?'loading':'error';
+  const md=document.getElementById('mob-sync');
+  if(md)md.className='mob-sync '+(s==='ok'?'ok':'loading');
+  if(s==='ok'&&document.body.classList.contains('mob-mode')){
+    mobRenderFind('');mobRenderBrowse();
+  }
+}
 </script>
 <!-- ── DOC LIGHTBOX ── -->
 <div class="doc-lightbox" id="doc-lightbox" onclick="docLbBgClick(event)">
