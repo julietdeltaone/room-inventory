@@ -1652,7 +1652,7 @@ function mobOpenDrawer(){
     +'<div class="mob-ditem" onclick="mobDrawAll()"><span>All Items</span><span class="mob-dcount">'+vis.length+'</span></div>'
     +'<div class="mob-ditem" onclick="mobDrawInUse()"><span>In Use</span><span class="mob-dcount">'+vis.filter(function(i){return i.inUse;}).length+'</span></div></div>';
   html+='<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="mob-drawer-slbl">Locations</div>'+mobBuildTree(tree.children,[],0)+'</div>';
-  html+='<div style="padding:6px 0"><button class="mob-dlink" onclick="setViewMode('desktop');mobCloseDrawer()">Desktop View</button><a class="mob-dlink" href="index.html">Editor</a><a class="mob-dlink" href="dashboard.html">Dashboard</a></div>';
+  html+='<div style="padding:6px 0"><button class="mob-dlink" onclick="setViewMode(\'desktop\');mobCloseDrawer()">Desktop View</button><a class="mob-dlink" href="index.html">Editor</a><a class="mob-dlink" href="dashboard.html">Dashboard</a></div>';
   document.getElementById('mob-drawer-content').innerHTML=html;
   document.getElementById('mob-drawer-ov').classList.add('open');
 }
