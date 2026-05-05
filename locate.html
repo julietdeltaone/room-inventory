@@ -668,7 +668,11 @@ body.mob-mode .shell{display:none;}
   .mob-page{flex:1;overflow-x:hidden;display:none;}
   .mob-page.active{display:flex;flex-direction:column;overflow-y:auto;}
   /* Ask page: no scroll on the page — scroll is inside mob-ask-thread */
-  #mob-page-ask.active{overflow:hidden;display:flex;flex-direction:column;}
+  #mob-page-ask{overflow:hidden;}
+  #mob-page-ask.active{display:flex;flex-direction:column;overflow:hidden;}
+  #mob-page-ask .mob-ask-wrap{display:flex;flex-direction:column;width:100%;max-width:700px;margin:0 auto;min-height:0;flex:1;}
+  #mob-page-ask .mob-ask-thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
+  #mob-page-ask .mob-ask-input-wrap{flex-shrink:0;border-top:1px solid var(--border);padding:14px 28px 16px;background:var(--bg);}
   .mob-page::-webkit-scrollbar{width:4px;}
   .mob-page::-webkit-scrollbar-track{background:transparent;}
   .mob-page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -741,12 +745,16 @@ body.mob-mode .shell{display:none;}
 /* Desktop: positioned popup */
 @media(min-width:768px){
   .loc-insp-pop{
-    position:absolute;left:auto;right:auto;bottom:auto;
-    border-radius:12px;width:380px;
-    transform:none;box-shadow:0 16px 48px rgba(0,0,0,0.6);
+    position:fixed;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    border-radius:12px;width:400px;max-width:90vw;
+    box-shadow:0 24px 60px rgba(0,0,0,0.7);
     border:1px solid var(--border2);
   }
-  .loc-insp-overlay.open .loc-insp-pop{transform:none;}
+  .loc-insp-overlay.open .loc-insp-pop{transform:translate(-50%,-50%);}
+  .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
+  .loc-insp-handle{display:none;}
 }
 .loc-insp-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;flex-shrink:0;}
 @media(min-width:768px){.loc-insp-handle{display:none;}}
@@ -981,7 +989,7 @@ body.mob-mode .shell{display:none;}
         <div class="mob-field"><div class="mob-field-lbl">Keep?</div>
           <select class="mob-field-sel" id="madd-keep"><option value="">--</option><option selected>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select>
         </div>
-        <button class="mob-submit-btn" id="madd-btn" onclick="mobAddSubmit()">Add Item  ✦ Enrich</button>
+        <div style="display:flex;gap:10px;"><button style="flex:1;padding:14px;border-radius:12px;border:1px solid var(--border2);background:var(--s2);color:var(--text-mid);font-family:var(--font-ui);font-size:16px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="mobCancelAdd()">Cancel</button><button class="mob-submit-btn" id="madd-btn" onclick="mobAddSubmit()" style="flex:2;margin-top:0;">Add ✦ Enrich</button></div>
         <div class="mob-add-status" id="madd-status"></div>
       </div>
     </div>
@@ -2011,7 +2019,7 @@ function mobCard(item, fromSearch){
   var locH=loc.length?loc.map(function(seg,i){return(i>0?'<span class="mob-larr">&rsaquo;</span>':'')+'<span class="mob-lseg'+(i===loc.length-1?' leaf':'')+'">'+ esc(seg)+'</span>';}).join(''):'<span class="mob-lseg" style="font-style:italic;color:var(--text-dim)">No location</span>';
   var iud=item.inUse?'<span class="mob-inuse-dot"></span>':'';
   var pid=mReg([item.id]);
-  var clickFn=fromSearch?'mobNavToItem('+pid+')':'mobOpenDetail('+pid+')';
+  var clickFn=fromSearch?'mobNavToItem(\''+pid+'\')':'mobOpenDetail('+pid+')';
   var luHtml=item.lastUsed?'<div class="loc-last-used-pill">Last used '+esc(formatLastUsed(item.lastUsed))+'</div>':'';
   return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="'+clickFn+'">'
     +'<div class="mob-card-name">'+esc(n.primary)+(n.secondary?'<span class="mob-card-sec">'+esc(n.secondary)+'</span>':'')+iud+'<button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect & edit">ⓘ</button></div>'
@@ -2192,9 +2200,30 @@ function mobLPOpen(){
   mobLPRender();mobLPUpdateBar();
   document.getElementById('mob-lp-ov').classList.add('open');
 }
+var _locInspPickMode = false;
+function locInspPickLoc(){
+  // Open the LP sheet in inspector-pick mode
+  _locInspPickMode = true;
+  var item = inventory.find(function(i){return i.id===_locInspItemId;});
+  _maddLpSel = item&&item.locationPath&&item.locationPath.length ? item.locationPath.slice() : null;
+  _maddLpExp = new Set();
+  if(_maddLpSel){for(var i=1;i<=_maddLpSel.length;i++)_maddLpExp.add(_maddLpSel.slice(0,i).join('::'));}
+  mobLPRender();mobLPUpdateBar();
+  document.getElementById('mob-lp-ov').classList.add('open');
+}
 function mobLPClose(commit){
   document.getElementById('mob-lp-ov').classList.remove('open');
-  if(!commit)return;
+  if(!commit){_locInspPickMode=false;return;}
+  if(_locInspPickMode){
+    // Commit back to inspector
+    _locInspPickMode=false;
+    var newPath=_maddLpSel?_maddLpSel.slice():[];
+    var item=inventory.find(function(i){return i.id===_locInspItemId;});
+    if(item)item._pendingLoc=newPath;
+    var txt=document.getElementById('linsp-loc-txt');
+    if(txt)txt.textContent=newPath.length?newPath.join(' › '):'Tap to pick location';
+    return;
+  }
   _maddLoc=_maddLpSel?_maddLpSel.slice():null;
   var txt=document.getElementById('madd-loc-txt');var btn=document.getElementById('madd-loc-btn');
   if(_maddLoc&&_maddLoc.length){txt.textContent=_maddLoc.join(' › ');btn.classList.add('set');}
@@ -2280,6 +2309,20 @@ async function mobEnrichItem(item){
   return item;
 }
 
+function mobCancelAdd(){
+  // Clear form and go back to browse
+  document.getElementById('madd-name').value='';
+  document.getElementById('madd-qty').value='1';
+  document.getElementById('madd-cat').value='Misc';
+  document.getElementById('madd-cond').value='Good';
+  document.getElementById('madd-keep').value='Keep';
+  var sugg=document.getElementById('madd-sugg');if(sugg)sugg.classList.remove('open');
+  _maddLoc=null;
+  var txt=document.getElementById('madd-loc-txt');var btn=document.getElementById('madd-loc-btn');
+  if(txt)txt.textContent='Tap to pick location';if(btn)btn.classList.remove('set');
+  var stat=document.getElementById('madd-status');if(stat)stat.textContent='';
+  mobSwitchTab('browse');
+}
 async function mobAddSubmit(){
   var name=document.getElementById('madd-name').value.trim();
   if(!name){document.getElementById('madd-name').focus();return;}
@@ -2376,8 +2419,10 @@ function openLocInspector(itemId, btnEl){
     +'</div>'
     +'<div class="loc-insp-section">'
       +'<div class="loc-insp-lbl">Location Path</div>'
-      +'<input class="loc-insp-inp" id="linsp-loc" type="text" value="'+esc((item.locationPath||[]).join(' > '))+'" placeholder="Room > Shelf > Box" autocomplete="off">'
-      +'<div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px;">Use &rsaquo; to separate levels</div>'
+      +'<button class="mob-loc-btn" id="linsp-loc-btn" onclick="locInspPickLoc()" style="margin:0;font-size:14px;">'
+        +'<span id="linsp-loc-txt">'+esc((item.locationPath||[]).join(' › ')||'Tap to pick location')+'</span>'
+        +'<span style="color:var(--text-dim)">›</span>'
+      +'</button>'
     +'</div>'
     +'<div class="loc-insp-section">'
       +'<div class="loc-insp-lbl">Category</div>'
@@ -2413,21 +2458,15 @@ function openLocInspector(itemId, btnEl){
   var overlay = document.getElementById('loc-insp-overlay');
   overlay.classList.add('open');
 
-  if(btnEl && window.innerWidth >= 768){
+  if(window.innerWidth >= 768){
+    // Desktop: center in viewport, fixed position — no scroll glitching
     var pop = document.getElementById('loc-insp-pop');
     pop.style.position = 'fixed';
-    pop.style.top = '';
-    pop.style.left = '';
+    pop.style.top = '50%';
+    pop.style.left = '50%';
+    pop.style.transform = 'translate(-50%, -50%)';
     pop.style.bottom = '';
     pop.style.right = '';
-    var rect = btnEl.getBoundingClientRect();
-    var top = rect.bottom + 8;
-    var left = rect.right - 380;
-    if(left < 10) left = 10;
-    if(top + 580 > window.innerHeight) top = rect.top - 590;
-    if(top < 10) top = 10;
-    pop.style.top = top + 'px';
-    pop.style.left = left + 'px';
   }
 }
 
@@ -2462,8 +2501,8 @@ async function saveLocInspector(){
   stat.style.color = 'var(--text-dim)';
 
   var newName = (document.getElementById('linsp-name').value||'').trim() || item.name;
-  var newLocRaw = (document.getElementById('linsp-loc').value||'').trim();
-  var newLoc = newLocRaw ? newLocRaw.split('>').map(function(s){return s.trim();}).filter(Boolean) : item.locationPath;
+  var newLoc = item._pendingLoc !== undefined ? item._pendingLoc : item.locationPath;
+  item._pendingLoc = undefined; // clear
   var newCat = document.getElementById('linsp-cat').value || item.category;
   var newQty = document.getElementById('linsp-qty').value || item.qty || '1';
   var newCond = document.getElementById('linsp-cond').value || item.condition || '';
