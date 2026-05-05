@@ -700,6 +700,13 @@ body.mob-mode .shell{display:none;}
 
   /* Add tab */
   .mob-add-wrap{max-width:560px;margin:0 auto;padding:32px 24px 48px;}
+  /* Supply tab */
+  .mob-supply-hdr{padding:24px 28px 12px;}
+  .mob-supply-group-hdr{padding:10px 28px 6px;}
+  .mob-supply-item{padding:13px 28px;}
+  .mob-supply-save-bar{padding:14px 28px;}
+  .fill-seg{width:18px;height:26px;}
+  .fill-meter{gap:4px;}
 
   /* Hide the mobile header entirely on iPad — sidebar replaces it */
   .mob-hdr{display:none;}
@@ -843,11 +850,11 @@ body.mob-mode .shell{display:none;}
 .fill-meter{display:flex;gap:3px;align-items:center;flex-shrink:0;}
 .fill-seg{width:14px;height:22px;border-radius:3px;cursor:pointer;transition:opacity 0.1s,transform 0.1s;border:1px solid rgba(255,255,255,0.06);}
 .fill-seg:active{transform:scale(0.9);}
-.fill-seg.full{background:#4d8f6a;}
-.fill-seg.most{background:#7a9e64;}
-.fill-seg.half{background:#9e7a32;}
-.fill-seg.low{background:#8f5530;}
-.fill-seg.empty{background:#3a1a1a;border-color:rgba(255,255,255,0.12);}
+.fill-seg.empty{background:#3a1818;border-color:rgba(200,60,60,0.2);}
+.fill-seg.low{background:#8f3a20;}
+.fill-seg.half{background:#9e7a22;}
+.fill-seg.most{background:#7a9e44;}
+.fill-seg.full{background:#3d8f5a;}
 .fill-seg.unset{background:var(--s3);border-color:var(--border2);}
 
 /* Fill tap-to-cycle pill on item cards */
@@ -3151,6 +3158,10 @@ function ipadNavClick(el){
   var pid=el.dataset.pid;
   if(tab==='browse'&&pid){
     ipadGo(pid);
+  } else if(tab==='supply'){
+    _ipadTab='supply';
+    mobSwitchTab('supply');
+    ipadRenderSidebar();
   } else if(tab==='inuse'){
     _ipadTab='find';
     mobSwitchTab('find');
@@ -3221,6 +3232,7 @@ function ipadGoTab(tab){
     if(ainput)setTimeout(function(){ainput.focus();},300);
   }
   if(tab==='supply'&&inventory.length) mobRenderSupply();
+  if(tab==='supply'&&isIPad()) ipadRenderSidebar();
 }
 
 function ipadOnSearch(val){
@@ -3249,7 +3261,7 @@ window.addEventListener('resize',function(){
 
 // ── FILL LEVEL SYSTEM ─────────────────────────────────────────────────────────
 const FILL_LEVELS = ['Full','Most','Half','Low','Empty'];
-const FILL_NEXT = {Full:'Most', Most:'Half', Half:'Low', Low:'Empty', Empty:'Full', '':'Full'};
+const FILL_NEXT = {Empty:'Low', Low:'Half', Half:'Most', Most:'Full', Full:'Empty', '':'Full'};
 const FILL_CLASS = {Full:'full', Most:'most', Half:'half', Low:'low', Empty:'empty', '':'unset'};
 var _supplyChanges = {}; // itemId → newFillLevel
 
@@ -3288,47 +3300,67 @@ function mobRenderSupply(){
   if(!body) return;
   _supplyChanges = {};
 
-  // All items with a fill level, plus items in supply categories
+  // Only items that already have a fill level set — intentional, no noise
   var fillable = inventory.filter(function(i){
-    return (_pinUnlocked||!i.lockedItem) && (i.fillLevel || SUPPLY_CATS.includes(i.category));
+    return (_pinUnlocked||!i.lockedItem) && i.fillLevel && i.fillLevel !== '';
   });
 
-  // Group by top-level location
+  // Group by deepest meaningful container (2nd-to-last segment if path ≥ 3 deep)
+  // e.g. "Bedroom > Book Shelf > Shelf 2 > Pharmacy Basket" → "Pharmacy Basket"
+  //      "Tesla > Trunk" → "Tesla Trunk"  
+  //      "Bedroom" → "Bedroom"
   var groups = {};
   fillable.forEach(function(i){
-    var top = (i.locationPath||[])[0] || 'Unassigned';
-    if(!groups[top]) groups[top] = [];
-    groups[top].push(i);
+    var path = i.locationPath || [];
+    var groupName;
+    if(path.length >= 3){
+      groupName = path[path.length-1]; // deepest container
+    } else if(path.length === 2){
+      groupName = path[0]+' — '+path[1];
+    } else {
+      groupName = path[0] || 'Unassigned';
+    }
+    if(!groups[groupName]) groups[groupName] = {items:[], topLoc:path[0]||''};
+    groups[groupName].items.push(i);
   });
 
   var needsAttention = fillable.filter(function(i){return i.fillLevel && i.fillLevel!=='Full';}).length;
   if(sub) sub.textContent = fillable.length+' fillable items · '+needsAttention+' need attention';
 
+  // Sort groups: those with low/empty items first, then alpha
+  var fillPriority = {Empty:0, Low:1, Half:2, Most:3, Full:4, '':5};
   var html = '';
-  Object.entries(groups).sort(function(a,b){return a[0].localeCompare(b[0]);}).forEach(function(entry){
-    var loc = entry[0], items = entry[1];
-    // Sort: attention items first, then by name
+  Object.entries(groups)
+    .sort(function(a,b){
+      var aMin = Math.min.apply(null, a[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
+      var bMin = Math.min.apply(null, b[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
+      return aMin-bMin || a[0].localeCompare(b[0]);
+    })
+    .forEach(function(entry){
+    var groupName = entry[0], groupData = entry[1];
+    var items = groupData.items;
+    // Sort within group: Empty first, then Low, Half, Most, Full
     items.sort(function(a,b){
-      var aAttn = a.fillLevel && a.fillLevel!=='Full' ? 0 : 1;
-      var bAttn = b.fillLevel && b.fillLevel!=='Full' ? 0 : 1;
-      return aAttn-bAttn || a.name.localeCompare(b.name);
+      return (fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5) || a.name.localeCompare(b.name);
     });
-    var attentionCount = items.filter(function(i){return i.fillLevel&&i.fillLevel!=='Full';}).length;
-    var groupId = 'sg-'+loc.replace(/[^a-z0-9]/gi,'_');
+    var attentionCount = items.filter(function(i){
+      return i.fillLevel==='Empty'||i.fillLevel==='Low'||i.fillLevel==='Half';
+    }).length;
+    var groupId = 'sg-'+groupName.replace(/[^a-z0-9]/gi,'_');
     html += '<div class="mob-supply-group">';
     html += '<div class="mob-supply-group-hdr" data-gid="'+groupId+'" onclick="supplyToggleGroup(this.dataset.gid)">';
-    html += '<span class="mob-supply-group-name">'+esc(loc)+'</span>';
-    html += '<span class="mob-supply-group-count">'+(attentionCount?'<span style="color:var(--rose)">'+attentionCount+' low</span> · ':'')+''+items.length+'</span>';
+    html += '<span class="mob-supply-group-name">'+esc(groupName)+'</span>';
+    if(groupData.topLoc && groupData.topLoc !== groupName)
+      html += '<span style="font-family:var(--font-mono);font-size:8px;color:var(--text-dim);margin-left:6px">'+esc(groupData.topLoc)+'</span>';
+    html += '<span class="mob-supply-group-count">'+(attentionCount?'<span style="color:var(--rose)">'+attentionCount+' ↓</span> · ':'')+items.length+'</span>';
     html += '</div>';
     html += '<div class="mob-supply-group-body" id="'+groupId+'">';
     items.forEach(function(item){
-      var subloc = (item.locationPath||[]).slice(1).join(' › ');
       var fl = item.fillLevel || '';
       var meterHTML = supplyMeterHTML(item.id, fl);
       html += '<div class="mob-supply-item">';
       html += '<div style="flex:1;min-width:0;">';
       html += '<div class="mob-supply-item-name">'+esc(splitName(item.name).primary)+'</div>';
-      if(subloc) html += '<div class="mob-supply-item-loc">'+esc(subloc)+'</div>';
       html += '</div>';
       html += meterHTML;
       html += '<button class="loc-insp-btn" style="position:static;width:24px;height:24px;font-size:12px;opacity:0.6;" onclick="openLocInspector('+item.id+',this)" title="Edit">ⓘ</button>';
@@ -3342,10 +3374,14 @@ function mobRenderSupply(){
 }
 
 function supplyMeterHTML(itemId, fillLevel){
-  var levels = ['Full','Most','Half','Low','Empty'];
-  var fi = levels.indexOf(fillLevel);
+  // Render left→right as Empty→Low→Half→Most→Full (like a battery)
+  // So Full lights all 5 segs, Empty lights 0
+  var levels = ['Empty','Low','Half','Most','Full'];
+  var fillOrder = ['Empty','Low','Half','Most','Full'];
+  var fi = fillOrder.indexOf(fillLevel); // Full=4, Empty=0
   var html = '<div class="fill-meter">';
   levels.forEach(function(lvl, idx){
+    // Segment is lit if its position <= fill index
     var active = fi>=0 && idx <= fi;
     var segClass = active ? FILL_CLASS[lvl] : 'unset';
     html += '<div class="fill-seg '+segClass+'" data-item-id="'+itemId+'" data-level="'+lvl+'" onclick="supplySetFill(parseInt(this.dataset.itemId),this.dataset.level)" title="'+lvl+'"></div>';
@@ -3365,8 +3401,8 @@ function supplySetFill(itemId, level){
   updateSupplySaveBar();
   // Re-render just that item's meter
   var segs = document.querySelectorAll('.fill-seg[data-item-id="'+itemId+'"]');
-  var levels = ['Full','Most','Half','Low','Empty'];
-  var fi = levels.indexOf(level);
+  var levels = ['Empty','Low','Half','Most','Full'];
+  var fi = levels.indexOf(level); // Full=4, Empty=0
   segs.forEach(function(seg, idx){
     var lvl = levels[idx];
     seg.className = 'fill-seg ' + ((fi>=0 && idx<=fi) ? FILL_CLASS[lvl] : 'unset');
