@@ -665,8 +665,10 @@ body.mob-mode .shell{display:none;}
   .mob-content{display:flex;flex-direction:row;flex:1;overflow:hidden;height:100vh;}
 
   /* All pages stack as columns — only active shows */
-  .mob-page{flex:1;overflow-y:auto;overflow-x:hidden;}
-  .mob-page.active{display:flex;}
+  .mob-page{flex:1;overflow-x:hidden;display:none;}
+  .mob-page.active{display:flex;flex-direction:column;overflow-y:auto;}
+  /* Ask page needs no overflow-y — it manages it internally */
+  #mob-page-ask{overflow:hidden;}
   .mob-page::-webkit-scrollbar{width:4px;}
   .mob-page::-webkit-scrollbar-track{background:transparent;}
   .mob-page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -685,7 +687,7 @@ body.mob-mode .shell{display:none;}
   .mob-stats{padding:16px 24px;}
 
   /* Ask tab */
-  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;height:100%;}
+  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;flex:1;min-height:0;}
   .mob-ask-thread{flex:1;min-height:0;}
   .mob-ask-input-wrap{padding:14px 28px 16px;}
   .mob-ask-body{padding:16px 28px 8px;}
@@ -1845,32 +1847,47 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
   </div>`;
 }
 
-// Navigate browse to item location from search result
+// Navigate browse to item location from search result (desktop + mobile)
 function navigateToSearchItem(el){
   const itemId = parseInt(el.dataset.itemId);
-  const pid = el.dataset.navPid;
   const item = inventory.find(i=>i.id===itemId);
   if(!item) return;
-  const path = _paths[pid] || [];
-  // Clear search
-  document.getElementById('search-input').value = '';
+
+  // Navigate to parent path so the item appears in the items list
+  const loc = item.locationPath || [];
+  const parentPath = loc.length > 1 ? loc.slice(0,-1) : loc;
+
+  // Clear search on whichever view is active
+  const desktopSearch = document.getElementById('search-input');
+  const mobileSearch = document.getElementById('mob-search');
+  if(desktopSearch){ desktopSearch.value = ''; }
+  if(mobileSearch){ mobileSearch.value = ''; }
   searchQuery = '';
-  // Navigate to the parent location
-  navigate(path);
-  // After render, highlight the item card
+
+  if(document.body.classList.contains('mob-mode')){
+    // Mobile: render browse at parent path and switch tab
+    mobRenderBrowseAt(parentPath);
+    mobSwitchTab('browse');
+  } else {
+    // Desktop: use navigate() which updates sidebar + stage
+    navigate(parentPath);
+  }
+
+  // After render, scroll to and highlight the specific item card
   setTimeout(()=>{
-    const cards = document.querySelectorAll('.item-card');
+    const cards = document.querySelectorAll('.item-card, .mob-card');
+    const nameSnippet = item.name.slice(0,22);
     for(const c of cards){
-      if(c.textContent.includes(item.name.slice(0,20))){
+      if(c.textContent.includes(nameSnippet)){
         c.scrollIntoView({behavior:'smooth', block:'center'});
         c.style.transition = 'box-shadow 0.35s, border-left-color 0.35s';
-        c.style.boxShadow = '0 0 0 2px var(--rose), 0 8px 24px rgba(176,122,132,0.2)';
+        c.style.boxShadow = '0 0 0 2px var(--rose), 0 8px 24px rgba(176,122,132,0.18)';
         c.style.borderLeftColor = 'var(--rose)';
-        setTimeout(()=>{c.style.boxShadow='';c.style.borderLeftColor='';}, 2500);
+        setTimeout(()=>{ c.style.boxShadow=''; c.style.borderLeftColor=''; }, 2500);
         break;
       }
     }
-  }, 280);
+  }, 300);
 }
 
 // Search
@@ -2012,21 +2029,25 @@ function mobNavToItem(pid){
   var arr=_mp[pid];if(!arr)return;var id=arr[0];
   var item=inventory.find(function(i){return i.id===id;});if(!item)return;
   var loc=item.locationPath||[];
-  // Navigate to parent folder so item shows in the items list
-  var parentPath=loc.length>1?loc.slice(0,-1):loc;
-  mobRenderBrowseAt(parentPath);
+  // Navigate to the FULL location path — show the exact shelf/drawer
+  // Use parent if item is a direct item at that level, otherwise go exact
+  var targetPath=loc.slice(); // go to exact location (user sees it in items list)
+  mobRenderBrowseAt(targetPath);
   mobSwitchTab('browse');
-  document.getElementById('mob-search').value='';
-  // After render, scroll to and flash the matched item
+  var ms=document.getElementById('mob-search');
+  if(ms)ms.value='';
+  // Scroll to and flash the matched item card
   setTimeout(function(){
     var cards=document.querySelectorAll('.mob-card');
+    var nameSnip=item.name.slice(0,22);
     for(var ci=0;ci<cards.length;ci++){
       var c=cards[ci];
-      if(c.textContent.indexOf(item.name.slice(0,25))!==-1){
+      if(c.textContent.indexOf(nameSnip)!==-1){
         c.scrollIntoView({behavior:'smooth',block:'center'});
-        c.style.transition='background 0.4s';
-        c.style.background='rgba(176,122,132,0.2)';
-        setTimeout(function(){c.style.background='';},2000);
+        c.style.transition='box-shadow 0.35s,border-left-color 0.35s';
+        c.style.boxShadow='0 0 0 2px var(--rose),0 8px 24px rgba(176,122,132,0.18)';
+        c.style.borderLeftColor='var(--rose)';
+        setTimeout(function(){c.style.boxShadow='';c.style.borderLeftColor='';},2500);
         break;
       }
     }
