@@ -177,7 +177,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .item-card:nth-child(5){animation-delay:.08s}.item-card:nth-child(n+6){animation-delay:.10s}
 
 /* Row 1: name left, price right */
-.item-row1{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px;}
+.item-row1{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px;padding-right:28px;}
 .doc-view-btn{background:none;border:none;cursor:pointer;font-size:15px;padding:0;line-height:1;opacity:0.7;transition:opacity 0.15s;flex-shrink:0;}
 .doc-view-btn:hover{opacity:1;}
 
@@ -305,7 +305,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .sr-card:nth-child(n+5){animation-delay:.08s}
 
 /* Row 1: name + qty */
-.sr-row1{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px;}
+.sr-row1{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px;padding-right:28px;}
 .sr-name-primary{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sr-name-secondary{font-family:var(--font-ui);font-size:12px;font-weight:300;font-style:italic;color:var(--text-mid);margin-left:4px;}
 .sr-qty{font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--text);letter-spacing:0.02em;white-space:nowrap;flex-shrink:0;}
@@ -399,7 +399,7 @@ body.mob-mode .shell{display:none;}
 .mob-card:nth-child(even){background:transparent;}
 .mob-card:active{background:var(--s2)!important;}
 .mob-card:active{background:var(--s1);}
-.mob-card-name{font-size:16px;font-weight:600;color:var(--text);line-height:1.25;margin-bottom:5px;}
+.mob-card-name{font-size:16px;font-weight:600;color:var(--text);line-height:1.25;margin-bottom:5px;padding-right:32px;}
 .mob-card-sec{font-weight:300;font-style:italic;color:var(--text-mid);margin-left:4px;font-size:14px;}
 .mob-card-loc{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;overflow:hidden;margin-bottom:6px;}
 .mob-lseg{font-size:12px;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;}
@@ -667,8 +667,8 @@ body.mob-mode .shell{display:none;}
   /* All pages stack as columns — only active shows */
   .mob-page{flex:1;overflow-x:hidden;display:none;}
   .mob-page.active{display:flex;flex-direction:column;overflow-y:auto;}
-  /* Ask page needs no overflow-y — it manages it internally */
-  #mob-page-ask{overflow:hidden;}
+  /* Ask page: no scroll on the page — scroll is inside mob-ask-thread */
+  #mob-page-ask.active{overflow:hidden;display:flex;flex-direction:column;}
   .mob-page::-webkit-scrollbar{width:4px;}
   .mob-page::-webkit-scrollbar-track{background:transparent;}
   .mob-page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -686,10 +686,10 @@ body.mob-mode .shell{display:none;}
   .mob-count-bar{padding:10px 24px 4px;}
   .mob-stats{padding:16px 24px;}
 
-  /* Ask tab */
-  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;flex:1;min-height:0;}
-  .mob-ask-thread{flex:1;min-height:0;}
-  .mob-ask-input-wrap{padding:14px 28px 16px;}
+  /* Ask tab — must be a flex column chain all the way down */
+  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+  .mob-ask-thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
+  .mob-ask-input-wrap{flex-shrink:0;padding:14px 28px 16px;background:var(--bg);border-top:1px solid var(--border);}
   .mob-ask-body{padding:16px 28px 8px;}
   .mob-ask-empty{padding:80px 48px;}
   .mob-ask-bubble.user{max-width:70%;}
@@ -800,19 +800,15 @@ body.mob-mode .shell{display:none;}
 .loc-insp-status{font-family:var(--font-mono);font-size:11px;text-align:center;min-height:16px;letter-spacing:0.04em;color:var(--green);}
 /* Inspector trigger button on cards */
 .loc-insp-btn{
-  position:absolute;top:8px;right:8px;
-  width:26px;height:26px;border-radius:50%;
-  background:rgba(0,0,0,0.35);border:1px solid var(--border2);
-  color:var(--text-dim);font-size:13px;font-weight:600;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all 0.15s;-webkit-tap-highlight-color:transparent;
-  font-family:var(--font-mono);line-height:1;
-  opacity:0.6;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,0.06);border:1px solid var(--border2);
+  color:var(--text-dim);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;
+  font-family:var(--font-mono);line-height:1;vertical-align:middle;
+  margin-left:8px;
 }
-.mob-card{position:relative;}
-.item-card{position:relative;}
-.sr-card{position:relative;}
-.loc-insp-btn:hover,.mob-card:hover .loc-insp-btn,.item-card:hover .loc-insp-btn,.sr-card:hover .loc-insp-btn{opacity:1;background:var(--s2);border-color:var(--border2);color:var(--text);}
+.loc-insp-btn:hover{background:var(--s2);border-color:var(--rose);color:var(--rose);}
 /* Last used on cards */
 .loc-last-used-pill{font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:var(--text-dim);margin-top:4px;display:flex;align-items:center;gap:4px;}
 .loc-last-used-pill::before{content:'↩';font-size:8px;opacity:0.6;}
@@ -1754,10 +1750,10 @@ function itemCardHTML(item){
 
   const luHTML = item.lastUsed ? `<span class="loc-last-used-pill" style="margin-left:auto;margin-top:0">Last used ${esc(formatLastUsed(item.lastUsed))}</span>` : '';
   return`<div class="item-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
-    <button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector(${item.id},this)" title="Inspect & edit">ⓘ</button>
     <div class="item-row1">
-      <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
+      <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;display:flex;align-items:center;gap:0">
         <span class="item-name-primary">${esc(primary)}</span>${secondary?`<span class="item-name-secondary"> — ${esc(secondary)}</span>`:''}
+        <button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector(${item.id},this)" title="Inspect & edit">ⓘ</button>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         ${docBtn}
@@ -1833,8 +1829,9 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
   return`<div class="sr-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border};cursor:pointer"
     data-item-id="${item.id}" data-nav-pid="${cardPid}" onclick="navigateToSearchItem(this)">
     <div class="sr-row1">
-      <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
+      <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;display:flex;align-items:baseline;gap:0">
         <span class="sr-name-primary">${highlight(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${highlight(secondary)}</span>`:''}
+        <button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector(${item.id},this)" title="Inspect & edit">ⓘ</button>
       </div>
       <span class="item-cat-badge" style="background:rgba(0,0,0,0.3);color:${cs.text};flex-shrink:0;align-self:center">${esc(item.category)}</span>
       ${qty}${srInUseBadge}${srDocBtn}
@@ -1843,7 +1840,6 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
     ${kwIndicator}
     ${item.lastUsed?`<div class="loc-last-used-pill">Last used ${esc(formatLastUsed(item.lastUsed))}</div>`:''}
     <div class="sr-nav-hint">Tap to locate in Browse →</div>
-    <button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector(${item.id},this)" title="Inspect & edit">ⓘ</button>
   </div>`;
 }
 
@@ -2018,8 +2014,7 @@ function mobCard(item, fromSearch){
   var clickFn=fromSearch?'mobNavToItem('+pid+')':'mobOpenDetail('+pid+')';
   var luHtml=item.lastUsed?'<div class="loc-last-used-pill">Last used '+esc(formatLastUsed(item.lastUsed))+'</div>':'';
   return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="'+clickFn+'">'
-    +'<button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect & edit">ⓘ</button>'
-    +'<div class="mob-card-name">'+esc(n.primary)+(n.secondary?'<span class="mob-card-sec">'+esc(n.secondary)+'</span>':'')+iud+'</div>'
+    +'<div class="mob-card-name">'+esc(n.primary)+(n.secondary?'<span class="mob-card-sec">'+esc(n.secondary)+'</span>':'')+iud+'<button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect & edit">ⓘ</button></div>'
     +'<div class="mob-card-loc">'+locH+'</div>'
     +'<div class="mob-card-meta"><span class="mob-badge" style="background:'+cs.bg+';color:'+cs.text+'">'+esc(item.category||'Misc')+'</span>'+(item.condition?'<span class="mob-pill">'+esc(item.condition)+'</span>':'')+(item.qty&&item.qty!=='1'?'<span class="mob-pill" style="color:var(--text-mid);font-weight:600">×'+esc(item.qty)+'</span>':'')+'</div>'
     +luHtml
@@ -2342,6 +2337,176 @@ async function mobAddSubmit(){
   }catch(e){stat.style.color='var(--rose)';stat.textContent='Save failed: '+e.message;}
   btn.disabled=false;
 }
+
+// ── LOCATE INSPECTOR ─────────────────────────────────────────────────────────
+var _locInspItemId = null;
+var _locInspInUse = null;
+
+function openLocInspector(itemId, btnEl){
+  itemId = parseInt(itemId);
+  _locInspItemId = itemId;
+  _locInspInUse = null;
+  var item = inventory.find(function(i){ return i.id === itemId; });
+  if(!item) return;
+
+  document.getElementById('loc-insp-title').textContent = item.name;
+
+  var cats = ['Electronics','Cables & Charging','Camera/Photo Gear','Military','Firearms & Ammo',
+    'Clothing','Footwear','Accessories','Tools & Hardware','Office Supplies','Bags & Carry',
+    'Personal Care & Grooming','Health & Supplements','Cleaning & Home','Furniture',
+    'Identity Documents','Legal Documents','Vehicle Documents','Military Documents',
+    'Financial Documents','Books & Notebooks','Gym & Fitness','Automotive',
+    'Memorabilia & Keepsakes','Misc'];
+
+  var catOpts = cats.map(function(c){
+    return '<option value="'+esc(c)+'"'+(item.category===c?' selected':'')+'>'+esc(c)+'</option>';
+  }).join('');
+
+  var condOpts = ['','New','Good','Fair','Poor'].map(function(c){
+    return '<option value="'+esc(c)+'"'+(item.condition===c?' selected':'')+'>'+esc(c||'— Condition —')+'</option>';
+  }).join('');
+
+  var luDisplay = item.lastUsed ? formatLastUsed(item.lastUsed) : 'Never recorded';
+  var luSet = !!item.lastUsed;
+
+  document.getElementById('loc-insp-body').innerHTML =
+    '<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Name</div>'
+      +'<input class="loc-insp-inp" id="linsp-name" type="text" value="'+esc(item.name)+'" autocomplete="off" autocorrect="off">'
+    +'</div>'
+    +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Location Path</div>'
+      +'<input class="loc-insp-inp" id="linsp-loc" type="text" value="'+esc((item.locationPath||[]).join(' > '))+'" placeholder="Room > Shelf > Box" autocomplete="off">'
+      +'<div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px;">Use &rsaquo; to separate levels</div>'
+    +'</div>'
+    +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Category</div>'
+      +'<select class="loc-insp-sel" id="linsp-cat">'+catOpts+'</select>'
+    +'</div>'
+    +'<div class="loc-insp-two">'
+      +'<div class="loc-insp-section">'
+        +'<div class="loc-insp-lbl">Quantity</div>'
+        +'<input class="loc-insp-inp" id="linsp-qty" type="number" value="'+esc(item.qty||'1')+'" min="1" inputmode="numeric">'
+      +'</div>'
+      +'<div class="loc-insp-section">'
+        +'<div class="loc-insp-lbl">Condition</div>'
+        +'<select class="loc-insp-sel" id="linsp-cond">'+condOpts+'</select>'
+      +'</div>'
+    +'</div>'
+    +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Status</div>'
+      +'<div class="loc-insp-toggle-row">'
+        +'<span class="loc-insp-toggle-lbl'+(item.inUse?' on':'')+'" id="linsp-inuse-lbl">'+(item.inUse?'● In Use':'○ Not In Use')+'</span>'
+        +'<div class="loc-insp-sw'+(item.inUse?' on':'')+'" id="linsp-inuse-sw" onclick="locInspToggleInUse()"></div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Last Used</div>'
+      +'<div class="loc-insp-last-used">'
+        +'<span class="loc-insp-lu-val'+(luSet?' set':'')+'" id="linsp-lu-val">'+esc(luDisplay)+'</span>'
+        +'<button class="loc-insp-lu-btn" onclick="locInspMarkLastUsed()">Mark Today &#x21b5;</button>'
+      +'</div>'
+    +'</div>'
+    +'<button class="loc-insp-save" id="linsp-save-btn" onclick="saveLocInspector()">Save Changes</button>'
+    +'<div class="loc-insp-status" id="linsp-status"></div>';
+
+  var overlay = document.getElementById('loc-insp-overlay');
+  overlay.classList.add('open');
+
+  if(btnEl && window.innerWidth >= 768){
+    var pop = document.getElementById('loc-insp-pop');
+    pop.style.position = 'fixed';
+    pop.style.top = '';
+    pop.style.left = '';
+    pop.style.bottom = '';
+    pop.style.right = '';
+    var rect = btnEl.getBoundingClientRect();
+    var top = rect.bottom + 8;
+    var left = rect.right - 380;
+    if(left < 10) left = 10;
+    if(top + 580 > window.innerHeight) top = rect.top - 590;
+    if(top < 10) top = 10;
+    pop.style.top = top + 'px';
+    pop.style.left = left + 'px';
+  }
+}
+
+function locInspToggleInUse(){
+  var sw = document.getElementById('linsp-inuse-sw');
+  var lbl = document.getElementById('linsp-inuse-lbl');
+  if(!sw) return;
+  var isOn = sw.classList.contains('on');
+  _locInspInUse = !isOn;
+  sw.classList.toggle('on', _locInspInUse);
+  if(lbl){
+    lbl.className = 'loc-insp-toggle-lbl' + (_locInspInUse ? ' on' : '');
+    lbl.textContent = _locInspInUse ? '● In Use' : '○ Not In Use';
+  }
+}
+
+function locInspMarkLastUsed(){
+  var today = todayLastUsed();
+  var item = inventory.find(function(i){ return i.id === _locInspItemId; });
+  if(item) item.lastUsed = today;
+  var val = document.getElementById('linsp-lu-val');
+  if(val){ val.textContent = formatLastUsed(today); val.className = 'loc-insp-lu-val set'; }
+}
+
+async function saveLocInspector(){
+  var item = inventory.find(function(i){ return i.id === _locInspItemId; });
+  if(!item) return;
+  var btn = document.getElementById('linsp-save-btn');
+  var stat = document.getElementById('linsp-status');
+  btn.disabled = true;
+  stat.textContent = 'Saving…';
+  stat.style.color = 'var(--text-dim)';
+
+  var newName = (document.getElementById('linsp-name').value||'').trim() || item.name;
+  var newLocRaw = (document.getElementById('linsp-loc').value||'').trim();
+  var newLoc = newLocRaw ? newLocRaw.split('>').map(function(s){return s.trim();}).filter(Boolean) : item.locationPath;
+  var newCat = document.getElementById('linsp-cat').value || item.category;
+  var newQty = document.getElementById('linsp-qty').value || item.qty || '1';
+  var newCond = document.getElementById('linsp-cond').value || item.condition || '';
+  var newInUse = _locInspInUse !== null ? _locInspInUse : item.inUse;
+  var newLastUsed = item.lastUsed || '';
+
+  item.name = newName; item.locationPath = newLoc; item.category = newCat;
+  item.qty = newQty; item.condition = newCond; item.inUse = newInUse;
+  _locInspInUse = null;
+
+  try{
+    var patch = {name:newName, location:newLoc.join(' > '), category:newCat,
+      qty:newQty, condition:newCond, in_use:newInUse, last_used:newLastUsed,
+      last_modified:new Date().toISOString()};
+    var res = await fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+item.id, {
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,
+        'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(patch)
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    stat.textContent = '✓ Saved';
+    stat.style.color = 'var(--green)';
+    if(document.body.classList.contains('mob-mode')){
+      mobRenderBrowseAt(_mobBrowsePath);
+      mobRenderFind(document.getElementById('mob-search').value||'');
+    } else { renderSidebar(); renderStage(); }
+    setTimeout(function(){ closeLocInspector(); }, 800);
+  } catch(err){
+    stat.textContent = '✗ Save failed: '+err.message;
+    stat.style.color = 'var(--rose)';
+    btn.disabled = false;
+  }
+}
+
+function closeLocInspector(){
+  document.getElementById('loc-insp-overlay').classList.remove('open');
+  _locInspItemId = null; _locInspInUse = null;
+}
+function locInspBgClick(e){
+  if(!document.getElementById('loc-insp-pop').contains(e.target)) closeLocInspector();
+}
+
 </script>
 <!-- ── DOC LIGHTBOX ── -->
 <div class="doc-lightbox" id="doc-lightbox" onclick="docLbBgClick(event)">
@@ -2925,6 +3090,15 @@ function ipadGoTab(tab){
   _ipadTab=tab;
   mobSwitchTab(tab);
   ipadRenderSidebar();
+  // On iPad, "Search" focuses the sidebar search box which drives the find tab
+  if(tab==='find'){
+    var isearch=document.getElementById('ipad-search');
+    if(isearch)setTimeout(function(){isearch.focus();},200);
+  }
+  if(tab==='ask'){
+    var ainput=document.getElementById('mob-ask-input');
+    if(ainput)setTimeout(function(){ainput.focus();},300);
+  }
 }
 
 function ipadOnSearch(val){
