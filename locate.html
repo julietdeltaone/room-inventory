@@ -661,8 +661,8 @@ body.mob-mode .shell{display:none;}
   .ipad-foot-sync{display:flex;align-items:center;gap:5px;flex:1;
     font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
 
-  /* Main content area — full height since mob-hdr is hidden */
-  .mob-content{display:flex;flex-direction:row;flex:1;overflow:hidden;height:100vh;}
+  /* Main content area — mob-shell is already fixed inset:0, so just flex:1 */
+  .mob-content{display:flex;flex-direction:row;flex:1;overflow:hidden;}
 
   /* All pages stack as columns — only active shows */
   .mob-page{flex:1;overflow-x:hidden;display:none;}
@@ -670,7 +670,7 @@ body.mob-mode .shell{display:none;}
   /* Ask page: no scroll on the page — scroll is inside mob-ask-thread */
   #mob-page-ask{overflow:hidden;}
   #mob-page-ask.active{display:flex;flex-direction:column;overflow:hidden;}
-  #mob-page-ask .mob-ask-wrap{display:flex;flex-direction:column;width:100%;max-width:700px;margin:0 auto;min-height:0;flex:1;}
+  #mob-page-ask .mob-ask-wrap{display:flex;flex-direction:column;width:100%;max-width:700px;margin:0 auto;min-height:0;flex:1;height:100%;}
   #mob-page-ask .mob-ask-thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
   #mob-page-ask .mob-ask-input-wrap{flex-shrink:0;border-top:1px solid var(--border);padding:14px 28px 16px;background:var(--bg);}
   .mob-page::-webkit-scrollbar{width:4px;}
@@ -820,6 +820,58 @@ body.mob-mode .shell{display:none;}
 /* Last used on cards */
 .loc-last-used-pill{font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:var(--text-dim);margin-top:4px;display:flex;align-items:center;gap:4px;}
 .loc-last-used-pill::before{content:'↩';font-size:8px;opacity:0.6;}
+
+/* ── SUPPLY RUN TAB ── */
+.mob-supply-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);}
+.mob-supply-hdr{padding:20px 16px 10px;flex-shrink:0;}
+.mob-supply-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.mob-supply-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
+.mob-supply-body{flex:1;overflow-y:auto;padding:0 0 32px;}
+.mob-supply-body::-webkit-scrollbar{display:none;}
+.mob-supply-group{margin-bottom:4px;}
+.mob-supply-group-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.mob-supply-group-name{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text-mid);}
+.mob-supply-group-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.mob-supply-group-body{display:flex;flex-direction:column;}
+.mob-supply-group-body.collapsed{display:none;}
+.mob-supply-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--s1);}
+.mob-supply-item:nth-child(even){background:rgba(255,255,255,0.018);}
+.mob-supply-item-name{flex:1;font-size:14px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mob-supply-item-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+
+/* Fill meter — 5 segments */
+.fill-meter{display:flex;gap:3px;align-items:center;flex-shrink:0;}
+.fill-seg{width:14px;height:22px;border-radius:3px;cursor:pointer;transition:opacity 0.1s,transform 0.1s;border:1px solid rgba(255,255,255,0.06);}
+.fill-seg:active{transform:scale(0.9);}
+.fill-seg.full{background:#4d8f6a;}
+.fill-seg.most{background:#7a9e64;}
+.fill-seg.half{background:#9e7a32;}
+.fill-seg.low{background:#8f5530;}
+.fill-seg.empty{background:#3a1a1a;border-color:rgba(255,255,255,0.12);}
+.fill-seg.unset{background:var(--s3);border-color:var(--border2);}
+
+/* Fill tap-to-cycle pill on item cards */
+.fill-cycle-btn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;border:1px solid;cursor:pointer;font-family:var(--font-mono);font-size:9px;font-weight:500;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s;background:transparent;}
+.fill-cycle-btn:active{opacity:0.7;}
+.fill-cycle-btn.full{color:#4d8f6a;border-color:#4d8f6a50;}
+.fill-cycle-btn.most{color:#7a9e64;border-color:#7a9e6450;}
+.fill-cycle-btn.half{color:#9e7a32;border-color:#9e7a3250;}
+.fill-cycle-btn.low{color:#8f5530;border-color:#8f553050;}
+.fill-cycle-btn.empty{color:#c04040;border-color:#c0404050;}
+.fill-cycle-btn.unset{color:var(--text-dim);border-color:var(--border2);}
+
+/* Supply run save bar */
+.mob-supply-save-bar{position:sticky;bottom:0;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.mob-supply-save-btn{flex:1;padding:13px;border-radius:12px;background:var(--rose);border:none;color:#fff;font-family:var(--font-ui);font-size:16px;font-weight:600;cursor:pointer;transition:opacity 0.15s;-webkit-tap-highlight-color:transparent;}
+.mob-supply-save-btn:active{opacity:0.8;}
+.mob-supply-save-btn:disabled{opacity:0.35;}
+.mob-supply-change-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+@media(min-width:768px){
+  .mob-supply-hdr{padding:24px 28px 12px;}
+  .mob-supply-group-hdr{padding:10px 28px 6px;}
+  .mob-supply-item{padding:12px 28px;}
+  .mob-supply-save-bar{padding:14px 28px;}
+}
 
 </style>
 </head>
@@ -1010,12 +1062,26 @@ body.mob-mode .shell{display:none;}
         </div>
       </div>
     </div>
+    <div class="mob-page" id="mob-page-supply">
+      <div class="mob-supply-wrap">
+        <div class="mob-supply-hdr">
+          <div class="mob-supply-title">Supply Run</div>
+          <div class="mob-supply-sub" id="supply-sub-label">Loading…</div>
+        </div>
+        <div class="mob-supply-body" id="mob-supply-body"></div>
+        <div class="mob-supply-save-bar">
+          <span class="mob-supply-change-count" id="supply-change-count"></span>
+          <button class="mob-supply-save-btn" id="supply-save-btn" onclick="supplyRunSave()" disabled>Save Changes</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="mob-tabs">
     <button class="mob-tab" id="mob-tab-find" onclick="mobSwitchTab('find')"><div class="mob-tab-icon">⌕</div><div class="mob-tab-lbl">Find</div></button>
     <button class="mob-tab active" id="mob-tab-browse" onclick="mobSwitchTab('browse')"><div class="mob-tab-icon">◎</div><div class="mob-tab-lbl">Browse</div></button>
     <button class="mob-tab" id="mob-tab-add" onclick="mobSwitchTab('add')"><div class="mob-tab-icon">＋</div><div class="mob-tab-lbl">Add</div></button>
     <button class="mob-tab" id="mob-tab-ask" onclick="mobSwitchTab('ask')"><div class="mob-tab-icon">✦</div><div class="mob-tab-lbl">Ask</div></button>
+    <button class="mob-tab" id="mob-tab-supply" onclick="mobSwitchTab('supply')"><div class="mob-tab-icon">⬡</div><div class="mob-tab-lbl">Supply</div></button>
   </div>
 </div>
 <!-- DRAWER -->
@@ -1751,7 +1817,7 @@ function itemCardHTML(item){
 
   const fillMap={'Full':{label:'Full',color:'#4d8f6a'},'Most':{label:'Most',color:'#7a9e64'},'Half':{label:'Half',color:'#9e7a32'},'Low':{label:'Low',color:'#8f5530'},'Empty':{label:'Empty',color:'#8f3838'}};
   const fillInfo=item.fillLevel?fillMap[item.fillLevel]:null;
-  const fillBadge=fillInfo?`<span class="indicator-badge" style="color:${fillInfo.color};border-color:${fillInfo.color}40"><span class="ind-dot" style="background:${fillInfo.color}"></span>${fillInfo.label}</span>`:'';
+  const fillBadge=fillInfo?`<button class="fill-cycle-btn ${FILL_CLASS[item.fillLevel]||'unset'}" data-item-id="${item.id}" onclick="event.stopPropagation();tapFillCycle(this,${item.id})" title="Tap to change fill">${fillInfo.label}</button>`:'';
   const digitalBadge=item.digitalCopy?`<span class="indicator-badge" style="color:#6e8fa8;border-color:#6e8fa840"><span class="ind-dot" style="background:#6e8fa8"></span>Digital</span>`:'';
   const inUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
   const docBtn=item.docUrl?`<button class="doc-view-btn" onclick="openDocViewer('${esc(item.docUrl)}','${esc(item.name)}')" title="View document">📄</button>`:'';
@@ -1934,6 +2000,13 @@ function setSyncStatus(s){
     mobRenderFind('');
   }
   if(s==='ok'&&typeof isIPad==='function'&&isIPad())ipadRenderSidebar();
+  // Pre-render supply data so it's ready when user taps the tab
+  if(s==='ok'&&typeof mobRenderSupply==='function'){
+    setTimeout(function(){
+      var sp=document.getElementById('mob-supply-body');
+      if(sp&&!sp.children.length)mobRenderSupply();
+    },500);
+  }
 }
 load();
 
@@ -2202,26 +2275,32 @@ function mobLPOpen(){
 }
 var _locInspPickMode = false;
 function locInspPickLoc(){
-  // Open the LP sheet in inspector-pick mode
   _locInspPickMode = true;
   var item = inventory.find(function(i){return i.id===_locInspItemId;});
   _maddLpSel = item&&item.locationPath&&item.locationPath.length ? item.locationPath.slice() : null;
   _maddLpExp = new Set();
   if(_maddLpSel){for(var i=1;i<=_maddLpSel.length;i++)_maddLpExp.add(_maddLpSel.slice(0,i).join('::'));}
   mobLPRender();mobLPUpdateBar();
+  // Hide inspector temporarily — show LP on top cleanly
+  document.getElementById('loc-insp-overlay').style.opacity='0';
+  document.getElementById('loc-insp-overlay').style.pointerEvents='none';
   document.getElementById('mob-lp-ov').classList.add('open');
 }
 function mobLPClose(commit){
   document.getElementById('mob-lp-ov').classList.remove('open');
   if(!commit){_locInspPickMode=false;return;}
   if(_locInspPickMode){
-    // Commit back to inspector
     _locInspPickMode=false;
-    var newPath=_maddLpSel?_maddLpSel.slice():[];
-    var item=inventory.find(function(i){return i.id===_locInspItemId;});
-    if(item)item._pendingLoc=newPath;
-    var txt=document.getElementById('linsp-loc-txt');
-    if(txt)txt.textContent=newPath.length?newPath.join(' › '):'Tap to pick location';
+    // Restore inspector visibility
+    document.getElementById('loc-insp-overlay').style.opacity='';
+    document.getElementById('loc-insp-overlay').style.pointerEvents='';
+    if(commit){
+      var newPath=_maddLpSel?_maddLpSel.slice():[];
+      var item=inventory.find(function(i){return i.id===_locInspItemId;});
+      if(item)item._pendingLoc=newPath;
+      var txt=document.getElementById('linsp-loc-txt');
+      if(txt)txt.textContent=newPath.length?newPath.join(' › '):'Tap to pick location';
+    }
     return;
   }
   _maddLoc=_maddLpSel?_maddLpSel.slice():null;
@@ -2452,6 +2531,7 @@ function openLocInspector(itemId, btnEl){
         +'<button class="loc-insp-lu-btn" onclick="locInspMarkLastUsed()">Mark Today &#x21b5;</button>'
       +'</div>'
     +'</div>'
+    +inspFillSectionHTML(item)
     +'<button class="loc-insp-save" id="linsp-save-btn" onclick="saveLocInspector()">Save Changes</button>'
     +'<div class="loc-insp-status" id="linsp-status"></div>';
 
@@ -2509,14 +2589,16 @@ async function saveLocInspector(){
   var newInUse = _locInspInUse !== null ? _locInspInUse : item.inUse;
   var newLastUsed = item.lastUsed || '';
 
+  var newFill = item._pendingFill !== undefined ? item._pendingFill : item.fillLevel;
   item.name = newName; item.locationPath = newLoc; item.category = newCat;
   item.qty = newQty; item.condition = newCond; item.inUse = newInUse;
+  item.fillLevel = newFill; item._pendingFill = undefined;
   _locInspInUse = null;
 
   try{
     var patch = {name:newName, location:newLoc.join(' > '), category:newCat,
       qty:newQty, condition:newCond, in_use:newInUse, last_used:newLastUsed,
-      last_modified:new Date().toISOString()};
+      fill_level:newFill, last_modified:new Date().toISOString()};
     var res = await fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+item.id, {
       method:'PATCH',
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,
@@ -3138,6 +3220,7 @@ function ipadGoTab(tab){
     var ainput=document.getElementById('mob-ask-input');
     if(ainput)setTimeout(function(){ainput.focus();},300);
   }
+  if(tab==='supply'&&inventory.length) mobRenderSupply();
 }
 
 function ipadOnSearch(val){
@@ -3162,6 +3245,231 @@ function ipadOnSearch(val){
 window.addEventListener('resize',function(){
   if(isIPad())ipadRenderSidebar();
 });
+
+
+// ── FILL LEVEL SYSTEM ─────────────────────────────────────────────────────────
+const FILL_LEVELS = ['Full','Most','Half','Low','Empty'];
+const FILL_NEXT = {Full:'Most', Most:'Half', Half:'Low', Low:'Empty', Empty:'Full', '':'Full'};
+const FILL_CLASS = {Full:'full', Most:'most', Half:'half', Low:'low', Empty:'empty', '':'unset'};
+var _supplyChanges = {}; // itemId → newFillLevel
+
+function fillCyclePill(item){
+  var fl = item.fillLevel || '';
+  var label = fl || 'No fill';
+  var cls = FILL_CLASS[fl] || 'unset';
+  return '<button class="fill-cycle-btn '+cls+'" data-item-id="'+item.id+'" onclick="event.stopPropagation();tapFillCycle(this,'+item.id+')" title="Tap to change fill level">'+label+'</button>';
+}
+
+function tapFillCycle(btn, itemId){
+  var item = inventory.find(function(i){ return i.id===itemId; });
+  if(!item) return;
+  var current = item.fillLevel || '';
+  var next = FILL_NEXT[current] || 'Full';
+  item.fillLevel = next;
+  btn.textContent = next;
+  btn.className = 'fill-cycle-btn ' + (FILL_CLASS[next]||'unset');
+  // Patch to Supabase immediately
+  fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId, {
+    method:'PATCH',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({fill_level:next})
+  }).catch(function(){});
+  // Flash feedback
+  btn.style.transform='scale(1.15)';
+  setTimeout(function(){btn.style.transform='';},150);
+}
+
+// ── SUPPLY RUN TAB ─────────────────────────────────────────────────────────────
+const SUPPLY_CATS = ['Personal Care & Grooming','Health & Supplements','Cleaning & Home','Gym & Fitness','Automotive','Office Supplies','Tools & Hardware','Accessories','Misc'];
+
+function mobRenderSupply(){
+  var body = document.getElementById('mob-supply-body');
+  var sub = document.getElementById('supply-sub-label');
+  if(!body) return;
+  _supplyChanges = {};
+
+  // All items with a fill level, plus items in supply categories
+  var fillable = inventory.filter(function(i){
+    return (_pinUnlocked||!i.lockedItem) && (i.fillLevel || SUPPLY_CATS.includes(i.category));
+  });
+
+  // Group by top-level location
+  var groups = {};
+  fillable.forEach(function(i){
+    var top = (i.locationPath||[])[0] || 'Unassigned';
+    if(!groups[top]) groups[top] = [];
+    groups[top].push(i);
+  });
+
+  var needsAttention = fillable.filter(function(i){return i.fillLevel && i.fillLevel!=='Full';}).length;
+  if(sub) sub.textContent = fillable.length+' fillable items · '+needsAttention+' need attention';
+
+  var html = '';
+  Object.entries(groups).sort(function(a,b){return a[0].localeCompare(b[0]);}).forEach(function(entry){
+    var loc = entry[0], items = entry[1];
+    // Sort: attention items first, then by name
+    items.sort(function(a,b){
+      var aAttn = a.fillLevel && a.fillLevel!=='Full' ? 0 : 1;
+      var bAttn = b.fillLevel && b.fillLevel!=='Full' ? 0 : 1;
+      return aAttn-bAttn || a.name.localeCompare(b.name);
+    });
+    var attentionCount = items.filter(function(i){return i.fillLevel&&i.fillLevel!=='Full';}).length;
+    var groupId = 'sg-'+loc.replace(/[^a-z0-9]/gi,'_');
+    html += '<div class="mob-supply-group">';
+    html += '<div class="mob-supply-group-hdr" data-gid="'+groupId+'" onclick="supplyToggleGroup(this.dataset.gid)">';
+    html += '<span class="mob-supply-group-name">'+esc(loc)+'</span>';
+    html += '<span class="mob-supply-group-count">'+(attentionCount?'<span style="color:var(--rose)">'+attentionCount+' low</span> · ':'')+''+items.length+'</span>';
+    html += '</div>';
+    html += '<div class="mob-supply-group-body" id="'+groupId+'">';
+    items.forEach(function(item){
+      var subloc = (item.locationPath||[]).slice(1).join(' › ');
+      var fl = item.fillLevel || '';
+      var meterHTML = supplyMeterHTML(item.id, fl);
+      html += '<div class="mob-supply-item">';
+      html += '<div style="flex:1;min-width:0;">';
+      html += '<div class="mob-supply-item-name">'+esc(splitName(item.name).primary)+'</div>';
+      if(subloc) html += '<div class="mob-supply-item-loc">'+esc(subloc)+'</div>';
+      html += '</div>';
+      html += meterHTML;
+      html += '<button class="loc-insp-btn" style="position:static;width:24px;height:24px;font-size:12px;opacity:0.6;" onclick="openLocInspector('+item.id+',this)" title="Edit">ⓘ</button>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  body.innerHTML = html || '<div class="mob-empty" style="padding:60px 24px;"><div style="font-size:28px;opacity:0.2;margin-bottom:8px;">⬡</div><div>No fillable items found</div></div>';
+  updateSupplySaveBar();
+}
+
+function supplyMeterHTML(itemId, fillLevel){
+  var levels = ['Full','Most','Half','Low','Empty'];
+  var fi = levels.indexOf(fillLevel);
+  var html = '<div class="fill-meter">';
+  levels.forEach(function(lvl, idx){
+    var active = fi>=0 && idx <= fi;
+    var segClass = active ? FILL_CLASS[lvl] : 'unset';
+    html += '<div class="fill-seg '+segClass+'" data-item-id="'+itemId+'" data-level="'+lvl+'" onclick="supplySetFill(parseInt(this.dataset.itemId),this.dataset.level)" title="'+lvl+'"></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function supplySetFill(itemId, level){
+  var item = inventory.find(function(i){return i.id===itemId;});
+  if(!item) return;
+  // If tapping the already-set level, clear it
+  if(item.fillLevel === level) level = '';
+  var prev = item.fillLevel || '';
+  item.fillLevel = level;
+  _supplyChanges[itemId] = level;
+  updateSupplySaveBar();
+  // Re-render just that item's meter
+  var segs = document.querySelectorAll('.fill-seg[data-item-id="'+itemId+'"]');
+  var levels = ['Full','Most','Half','Low','Empty'];
+  var fi = levels.indexOf(level);
+  segs.forEach(function(seg, idx){
+    var lvl = levels[idx];
+    seg.className = 'fill-seg ' + ((fi>=0 && idx<=fi) ? FILL_CLASS[lvl] : 'unset');
+  });
+}
+
+function supplyToggleGroup(groupId){
+  var el = document.getElementById(groupId);
+  if(el) el.classList.toggle('collapsed');
+}
+
+function updateSupplySaveBar(){
+  var count = Object.keys(_supplyChanges).length;
+  var btn = document.getElementById('supply-save-btn');
+  var lbl = document.getElementById('supply-change-count');
+  if(btn) btn.disabled = count===0;
+  if(lbl) lbl.textContent = count ? count+' change'+(count>1?'s':'') : '';
+}
+
+async function supplyRunSave(){
+  var changes = Object.entries(_supplyChanges);
+  if(!changes.length) return;
+  var btn = document.getElementById('supply-save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  var ok=0, fail=0;
+  for(var ci=0;ci<changes.length;ci++){
+    var itemId=parseInt(changes[ci][0]), level=changes[ci][1];
+    try{
+      var r=await fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId,{
+        method:'PATCH',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({fill_level:level})
+      });
+      if(r.ok)ok++;else fail++;
+    }catch(e){fail++;}
+  }
+  _supplyChanges={};
+  btn.textContent = fail ? fail+' failed — retry' : 'Save Changes';
+  btn.disabled=true;
+  var lbl=document.getElementById('supply-change-count');
+  if(lbl)lbl.textContent=ok ? '✓ '+ok+' saved' : '';
+  setTimeout(function(){
+    btn.textContent='Save Changes';
+    if(lbl)lbl.textContent='';
+  },2500);
+}
+
+// ── ADD FILL LEVEL TO INSPECTOR ────────────────────────────────────────────────
+function inspFillSectionHTML(item){
+  var levels=['Full','Most','Half','Low','Empty'];
+  var current=item.fillLevel||'';
+  var html='<div class="loc-insp-section"><div class="loc-insp-lbl">Fill Level</div>';
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  levels.forEach(function(lvl){
+    var isActive=current===lvl;
+    var cls=FILL_CLASS[lvl]||'unset';
+    // Color map
+    var colors={Full:'#4d8f6a',Most:'#7a9e64',Half:'#9e7a32',Low:'#8f5530',Empty:'#c04040'};
+    var col=colors[lvl]||'var(--text-dim)';
+    html+='<button data-lvl="'+lvl+'" onclick="locInspSetFill(this.dataset.lvl)" style="'
+      +'flex:1;padding:8px 4px;border-radius:8px;font-family:var(--font-mono);font-size:11px;font-weight:600;cursor:pointer;'
+      +'background:'+(isActive?'rgba('+hexToRgb(col)+',0.15)':'var(--s3)')+';'
+      +'border:1.5px solid '+(isActive?col:'var(--border2)')+';'
+      +'color:'+(isActive?col:'var(--text-dim)')+';'
+      +'transition:all 0.15s;-webkit-tap-highlight-color:transparent;'
+      +'" id="linsp-fill-'+lvl+'">'+lvl+'</button>';
+  });
+  // Clear button
+  html+='<button data-lvl="" onclick="locInspSetFill(this.dataset.lvl)" style="'
+    +'padding:8px 10px;border-radius:8px;font-family:var(--font-mono);font-size:10px;cursor:pointer;'
+    +'background:var(--s3);border:1px solid var(--border2);color:var(--text-dim);'
+    +'transition:all 0.15s;-webkit-tap-highlight-color:transparent;'
+    +'">✕</button>';
+  html+='</div></div>';
+  return html;
+}
+
+function hexToRgb(hex){
+  // Convert #4d8f6a → "77,143,106" for rgba()
+  var m=hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  if(!m)return'128,128,128';
+  return parseInt(m[1],16)+','+parseInt(m[2],16)+','+parseInt(m[3],16);
+}
+
+function locInspSetFill(level){
+  var item=inventory.find(function(i){return i.id===_locInspItemId;});
+  if(!item)return;
+  item._pendingFill=level;
+  var levels=['Full','Most','Half','Low','Empty'];
+  var colors={Full:'#4d8f6a',Most:'#7a9e64',Half:'#9e7a32',Low:'#8f5530',Empty:'#c04040'};
+  levels.forEach(function(lvl){
+    var btn=document.getElementById('linsp-fill-'+lvl);
+    if(!btn)return;
+    var isActive=lvl===level;
+    var col=colors[lvl];
+    btn.style.background=isActive?'rgba('+hexToRgb(col)+',0.15)':'var(--s3)';
+    btn.style.borderColor=isActive?col:'var(--border2)';
+    btn.style.color=isActive?col:'var(--text-dim)';
+  });
+}
+
+// Hook supply tab render into mobSwitchTab
+var _origMobSwitchTab = null;
 
 </script>
 
