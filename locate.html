@@ -415,8 +415,8 @@ body.mob-mode .shell{display:none;}
 .mob-bc::-webkit-scrollbar{display:none;}
 .mob-bc button{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);cursor:pointer;white-space:nowrap;background:none;border:none;padding:0;}
 .mob-bc-sep{font-family:var(--font-mono);font-size:10px;color:var(--border2);}
-.mob-boxes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px;}
-.mob-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 14px 14px;cursor:pointer;border-top:3px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.1s;display:flex;flex-direction:column;}
+.mob-boxes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px;}
+.mob-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 14px 12px;cursor:pointer;border-top:3px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.12s;display:flex;flex-direction:column;min-height:90px;}
 .mob-box:active{background:var(--s2);}
 .mob-box-name{font-size:17px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:3px;}
 .mob-box-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;}
@@ -1544,6 +1544,10 @@ setViewMode(getViewPref());
 var _mp={};var _mpid=0;
 function mReg(arr){var id='m'+(++_mpid);_mp[id]=arr;return id;}
 function mNav(id){mobRenderBrowseAt(_mp[id]||[]);}
+// Path-key registry for location picker and drawer
+var _mpk={};var _mpkid=0;
+function mRegK(arr_or_str){var k=Array.isArray(arr_or_str)?arr_or_str.join('::'):arr_or_str;if(!_mpk._rev)_mpk._rev={};if(_mpk._rev[k])return _mpk._rev[k];var id='k'+(++_mpkid);_mpk[id]=k;_mpk._rev[k]=id;return id;}
+function mGetK(id){return _mpk[id]||'';}
 
 const MOB_DH=[200,160,45,280,20,320,90,260];
 function mDC(d){return'hsla('+MOB_DH[d%MOB_DH.length]+',65%,68%,1)';}
@@ -1566,7 +1570,7 @@ function mobRenderFind(q){
   q=(q||'').trim();
   if(!inventory.length){el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon">&#9900;</div>Loading&hellip;</div>';return;}
   var res;
-  if(!q){res=inventory.filter(function(i){return _pinUnlocked||!i.lockedItem;}).sort(function(a,b){return b.id-a.id;}).slice(0,100);}
+  if(!q){el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon" style="font-size:32px;margin-bottom:8px">◎</div><div style="font-size:13px;margin-bottom:4px">Search your inventory</div><div style="font-size:11px">Find items by name, location, or category</div></div>';return;}
   else{var ql=q.toLowerCase();res=inventory.filter(function(i){if(!_pinUnlocked&&i.lockedItem)return false;return i.name.toLowerCase().indexOf(ql)!==-1||(i.keywords||'').toLowerCase().indexOf(ql)!==-1||(i.locationPath||[]).join(' > ').toLowerCase().indexOf(ql)!==-1||(i.category||'').toLowerCase().indexOf(ql)!==-1;});}
   if(!res.length){el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon">&#9900;</div>No results for &ldquo;'+esc(q)+'&rdquo;</div>';return;}
   var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+'</div>';
@@ -1579,7 +1583,7 @@ function mobCard(item){
   var locH=loc.length?loc.map(function(seg,i){return(i>0?'<span class="mob-larr">&rsaquo;</span>':'')+'<span class="mob-lseg'+(i===loc.length-1?' leaf':'')+'">'+ esc(seg)+'</span>';}).join(''):'<span class="mob-lseg" style="font-style:italic;color:var(--text-dim)">No location</span>';
   var iud=item.inUse?'<span class="mob-inuse-dot"></span>':'';
   var pid=mReg([item.id]);
-  return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="mobOpenDetail('+JSON.stringify(pid)+')">'
+  return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="mobOpenDetail('+pid+')">'
     +'<div class="mob-card-name">'+esc(n.primary)+(n.secondary?'<span class="mob-card-sec">'+esc(n.secondary)+'</span>':'')+iud+'</div>'
     +'<div class="mob-card-loc">'+locH+'</div>'
     +'<div class="mob-card-meta"><span class="mob-badge" style="background:'+cs.bg+';color:'+cs.text+'">'+esc(item.category||'Misc')+'</span>'+(item.condition?'<span class="mob-pill">'+esc(item.condition)+'</span>':'')+'</div>'
@@ -1615,7 +1619,7 @@ function mobRenderBrowseAt(path){
     var segs=['All'].concat(path);
     bcH='<div class="mob-bc">'+segs.map(function(seg,i){
       var p=i===0?[]:path.slice(0,i);var pid=mReg(p);
-      return'<button onclick="mNav('+JSON.stringify(pid)+')">'+esc(seg)+'</button>'+(i<segs.length-1?'<span class="mob-bc-sep">&rsaquo;</span>':'');
+      return'<button data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'+esc(seg)+'</button>'+(i<segs.length-1?'<span class="mob-bc-sep">&rsaquo;</span>':'');
     }).join('')+'</div>';
   }
   var statsH='';
@@ -1630,15 +1634,20 @@ function mobRenderBrowseAt(path){
       var name=entry[0];var cn=entry[1];
       var pid=mReg(path.concat([name]));
       var childPath=path.concat([name]);
-      var prevItems=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&(i.locationPath||[]).length===childPath.length&&pathStartsWith(i.locationPath||[],childPath);}).slice(0,3);
-      var prevH=prevItems.length?'<div class="mob-box-preview">'+prevItems.map(function(i){return'<div class="mob-box-prev-item">&middot; '+esc(splitName(i.name).primary)+'</div>';}).join('')+(cn.total>3?'<div class="mob-box-prev-item" style="opacity:0.5">&plus; more</div>':'')+'</div>':'';
-      return'<div class="mob-box" style="border-top-color:'+cc+'" onclick="mNav('+JSON.stringify(pid)+')"><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+'</div>';
+      // Show sub-locations first, then items
+      var subLocs=Object.keys(cn.children||{}).sort();
+      var directHere=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&(i.locationPath||[]).length===childPath.length&&pathStartsWith(i.locationPath||[],childPath);});
+      var prevLines=[];
+      subLocs.forEach(function(sl){prevLines.push('› '+esc(sl));});
+      if(prevLines.length<4){directHere.slice(0,4-prevLines.length).forEach(function(i){prevLines.push('· '+esc(splitName(i.name).primary));});}
+      var prevH=prevLines.length?'<div class="mob-box-preview">'+prevLines.map(function(l){return'<div class="mob-box-prev-item">'+l+'</div>';}).join('')+'</div>':'';
+      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)"><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+'</div>';
     }).join('')+'</div>';
   }
   var itemsH='';
   if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div>'+directItems.map(function(i){return mobCard(i);}).join('');}
   var backPid=path.length?mReg(path.slice(0,-1)):'';
-  var hdrH='<div class="mob-browse-hdr">'+(path.length?'<button class="mob-back" onclick="mNav('+JSON.stringify(backPid)+')">&#8249;</button>':'')+'<div class="mob-btitle" style="color:'+(depth>0?mDC(depth-1):'var(--text)')+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>';
+  var hdrH='<div class="mob-browse-hdr">'+(path.length?'<button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">&#8249;</button>':'')+'<div class="mob-btitle" style="color:'+(depth>0?mDC(depth-1):'var(--text)')+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
   document.querySelector('.mob-content').scrollTop=0;
 }
@@ -1663,18 +1672,18 @@ function mobBuildTree(ch,path,depth){
     var p=path.concat([name]);var pk=p.join('::');
     var hasCh=Object.keys(node.children).length>0;var isExp=_mobDrExp.has(pk);
     var color='hsla('+MOB_DH[depth%MOB_DH.length]+',65%,68%,0.9)';
-    var pid=mReg(p);
-    html+='<div class="mob-trow" style="padding-left:'+(16+depth*14)+'px" onclick="mNav('+JSON.stringify(pid)+')">'
+    var pid=mReg(p);var kid=mRegK(pk);
+    html+='<div class="mob-trow" style="padding-left:'+(16+depth*14)+'px" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'
       +'<div class="mob-tdot" style="background:'+color+'"></div>'
       +'<span class="mob-tname" style="color:'+color+'">'+esc(name)+'</span>'
       +'<span class="mob-tcnt">'+node.total+'</span>'
-      +(hasCh?'<button class="mob-texp'+(isExp?' open':'')+'" onclick="event.stopPropagation();mobTogNode('+JSON.stringify(pk)+')">&rsaquo;</button>':'')
+      +(hasCh?'<button class="mob-texp'+(isExp?' open':'')+'" data-kid="'+kid+'" onclick="event.stopPropagation();mobTogNode(this.dataset.kid)">&rsaquo;</button>':'')
       +'</div>';
     if(hasCh&&isExp)html+='<div class="mob-tchildren open">'+mobBuildTree(node.children,p,depth+1)+'</div>';
   });
   return html;
 }
-function mobTogNode(pk){if(_mobDrExp.has(pk))_mobDrExp.delete(pk);else _mobDrExp.add(pk);mobOpenDrawer();}
+function mobTogNode(kid){var pk=mGetK(kid)||kid;if(_mobDrExp.has(pk))_mobDrExp.delete(pk);else _mobDrExp.add(pk);mobOpenDrawer();}
 function mobDrawAll(){mobCloseDrawer();document.getElementById('mob-search').value='';mobRenderFind('');mobSwitchTab('find');}
 function mobDrawInUse(){
   mobCloseDrawer();
@@ -1733,18 +1742,19 @@ function mobLPBuildTree(ch,path,depth){
     var hasCh=Object.keys(node.children).length>0;var isExp=_maddLpExp.has(pk);
     var isSel=_maddLpSel&&_maddLpSel.join('::')=== pk;
     var color='hsla('+MOB_DH[depth%MOB_DH.length]+',65%,68%,0.9)';
-    html+='<div class="mob-lp-row'+(isSel?' sel':'')+'" onclick="mobLPSelect('+JSON.stringify(pk)+')" style="padding-left:'+(16+depth*14)+'px;border-left-color:'+(isSel?'var(--rose)':color+'40')+'">'
+    var kid=mRegK(pk);
+    html+='<div class="mob-lp-row'+(isSel?' sel':'')+'" data-kid="'+kid+'" onclick="mobLPSelect(this.dataset.kid)" style="padding-left:'+(16+depth*14)+'px;border-left-color:'+(isSel?'var(--rose)':color+'40')+'">'
       +'<div class="mob-lp-dot" style="background:'+color+'"></div>'
       +'<span class="mob-lp-name">'+esc(name)+'</span>'
       +'<span class="mob-lp-cnt">'+node.total+'</span>'
-      +(hasCh?'<button class="mob-lp-exp'+(isExp?' open':'')+'" onclick="event.stopPropagation();mobLPToggle('+JSON.stringify(pk)+')">&rsaquo;</button>':'')
+      +(hasCh?'<button class="mob-lp-exp'+(isExp?' open':'')+'" data-kid="'+kid+'" onclick="event.stopPropagation();mobLPToggle(this.dataset.kid)">&rsaquo;</button>':'')
       +'</div>';
     if(hasCh&&isExp)html+='<div class="mob-lp-children open">'+mobLPBuildTree(node.children,p,depth+1)+'</div>';
   });
   return html;
 }
-function mobLPSelect(pk){_maddLpSel=pk.split('::');_maddLpExp.add(pk);mobLPRender();mobLPUpdateBar();}
-function mobLPToggle(pk){if(_maddLpExp.has(pk))_maddLpExp.delete(pk);else _maddLpExp.add(pk);mobLPRender();}
+function mobLPSelect(kid){var pk=mGetK(kid)||kid;_maddLpSel=pk.split('::');_maddLpExp.add(pk);mobLPRender();mobLPUpdateBar();}
+function mobLPToggle(kid){var pk=mGetK(kid)||kid;if(_maddLpExp.has(pk))_maddLpExp.delete(pk);else _maddLpExp.add(pk);mobLPRender();}
 
 async function mobAddSubmit(){
   var name=document.getElementById('madd-name').value.trim();
