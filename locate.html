@@ -690,12 +690,13 @@ body.mob-mode .shell{display:none;}
   .mob-count-bar{padding:10px 24px 4px;}
   .mob-stats{padding:16px 24px;}
 
-  /* Ask tab — must be a flex column chain all the way down */
-  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
-  .mob-ask-thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
-  .mob-ask-input-wrap{flex-shrink:0;padding:14px 28px 16px;background:var(--bg);border-top:1px solid var(--border);}
-  .mob-ask-body{padding:16px 28px 8px;}
-  .mob-ask-empty{padding:80px 48px;}
+  /* Ask tab — scoped to #mob-page-ask for iPad, using flex column chain */
+  #mob-page-ask{position:relative;}
+  #mob-page-ask .mob-ask-wrap{position:absolute;inset:0;display:flex;flex-direction:column;max-width:700px;width:100%;margin:0 auto;}
+  #mob-page-ask .mob-ask-thread{flex:1;min-height:0;overflow-y:auto;}
+  #mob-page-ask .mob-ask-input-wrap{flex-shrink:0;padding:14px 28px 16px;background:var(--bg);border-top:1px solid var(--border);}
+  #mob-page-ask .mob-ask-body{padding:16px 28px 8px;}
+  #mob-page-ask .mob-ask-empty{padding:80px 48px;}
   .mob-ask-bubble.user{max-width:70%;}
 
   /* Add tab */
@@ -3142,6 +3143,8 @@ function ipadRenderSidebar(){
   html+=navItem('⌕','Search','find',null,null);
   html+=navItem('✦','Ask AI','ask',null,null);
   html+=navItem('＋','Add Item','add',null,null);
+  var supplyAttn=inventory.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
+  html+=navItem('⬡','Supply Run','supply',null,supplyAttn||null);
   if(inUseCnt>0)html+=navItem('●','In Use','inuse',null,inUseCnt);
   html+='</div>';
 
