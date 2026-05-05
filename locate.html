@@ -721,6 +721,100 @@ body.mob-mode .shell{display:none;}
   /* iPad search header full width */
   .mob-search-hdr{font-size:14px;}
 }
+
+/* ── LOCATE INSPECTOR ── */
+.loc-insp-overlay{position:fixed;inset:0;z-index:900;display:none;}
+.loc-insp-overlay.open{display:block;}
+.loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);}
+/* Mobile: bottom sheet */
+.loc-insp-pop{
+  position:absolute;left:0;right:0;bottom:0;
+  background:var(--s1);border-radius:20px 20px 0 0;
+  border-top:1px solid var(--border2);
+  max-height:88vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 -16px 48px rgba(0,0,0,0.5);
+}
+.loc-insp-overlay.open .loc-insp-pop{transform:translateY(0);}
+/* Desktop: positioned popup */
+@media(min-width:768px){
+  .loc-insp-pop{
+    position:absolute;left:auto;right:auto;bottom:auto;
+    border-radius:12px;width:380px;
+    transform:none;box-shadow:0 16px 48px rgba(0,0,0,0.6);
+    border:1px solid var(--border2);
+  }
+  .loc-insp-overlay.open .loc-insp-pop{transform:none;}
+}
+.loc-insp-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;flex-shrink:0;}
+@media(min-width:768px){.loc-insp-handle{display:none;}}
+.loc-insp-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.loc-insp-title{font-size:14px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:10px;}
+.loc-insp-close{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0;line-height:1;transition:color 0.15s;}
+.loc-insp-close:hover{color:var(--text);}
+.loc-insp-body{overflow-y:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:14px;}
+.loc-insp-body::-webkit-scrollbar{display:none;}
+.loc-insp-section{display:flex;flex-direction:column;gap:8px;}
+.loc-insp-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px;}
+.loc-insp-inp{
+  background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-family:var(--font-ui);font-size:15px;
+  outline:none;width:100%;-webkit-appearance:none;transition:border-color 0.15s;
+}
+.loc-insp-inp:focus{border-color:var(--rose);}
+.loc-insp-sel{
+  background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-family:var(--font-ui);font-size:15px;
+  outline:none;width:100%;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;
+  transition:border-color 0.15s;
+}
+.loc-insp-sel:focus{border-color:var(--rose);}
+.loc-insp-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.loc-insp-toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;padding:10px 14px;}
+.loc-insp-toggle-lbl{font-size:14px;color:var(--text-mid);}
+.loc-insp-toggle-lbl.on{color:var(--green);font-weight:500;}
+.loc-insp-sw{width:42px;height:24px;border-radius:12px;background:var(--border2);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.loc-insp-sw.on{background:var(--green);}
+.loc-insp-sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+.loc-insp-sw.on::after{transform:translateX(18px);}
+.loc-insp-last-used{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;padding:10px 14px;}
+.loc-insp-lu-val{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);}
+.loc-insp-lu-val.set{color:var(--text-mid);}
+.loc-insp-lu-btn{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--rose);background:rgba(176,122,132,0.1);border:1px solid rgba(176,122,132,0.3);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
+.loc-insp-lu-btn:hover{background:rgba(176,122,132,0.2);}
+.loc-insp-save{
+  width:100%;padding:14px;background:var(--rose);border:none;border-radius:12px;
+  color:#fff;font-family:var(--font-ui);font-size:16px;font-weight:600;
+  cursor:pointer;transition:opacity 0.15s;margin-top:4px;
+}
+.loc-insp-save:hover{opacity:0.88;}
+.loc-insp-save:active{opacity:0.75;}
+.loc-insp-save:disabled{opacity:0.35;cursor:not-allowed;}
+.loc-insp-status{font-family:var(--font-mono);font-size:11px;text-align:center;min-height:16px;letter-spacing:0.04em;color:var(--green);}
+/* Inspector trigger button on cards */
+.loc-insp-btn{
+  position:absolute;top:8px;right:8px;
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(0,0,0,0.35);border:1px solid var(--border2);
+  color:var(--text-dim);font-size:13px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;-webkit-tap-highlight-color:transparent;
+  font-family:var(--font-mono);line-height:1;
+  opacity:0.6;
+}
+.mob-card{position:relative;}
+.item-card{position:relative;}
+.sr-card{position:relative;}
+.loc-insp-btn:hover,.mob-card:hover .loc-insp-btn,.item-card:hover .loc-insp-btn,.sr-card:hover .loc-insp-btn{opacity:1;background:var(--s2);border-color:var(--border2);color:var(--text);}
+/* Last used on cards */
+.loc-last-used-pill{font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:var(--text-dim);margin-top:4px;display:flex;align-items:center;gap:4px;}
+.loc-last-used-pill::before{content:'↩';font-size:8px;opacity:0.6;}
+
 </style>
 </head>
 <body>
@@ -998,6 +1092,38 @@ function splitName(name){
   return{primary:name,secondary:null};
 }
 
+function normalizeLastUsed(val){
+  // Convert MM/YYYY → MM/01/YYYY for legacy entries
+  if(!val||!val.trim())return '';
+  val=val.trim();
+  // Already MM/DD/YYYY format
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(val))return val;
+  // MM/YYYY → MM/01/YYYY
+  if(/^\d{2}\/\d{4}$/.test(val)){
+    var parts=val.split('/');
+    return parts[0]+'/01/'+parts[1];
+  }
+  return val;
+}
+function formatLastUsed(val){
+  if(!val)return '';
+  val=normalizeLastUsed(val);
+  // Parse MM/DD/YYYY
+  var p=val.split('/');
+  if(p.length===3){
+    var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var mo=parseInt(p[0])-1;
+    return months[mo]+' '+parseInt(p[1])+', '+p[2];
+  }
+  return val;
+}
+function todayLastUsed(){
+  var d=new Date();
+  var mm=String(d.getMonth()+1).padStart(2,'0');
+  var dd=String(d.getDate()).padStart(2,'0');
+  var yyyy=d.getFullYear();
+  return mm+'/'+dd+'/'+yyyy;
+}
 function rowToItem(row){
   return{id:row.id,name:row.name||'',category:row.category||'Misc',
     notes:row.notes,qty:row.qty,condition:row.condition,keep:row.keep,
@@ -1008,6 +1134,7 @@ function rowToItem(row){
     lockedNotes:row.locked_notes?true:false,
     keywords:row.keywords||'',
     docUrl:row.doc_url||null,
+    lastUsed:normalizeLastUsed(row.last_used||''),
     locationPath:stringToPath(row.location||'')};
 }
 
@@ -1623,7 +1750,9 @@ function itemCardHTML(item){
   const inUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
   const docBtn=item.docUrl?`<button class="doc-view-btn" onclick="openDocViewer('${esc(item.docUrl)}','${esc(item.name)}')" title="View document">📄</button>`:'';
 
+  const luHTML = item.lastUsed ? `<span class="loc-last-used-pill" style="margin-left:auto;margin-top:0">Last used ${esc(formatLastUsed(item.lastUsed))}</span>` : '';
   return`<div class="item-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
+    <button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector(${item.id},this)" title="Inspect & edit">ⓘ</button>
     <div class="item-row1">
       <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
         <span class="item-name-primary">${esc(primary)}</span>${secondary?`<span class="item-name-secondary"> — ${esc(secondary)}</span>`:''}
@@ -1638,6 +1767,7 @@ function itemCardHTML(item){
       ${parts.length?`<div class="item-meta-inline">${parts.map(p=>`<span class="item-pill"><span class="pill-lbl">${p.l}</span>${esc(p.v)}</span>`).join('')}</div>`:''}
       ${fillBadge||digitalBadge||inUseBadge?`<div class="item-indicators">${inUseBadge}${fillBadge}${digitalBadge}</div>`:''}
       ${notesHTML}
+      ${luHTML}
     </div>
   </div>`;
 }
@@ -1709,7 +1839,9 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
     </div>
     ${locPath}
     ${kwIndicator}
+    ${item.lastUsed?`<div class="loc-last-used-pill">Last used ${esc(formatLastUsed(item.lastUsed))}</div>`:''}
     <div class="sr-nav-hint">Tap to locate in Browse →</div>
+    <button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector(${item.id},this)" title="Inspect & edit">ⓘ</button>
   </div>`;
 }
 
@@ -1867,10 +1999,13 @@ function mobCard(item, fromSearch){
   var iud=item.inUse?'<span class="mob-inuse-dot"></span>':'';
   var pid=mReg([item.id]);
   var clickFn=fromSearch?'mobNavToItem('+pid+')':'mobOpenDetail('+pid+')';
+  var luHtml=item.lastUsed?'<div class="loc-last-used-pill">Last used '+esc(formatLastUsed(item.lastUsed))+'</div>':'';
   return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="'+clickFn+'">'
+    +'<button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect & edit">ⓘ</button>'
     +'<div class="mob-card-name">'+esc(n.primary)+(n.secondary?'<span class="mob-card-sec">'+esc(n.secondary)+'</span>':'')+iud+'</div>'
     +'<div class="mob-card-loc">'+locH+'</div>'
     +'<div class="mob-card-meta"><span class="mob-badge" style="background:'+cs.bg+';color:'+cs.text+'">'+esc(item.category||'Misc')+'</span>'+(item.condition?'<span class="mob-pill">'+esc(item.condition)+'</span>':'')+(item.qty&&item.qty!=='1'?'<span class="mob-pill" style="color:var(--text-mid);font-weight:600">×'+esc(item.qty)+'</span>':'')+'</div>'
+    +luHtml
     +'</div>';
 }
 function mobNavToItem(pid){
@@ -2795,5 +2930,19 @@ window.addEventListener('resize',function(){
 });
 
 </script>
+
+<!-- ── LOCATE INSPECTOR OVERLAY ── -->
+<div class="loc-insp-overlay" id="loc-insp-overlay" onclick="locInspBgClick(event)">
+  <div class="loc-insp-bg"></div>
+  <div class="loc-insp-pop" id="loc-insp-pop">
+    <div class="loc-insp-handle"></div>
+    <div class="loc-insp-hdr">
+      <div class="loc-insp-title" id="loc-insp-title">Item</div>
+      <button class="loc-insp-close" onclick="closeLocInspector()">✕</button>
+    </div>
+    <div class="loc-insp-body" id="loc-insp-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
