@@ -533,32 +533,41 @@ body.mob-mode .shell{display:none;}
 .mob-box-preview{display:flex;flex-direction:column;gap:3px;margin-top:0;}
 .mob-box-prev-item{font-size:12px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;}
 /* ── ASK TAB ── */
-.mob-ask-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;}
-.mob-ask-examples{padding:20px 16px 12px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
-.mob-ask-ex-title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
-.mob-ask-ex{background:var(--s1);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;text-align:left;font-family:var(--font-ui);font-size:14px;color:var(--text-mid);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.1s;}
-.mob-ask-ex:active{background:var(--s2);}
-.mob-ask-body{flex:1;overflow-y:auto;padding:8px 16px 0;display:flex;flex-direction:column;gap:10px;}
+.mob-ask-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;background:var(--bg);}
+.mob-ask-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;gap:10px;flex:1;}
+.mob-ask-empty-icon{font-size:32px;opacity:0.25;margin-bottom:4px;}
+.mob-ask-empty-title{font-family:var(--font-ui);font-size:18px;font-weight:600;color:var(--text);text-align:center;}
+.mob-ask-empty-sub{font-family:var(--font-ui);font-size:13px;color:var(--text-dim);text-align:center;line-height:1.6;max-width:260px;}
+.mob-ask-thread{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.mob-ask-body{padding:8px 14px 8px;display:flex;flex-direction:column;gap:12px;}
 .mob-ask-body::-webkit-scrollbar{display:none;}
-.mob-ask-bubble{border-radius:12px;padding:11px 14px;font-size:14px;line-height:1.6;max-width:100%;}
-.mob-ask-bubble.user{background:rgba(176,122,132,0.12);border:1px solid rgba(176,122,132,0.2);color:var(--text);align-self:flex-end;border-bottom-right-radius:4px;}
-.mob-ask-bubble.ai{background:var(--s1);border:1px solid var(--border);color:var(--text-mid);align-self:flex-start;border-bottom-left-radius:4px;width:100%;}
-.mob-ask-bubble.ai strong{color:var(--text);font-weight:600;}
+.mob-ask-row{display:flex;flex-direction:column;gap:3px;}
+.mob-ask-row.user{align-items:flex-end;}
+.mob-ask-row.ai{align-items:flex-start;}
+.mob-ask-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);padding:0 4px;margin-bottom:2px;}
+.mob-ask-bubble{border-radius:18px;padding:12px 16px;font-size:14px;line-height:1.65;}
+.mob-ask-bubble.user{background:var(--rose);color:#fff;border-bottom-right-radius:5px;max-width:82%;}
+.mob-ask-bubble.ai{background:var(--s2);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:5px;width:100%;max-width:100%;}
+.mob-ask-bubble.ai strong{color:var(--text);font-weight:700;}
 .mob-ask-bubble.ai em{color:var(--text-mid);font-style:italic;}
-.mob-ask-bubble.ai .ask-list-item{display:flex;gap:8px;padding:2px 0;}
-.mob-ask-bubble.ai .ask-list{margin:4px 0;}
-.mob-ask-bubble.ai code{background:rgba(255,255,255,0.08);border-radius:3px;padding:1px 5px;font-family:var(--font-mono);font-size:12px;}
-.mob-ask-bubble.ai .ask-list-dot{color:var(--rose);flex-shrink:0;margin-top:1px;}
-.mob-ask-bubble.ai .ask-section{font-weight:600;color:var(--text);margin-top:10px;margin-bottom:2px;padding-top:8px;border-top:1px solid var(--border);}
-.mob-ask-bubble.ai .ask-section:first-child{margin-top:0;padding-top:0;border-top:none;}
-.mob-ask-bubble.thinking{color:var(--text-dim);font-style:italic;font-size:13px;}
-.mob-ask-action{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;border-radius:8px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.3);color:var(--green);}
-.mob-ask-input-wrap{display:flex;gap:8px;padding:10px 16px 10px;border-top:1px solid var(--border);flex-shrink:0;align-items:flex-end;}
-.mob-ask-input{flex:1;background:var(--s2);border:1.5px solid var(--border2);border-radius:12px;padding:10px 14px;color:var(--text);font-family:var(--font-ui);font-size:15px;outline:none;-webkit-appearance:none;resize:none;min-height:42px;max-height:100px;transition:border-color 0.15s;line-height:1.4;}
+.mob-ask-bubble.thinking{background:var(--s2);border:1px solid var(--border);color:var(--text-dim);font-style:italic;font-size:13px;border-bottom-left-radius:5px;display:flex;align-items:center;gap:10px;padding:12px 16px;}
+.mob-ask-dots{display:flex;gap:4px;}
+.mob-ask-dots span{width:5px;height:5px;border-radius:50%;background:var(--text-dim);animation:chatDot 1.2s ease-in-out infinite;}
+.mob-ask-dots span:nth-child(2){animation-delay:0.2s;}
+.mob-ask-dots span:nth-child(3){animation-delay:0.4s;}
+.ask-list{margin:6px 0 2px;}
+.ask-list-item{display:flex;gap:9px;padding:3px 0;line-height:1.55;}
+.ask-list-dot{color:var(--rose);flex-shrink:0;font-weight:700;}
+.ask-section{font-weight:600;color:var(--text);margin-top:12px;margin-bottom:5px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);font-size:13px;}
+.ask-section:first-child{margin-top:0;padding-top:0;border-top:none;}
+.mob-ask-action{display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 14px;border-radius:10px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.3);color:var(--green);}
+.mob-ask-input-wrap{display:flex;gap:10px;padding:10px 12px 12px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;align-items:flex-end;}
+.mob-ask-input{flex:1;background:var(--s2);border:1.5px solid var(--border2);border-radius:22px;padding:10px 16px;color:var(--text);font-family:var(--font-ui);font-size:15px;outline:none;-webkit-appearance:none;resize:none;min-height:44px;max-height:120px;transition:border-color 0.15s;line-height:1.45;}
 .mob-ask-input:focus{border-color:var(--rose);}
 .mob-ask-input::placeholder{color:var(--text-dim);}
-.mob-ask-send{width:42px;height:42px;border-radius:12px;background:var(--rose);border:none;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s;}
-.mob-ask-send:active{opacity:0.8;}
+.mob-ask-send{width:40px;height:40px;border-radius:50%;background:var(--rose);border:none;color:#fff;font-size:17px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s,transform 0.1s;}
+.mob-ask-send:active{opacity:0.8;transform:scale(0.92);}
+.mob-ask-send:disabled{opacity:0.35;}
 /* ── RESPONSIVE: iPad gets 2-col ── */
 /* ── RESPONSIVE: iPad gets 2-col at 600px ── */
 @media(min-width:600px){
@@ -666,11 +675,10 @@ body.mob-mode .shell{display:none;}
   .mob-stats{padding:16px 24px;}
 
   /* Ask tab — wider chat */
-  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;}
-  .mob-ask-examples{padding:28px 24px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .mob-ask-ex-title{grid-column:1/-1;}
-  .mob-ask-input-wrap{padding:14px 24px 14px;}
-  .mob-ask-body{padding:12px 24px 0;}
+  .mob-ask-wrap{max-width:680px;margin:0 auto;width:100%;}
+  .mob-ask-input-wrap{padding:12px 24px 14px;}
+  .mob-ask-body{padding:12px 24px 8px;}
+  .mob-ask-empty{padding:60px 40px;}
 
   /* Add tab */
   .mob-add-wrap{max-width:560px;margin:0 auto;padding:32px 24px 48px;}
@@ -877,16 +885,14 @@ body.mob-mode .shell{display:none;}
     </div>
     <div class="mob-page" id="mob-page-ask">
       <div class="mob-ask-wrap">
-        <div class="mob-ask-examples" id="mob-ask-examples">
-          <div class="mob-ask-ex-title">Ask about your inventory</div>
-          <button class="mob-ask-ex" onclick="mobAskSend('How many items do I have total?')">How many items total?</button>
-          <button class="mob-ask-ex" onclick="mobAskSend('What items need filling soon?')">What needs refilling?</button>
-          <button class="mob-ask-ex" onclick="mobAskSend('Where is my MacBook Pro?')">Where is my MacBook?</button>
-          <button class="mob-ask-ex" onclick="mobAskSend('What electronics do I have in my Bedroom?')">Bedroom electronics</button>
-          <button class="mob-ask-ex" onclick="mobAskSend('What items are in use right now?')">What\'s in use?</button>
-          <button class="mob-ask-ex" onclick="mobAskSend('What is in my Tesla?')">What\'s in the Tesla?</button>
+        <div class="mob-ask-thread" id="mob-ask-thread">
+          <div class="mob-ask-empty" id="mob-ask-empty">
+            <div class="mob-ask-empty-icon">✦</div>
+            <div class="mob-ask-empty-title">Inventory AI</div>
+            <div class="mob-ask-empty-sub">Ask about your inventory — what's where, what needs refilling, how many you have, and more.</div>
+          </div>
+          <div class="mob-ask-body" id="mob-ask-body"></div>
         </div>
-        <div class="mob-ask-body" id="mob-ask-body"></div>
         <div class="mob-ask-input-wrap">
           <textarea class="mob-ask-input" id="mob-ask-input" placeholder="Ask anything about your inventory…" rows="1"
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();mobAskSend();}"></textarea>
@@ -1723,10 +1729,16 @@ function setSyncStatus(s){
   document.getElementById('sync-dot').className=s==='ok'?'ok':s==='loading'?'loading':'';
   document.getElementById('sync-label').textContent=s==='ok'?`${inventory.length} items`:s==='loading'?'loading':'error';
   const md=document.getElementById('mob-sync');if(md)md.className='mob-sync '+(s==='ok'?'ok':'loading');
+  // Update iPad sync indicators directly
+  const isl=document.getElementById('ipad-sync-label');
+  const isd=document.getElementById('ipad-sync-dot');
+  if(isl)isl.textContent=s==='ok'?inventory.length+' items':s==='loading'?'loading':'error';
+  if(isd)isd.className='mob-sync '+(s==='ok'?'ok':'loading');
   if(s==='ok'&&document.body.classList.contains('mob-mode')){
     mobRenderBrowseAt([]);
     mobRenderFind('');
   }
+  if(s==='ok'&&typeof isIPad==='function'&&isIPad())ipadRenderSidebar();
 }
 load();
 
@@ -1895,6 +1907,8 @@ function mobRenderBrowseAt(path){
   var hdrH='<div class="mob-browse-hdr">'+(path.length?'<button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">&#8249;</button>':'')+'<div class="mob-btitle" style="color:'+(depth>0?mDC(depth-1):'var(--text)')+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
   document.querySelector('.mob-content').scrollTop=0;
+  // Refresh iPad sidebar to highlight active location
+  if(typeof isIPad==='function'&&isIPad()&&typeof ipadRenderSidebar==='function')ipadRenderSidebar();
 }
 
 // ── MOBILE DRAWER ─────────────────────────────────────────────────────────────
@@ -2384,43 +2398,58 @@ async function mobAskSend(prefill){
   if(!q)return;
   if(inp)inp.value='';
 
-  // Hide examples once first message sent
-  var ex=document.getElementById('mob-ask-examples');
-  if(ex)ex.style.display='none';
+  // Hide empty state
+  var emptyEl=document.getElementById('mob-ask-empty');
+  if(emptyEl)emptyEl.style.display='none';
 
   var body=document.getElementById('mob-ask-body');
   if(!body)return;
 
   // User bubble
   body.insertAdjacentHTML('beforeend',
-    '<div class="mob-ask-bubble user">'+esc(q)+'</div>');
+    '<div class="mob-ask-row user">'
+    +'<div class="mob-ask-label">You</div>'
+    +'<div class="mob-ask-bubble user">'+esc(q)+'</div>'
+    +'</div>');
 
   // Thinking bubble
   var thinkId='mthink-'+Date.now();
   body.insertAdjacentHTML('beforeend',
-    '<div class="mob-ask-bubble ai thinking" id="'+thinkId+'">thinking…</div>');
+    '<div class="mob-ask-row ai" id="'+thinkId+'-row">'
+    +'<div class="mob-ask-label">AI</div>'
+    +'<div class="mob-ask-bubble thinking" id="'+thinkId+'">'
+    +'<div class="mob-ask-dots"><span></span><span></span><span></span></div>thinking'
+    +'</div></div>');
   body.scrollTop=body.scrollHeight;
   _mobAskBusy=true;
 
-  var snapshot=inventory.map(function(i){return{
-    id:i.id,name:i.name,category:i.category,
-    location:(i.locationPath||[]).join(' > ')||'',
-    keep:i.keep||'',criticality:i.criticality||'',
-    value:i.estValue||'',condition:i.condition||'',
-    qty:i.qty||'1',inUse:i.inUse?1:0,fillLevel:i.fillLevel||'',
-  };});
+  // ── COMPACT PAYLOAD: avoid sending 892 items × full fields ──────────────
+  // Send only name+location for lookup, aggregate stats separately
+  var locs={};
+  inventory.forEach(function(i){
+    var top=(i.locationPath||[])[0]||'Unassigned';
+    locs[top]=(locs[top]||0)+1;
+  });
+  var inUseCnt=inventory.filter(function(i){return i.inUse;}).length;
+  var fillItems=inventory.filter(function(i){return i.fillLevel&&i.fillLevel!=='Full';}).map(function(i){
+    return{name:i.name,fill:i.fillLevel,loc:(i.locationPath||[]).join(' > ')};
+  });
+  // Compact item list: name + location only, 500 char budget per item group
+  var compact=inventory.slice(0,400).map(function(i){
+    return i.name+(i.locationPath&&i.locationPath.length?' @ '+(i.locationPath||[]).join(' > '):'');
+  });
 
-  var systemPrompt='You are an inventory assistant for JD Meyers\' personal inventory locate tool ('+inventory.length+' items).\n'
-    +'Answer questions clearly and concisely.\n\n'
-    +'FORMAT RULES — you MUST follow these:\n'
-    +'- Use **bold** for item names, locations, and key numbers\n'
-    +'- Use bullet points (- item) for lists of items or locations\n'
-    +'- Use numbered lists (1. item) for ranked or sequential info\n'
-    +'- Use ## Section Name for grouping multiple categories\n'
-    +'- Keep answers focused and scannable on mobile\n'
-    +'- Never dump raw JSON or code blocks\n\n'
-    +'Respond in JSON: {"reply":"your formatted answer","action":"search"|"navigate"|"answer","search_query":"...","navigate_path":["Bedroom","Closet"]}\n\n'
-    +'INVENTORY: '+JSON.stringify(snapshot);
+  var systemPrompt='You are an inventory assistant for JD Meyers ('+inventory.length+' items total, '+inUseCnt+' in use).\n'
+    +'Location summary: '+JSON.stringify(locs)+'\n'
+    +'Items needing fill: '+JSON.stringify(fillItems)+'\n'
+    +'Item list (name @ location):\n'+compact.join('\n')+'\n\n'
+    +'FORMAT RULES (mobile chat — MUST follow):\n'
+    +'- Use **bold** for item names and key numbers\n'
+    +'- Use bullet list (- item) for listing multiple items\n'
+    +'- Use numbered list (1. item) for rankings\n'
+    +'- Use ## Heading for section groupings\n'
+    +'- Be concise and scannable. No raw JSON, no code blocks.\n\n'
+    +'Respond ONLY as JSON: {"reply":"formatted markdown answer","action":"answer"|"search"|"navigate","search_query":"...","navigate_path":["Bedroom","Closet"]}';
 
   try{
     var res=await fetch(SUPABASE_URL+'/functions/v1/suggest-item',{
@@ -2429,39 +2458,51 @@ async function mobAskSend(prefill){
       body:JSON.stringify({chatMode:true,system:systemPrompt,question:q})
     });
 
-    var parsed={};
+    var parsed={reply:'',action:'answer'};
     if(res.ok){
       var data=await res.json();
       var raw=data.content?data.content.map(function(b){return b.text||'';}).join(''):JSON.stringify(data);
-      try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}
-      catch(e){parsed={reply:raw,action:'answer'};}
+      // Strip any wrapping JSON fences
+      var cleaned=raw.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
+      // Handle case where reply is plain text (not JSON)
+      if(cleaned.charAt(0)==='{'){
+        try{parsed=JSON.parse(cleaned);}
+        catch(e){parsed={reply:raw,action:'answer'};}
+      } else {
+        parsed={reply:raw,action:'answer'};
+      }
     } else {
-      parsed={reply:'Error '+res.status,action:'answer'};
+      var errText=await res.text().catch(function(){return res.status+'';});
+      parsed={reply:'Server error ('+res.status+'). Please try again.',action:'answer'};
     }
 
-    var el=document.getElementById(thinkId);
-    if(el){
-      el.className='mob-ask-bubble ai';
-      el.innerHTML=formatAskReply(parsed.reply||'—');
+    var rowEl=document.getElementById(thinkId+'-row');
+    var bubbleEl=document.getElementById(thinkId);
+    if(bubbleEl){
+      bubbleEl.className='mob-ask-bubble ai';
+      bubbleEl.innerHTML=formatAskReply(parsed.reply||'—');
     }
 
-    // Handle actions
-    var actionHtml='';
+    // Actions
     if(parsed.action==='search'&&parsed.search_query){
       var si=document.getElementById('mob-search');
       if(si){si.value=parsed.search_query;si.dispatchEvent(new Event('input'));}
       mobRenderFind(parsed.search_query);
-      actionHtml='<div class="mob-ask-action">✓ Searching for "'+esc(parsed.search_query)+'"</div>';
+      if(bubbleEl)bubbleEl.insertAdjacentHTML('beforeend',
+        '<div class="mob-ask-action">✓ Showing results for "'+esc(parsed.search_query)+'"</div>');
     } else if(parsed.action==='navigate'&&parsed.navigate_path&&parsed.navigate_path.length){
       mobRenderBrowseAt(parsed.navigate_path);
       mobSwitchTab('browse');
-      actionHtml='<div class="mob-ask-action">✓ Navigated to '+esc(parsed.navigate_path.join(' › '))+'</div>';
+      if(bubbleEl)bubbleEl.insertAdjacentHTML('beforeend',
+        '<div class="mob-ask-action">✓ Navigated to '+esc(parsed.navigate_path.join(' › '))+'</div>');
     }
-    if(actionHtml&&el)el.insertAdjacentHTML('beforeend',actionHtml);
 
   }catch(err){
-    var el=document.getElementById(thinkId);
-    if(el){el.className='mob-ask-bubble ai';el.innerHTML='<span style="color:var(--rose)">Error: '+esc(err.message)+'</span>';}
+    var bubbleEl=document.getElementById(thinkId);
+    if(bubbleEl){
+      bubbleEl.className='mob-ask-bubble ai';
+      bubbleEl.innerHTML='<span style="color:var(--rose)">Something went wrong. Try again.</span>';
+    }
   }
 
   body.scrollTop=body.scrollHeight;
@@ -2599,24 +2640,9 @@ function ipadOnSearch(val){
   }
 }
 
-// Override mobRenderBrowseAt to also refresh iPad sidebar
-var _origRenderBrowse=mobRenderBrowseAt;
-function mobRenderBrowseAt(path){
-  _mobBrowsePath=path.slice();
-  _origRenderBrowse(path);
-  if(isIPad())ipadRenderSidebar();
-}
+// iPad sidebar refresh is called directly at the end of mobRenderBrowseAt (no override needed)
 
-// Hook into setSyncStatus to update iPad sync indicator
-var _origSetSync=setSyncStatus;
-function setSyncStatus(s){
-  _origSetSync(s);
-  var sl=document.getElementById('ipad-sync-label');
-  var sd=document.getElementById('ipad-sync-dot');
-  if(sl)sl.textContent=s==='ok'?inventory.length+' items':s==='loading'?'loading':'error';
-  if(sd)sd.className='mob-sync '+(s==='ok'?'ok':'loading');
-  if(s==='ok'&&isIPad())ipadRenderSidebar();
-}
+// iPad sync is updated directly inside the original setSyncStatus (no override needed)
 
 // Initial render after load
 window.addEventListener('resize',function(){
