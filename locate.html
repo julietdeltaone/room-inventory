@@ -829,56 +829,66 @@ body.mob-mode .shell{display:none;}
 .loc-last-used-pill{font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:var(--text-dim);margin-top:4px;display:flex;align-items:center;gap:4px;}
 .loc-last-used-pill::before{content:'↩';font-size:8px;opacity:0.6;}
 
-/* ── SUPPLY RUN TAB ── */
-.mob-supply-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);}
-.mob-supply-hdr{padding:20px 16px 10px;flex-shrink:0;}
-.mob-supply-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;}
+/* ── SUPPLY RUN ── */
+.mob-supply-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);overflow:hidden;}
+.mob-supply-hdr{padding:20px 16px 14px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.mob-supply-hdr-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;}
+.mob-supply-title{font-size:22px;font-weight:700;color:var(--text);}
+.mob-supply-back{display:none;font-size:14px;font-weight:500;color:var(--rose);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font-ui);-webkit-tap-highlight-color:transparent;}
+.mob-supply-back.visible{display:block;}
 .mob-supply-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
-.mob-supply-body{flex:1;overflow-y:auto;padding:0 0 32px;}
+.mob-supply-body{flex:1;overflow-y:auto;overflow-x:hidden;}
 .mob-supply-body::-webkit-scrollbar{display:none;}
-.mob-supply-group{margin-bottom:4px;}
-.mob-supply-group-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.mob-supply-group-name{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--text-mid);}
-.mob-supply-group-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
-.mob-supply-group-body{display:flex;flex-direction:column;}
-.mob-supply-group-body.collapsed{display:none;}
-.mob-supply-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--s1);}
-.mob-supply-item:nth-child(even){background:rgba(255,255,255,0.018);}
-.mob-supply-item-name{flex:1;font-size:14px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mob-supply-item-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
-
-/* Fill meter — 5 segments */
+.supply-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;}
+.supply-card{border-radius:14px;border:1px solid var(--border);background:var(--s1);cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
+.supply-card:hover{background:var(--s2);}
+.supply-card:active{background:var(--s3);}
+.supply-card-heat{height:6px;width:100%;}
+.supply-card-body{padding:13px 14px 12px;}
+.supply-card-name{font-size:15px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:3px;}
+.supply-card-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:0.04em;margin-bottom:10px;}
+.supply-card-dots{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:9px;}
+.supply-card-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.supply-card-stats{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.supply-card-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.supply-card-alert{font-family:var(--font-mono);font-size:9px;font-weight:600;color:var(--rose);background:rgba(176,122,132,0.1);border:1px solid rgba(176,122,132,0.25);border-radius:4px;padding:2px 7px;}
+.supply-item{display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid var(--border);}
+.supply-item:nth-child(even){background:rgba(255,255,255,0.015);}
+.supply-item-name{flex:1;font-size:14px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.supply-detail-hdr{padding:14px 16px 12px;display:flex;align-items:center;gap:12px;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.supply-detail-gname{font-size:17px;font-weight:700;color:var(--text);flex:1;}
+.supply-detail-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:0.06em;}
 .fill-meter{display:flex;gap:3px;align-items:center;flex-shrink:0;}
-.fill-seg{width:14px;height:22px;border-radius:3px;cursor:pointer;transition:opacity 0.1s,transform 0.1s;border:1px solid rgba(255,255,255,0.06);}
-.fill-seg:active{transform:scale(0.9);}
+.fill-seg{width:13px;height:22px;border-radius:3px;cursor:pointer;transition:transform 0.1s;border:1px solid rgba(255,255,255,0.05);}
+.fill-seg:active{transform:scale(0.88);}
 .fill-seg.empty{background:#3a1818;border-color:rgba(200,60,60,0.2);}
 .fill-seg.low{background:#8f3a20;}
 .fill-seg.half{background:#9e7a22;}
 .fill-seg.most{background:#7a9e44;}
 .fill-seg.full{background:#3d8f5a;}
 .fill-seg.unset{background:var(--s3);border-color:var(--border2);}
-
-/* Fill tap-to-cycle pill on item cards */
-.fill-cycle-btn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;border:1px solid;cursor:pointer;font-family:var(--font-mono);font-size:9px;font-weight:500;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s;background:transparent;}
+.fill-cycle-btn{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;border:1px solid;cursor:pointer;font-family:var(--font-mono);font-size:9px;font-weight:500;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s;background:transparent;}
 .fill-cycle-btn:active{opacity:0.7;}
 .fill-cycle-btn.full{color:#4d8f6a;border-color:#4d8f6a50;}
 .fill-cycle-btn.most{color:#7a9e64;border-color:#7a9e6450;}
-.fill-cycle-btn.half{color:#9e7a32;border-color:#9e7a3250;}
-.fill-cycle-btn.low{color:#8f5530;border-color:#8f553050;}
+.fill-cycle-btn.half{color:#c09030;border-color:#c0903050;}
+.fill-cycle-btn.low{color:#c06030;border-color:#c0603050;}
 .fill-cycle-btn.empty{color:#c04040;border-color:#c0404050;}
 .fill-cycle-btn.unset{color:var(--text-dim);border-color:var(--border2);}
-
-/* Supply run save bar */
-.mob-supply-save-bar{position:sticky;bottom:0;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-shrink:0;}
-.mob-supply-save-btn{flex:1;padding:13px;border-radius:12px;background:var(--rose);border:none;color:#fff;font-family:var(--font-ui);font-size:16px;font-weight:600;cursor:pointer;transition:opacity 0.15s;-webkit-tap-highlight-color:transparent;}
+.mob-supply-save-bar{padding:11px 16px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.mob-supply-save-btn{flex:1;padding:12px;border-radius:12px;background:var(--rose);border:none;color:#fff;font-family:var(--font-ui);font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.15s;-webkit-tap-highlight-color:transparent;}
 .mob-supply-save-btn:active{opacity:0.8;}
-.mob-supply-save-btn:disabled{opacity:0.35;}
-.mob-supply-change-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.mob-supply-save-btn:disabled{opacity:0.3;}
+.mob-supply-change-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:nowrap;}
 @media(min-width:768px){
-  .mob-supply-hdr{padding:24px 28px 12px;}
-  .mob-supply-group-hdr{padding:10px 28px 6px;}
-  .mob-supply-item{padding:12px 28px;}
-  .mob-supply-save-bar{padding:14px 28px;}
+  .supply-cards-grid{grid-template-columns:repeat(3,1fr);padding:20px 28px;gap:16px;}
+  .mob-supply-hdr{padding:24px 28px 16px;}
+  .supply-item{padding:13px 28px;}
+  .supply-detail-hdr{padding:18px 28px 14px;}
+  .mob-supply-save-bar{padding:13px 28px;}
+  .fill-seg{width:16px;height:24px;}
+  .fill-meter{gap:4px;}
+  .supply-card-dot{width:11px;height:11px;}
 }
 
 </style>
@@ -1073,7 +1083,10 @@ body.mob-mode .shell{display:none;}
     <div class="mob-page" id="mob-page-supply">
       <div class="mob-supply-wrap">
         <div class="mob-supply-hdr">
-          <div class="mob-supply-title">Supply Run</div>
+          <div class="mob-supply-hdr-row">
+            <div class="mob-supply-title">Supply Run</div>
+            <button class="mob-supply-back" id="supply-back-btn" onclick="supplyGoBack()">← All Groups</button>
+          </div>
           <div class="mob-supply-sub" id="supply-sub-label">Loading…</div>
         </div>
         <div class="mob-supply-body" id="mob-supply-body"></div>
@@ -2008,11 +2021,12 @@ function setSyncStatus(s){
     mobRenderFind('');
   }
   if(s==='ok'&&typeof isIPad==='function'&&isIPad())ipadRenderSidebar();
-  // Pre-render supply data so it's ready when user taps the tab
+  // Pre-render supply data
   if(s==='ok'&&typeof mobRenderSupply==='function'){
     setTimeout(function(){
+      _supplyView='cards';_supplyDetailGroup=null;
       var sp=document.getElementById('mob-supply-body');
-      if(sp&&!sp.children.length)mobRenderSupply();
+      if(sp)mobRenderSupply();
     },500);
   }
 }
@@ -3294,145 +3308,179 @@ function tapFillCycle(btn, itemId){
   setTimeout(function(){btn.style.transform='';},150);
 }
 
-// ── SUPPLY RUN TAB ─────────────────────────────────────────────────────────────
-const SUPPLY_CATS = ['Personal Care & Grooming','Health & Supplements','Cleaning & Home','Gym & Fitness','Automotive','Office Supplies','Tools & Hardware','Accessories','Misc'];
+// ── SUPPLY RUN ────────────────────────────────────────────────────────────────
+var _supplyChanges = {};
+var _supplyView = 'cards'; // 'cards' or 'detail'
+var _supplyDetailGroup = null;
+
+const FILL_COLORS = {Full:'#3d8f5a',Most:'#7a9e44',Half:'#9e7a22',Low:'#8f3a20',Empty:'#3a1818'};
+const FILL_HEAT   = {Full:'#3d8f5a',Most:'#7a9e64',Half:'#c09030',Low:'#c06030',Empty:'#c04040'};
+
+function supplyBuildGroups(){
+  var fillPriority = {Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var fillable = inventory.filter(function(i){ return (_pinUnlocked||!i.lockedItem)&&i.fillLevel&&i.fillLevel!==''; });
+  var groups = {};
+  fillable.forEach(function(i){
+    var path = i.locationPath||[];
+    var gname = path.length>=3 ? path[path.length-1] : path.length===2 ? path[0]+' — '+path[1] : (path[0]||'Unassigned');
+    if(!groups[gname]) groups[gname]={items:[],topLoc:path[0]||''};
+    groups[gname].items.push(i);
+  });
+  // Sort groups: lowest fill first
+  return Object.entries(groups).sort(function(a,b){
+    var aMin=Math.min.apply(null,a[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
+    var bMin=Math.min.apply(null,b[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
+    return aMin-bMin||a[0].localeCompare(b[0]);
+  });
+}
 
 function mobRenderSupply(){
   var body = document.getElementById('mob-supply-body');
-  var sub = document.getElementById('supply-sub-label');
+  var sub  = document.getElementById('supply-sub-label');
+  var backBtn = document.getElementById('supply-back-btn');
   if(!body) return;
-  _supplyChanges = {};
+  _supplyChanges={};
 
-  // Only items that already have a fill level set — intentional, no noise
-  var fillable = inventory.filter(function(i){
-    return (_pinUnlocked||!i.lockedItem) && i.fillLevel && i.fillLevel !== '';
-  });
+  var groups = supplyBuildGroups();
+  var totalItems = groups.reduce(function(s,g){return s+g[1].items.length;},0);
+  var needAttn = groups.reduce(function(s,g){
+    return s+g[1].items.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low'||i.fillLevel==='Half';}).length;
+  },0);
+  if(sub) sub.textContent = totalItems+' fillable · '+needAttn+' need attention';
 
-  // Group by deepest meaningful container (2nd-to-last segment if path ≥ 3 deep)
-  // e.g. "Bedroom > Book Shelf > Shelf 2 > Pharmacy Basket" → "Pharmacy Basket"
-  //      "Tesla > Trunk" → "Tesla Trunk"  
-  //      "Bedroom" → "Bedroom"
-  var groups = {};
-  fillable.forEach(function(i){
-    var path = i.locationPath || [];
-    var groupName;
-    if(path.length >= 3){
-      groupName = path[path.length-1]; // deepest container
-    } else if(path.length === 2){
-      groupName = path[0]+' — '+path[1];
-    } else {
-      groupName = path[0] || 'Unassigned';
-    }
-    if(!groups[groupName]) groups[groupName] = {items:[], topLoc:path[0]||''};
-    groups[groupName].items.push(i);
-  });
-
-  var needsAttention = fillable.filter(function(i){return i.fillLevel && i.fillLevel!=='Full';}).length;
-  if(sub) sub.textContent = fillable.length+' fillable items · '+needsAttention+' need attention';
-
-  // Sort groups: those with low/empty items first, then alpha
-  var fillPriority = {Empty:0, Low:1, Half:2, Most:3, Full:4, '':5};
-  var html = '';
-  Object.entries(groups)
-    .sort(function(a,b){
-      var aMin = Math.min.apply(null, a[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
-      var bMin = Math.min.apply(null, b[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
-      return aMin-bMin || a[0].localeCompare(b[0]);
-    })
-    .forEach(function(entry){
-    var groupName = entry[0], groupData = entry[1];
-    var items = groupData.items;
-    // Sort within group: Empty first, then Low, Half, Most, Full
-    items.sort(function(a,b){
-      return (fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5) || a.name.localeCompare(b.name);
-    });
-    var attentionCount = items.filter(function(i){
-      return i.fillLevel==='Empty'||i.fillLevel==='Low'||i.fillLevel==='Half';
-    }).length;
-    var groupId = 'sg-'+groupName.replace(/[^a-z0-9]/gi,'_');
-    html += '<div class="mob-supply-group">';
-    html += '<div class="mob-supply-group-hdr" data-gid="'+groupId+'" onclick="supplyToggleGroup(this.dataset.gid)">';
-    html += '<span class="mob-supply-group-name">'+esc(groupName)+'</span>';
-    if(groupData.topLoc && groupData.topLoc !== groupName)
-      html += '<span style="font-family:var(--font-mono);font-size:8px;color:var(--text-dim);margin-left:6px">'+esc(groupData.topLoc)+'</span>';
-    html += '<span class="mob-supply-group-count">'+(attentionCount?'<span style="color:var(--rose)">'+attentionCount+' ↓</span> · ':'')+items.length+'</span>';
-    html += '</div>';
-    html += '<div class="mob-supply-group-body" id="'+groupId+'">';
-    items.forEach(function(item){
-      var fl = item.fillLevel || '';
-      var meterHTML = supplyMeterHTML(item.id, fl);
-      html += '<div class="mob-supply-item">';
-      html += '<div style="flex:1;min-width:0;">';
-      html += '<div class="mob-supply-item-name">'+esc(splitName(item.name).primary)+'</div>';
-      html += '</div>';
-      html += meterHTML;
-      html += '<button class="loc-insp-btn" style="position:static;width:24px;height:24px;font-size:12px;opacity:0.6;" onclick="openLocInspector('+item.id+',this)" title="Edit">ⓘ</button>';
-      html += '</div>';
-    });
-    html += '</div></div>';
-  });
-
-  body.innerHTML = html || '<div class="mob-empty" style="padding:60px 24px;"><div style="font-size:28px;opacity:0.2;margin-bottom:8px;">⬡</div><div>No fillable items found</div></div>';
+  if(_supplyView==='cards'){
+    if(backBtn) backBtn.classList.remove('visible');
+    supplyRenderCards(body, groups);
+  } else {
+    if(backBtn) backBtn.classList.add('visible');
+    supplyRenderDetail(body, _supplyDetailGroup);
+  }
   updateSupplySaveBar();
+}
+
+function supplyRenderCards(body, groups){
+  var fillPriority={Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var html='<div class="supply-cards-grid">';
+  groups.forEach(function(entry){
+    var gname=entry[0], gdata=entry[1], items=gdata.items;
+    var attnCount=items.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
+    var halfCount=items.filter(function(i){return i.fillLevel==='Half';}).length;
+
+    // Heatmap bar: gradient from worst to best item color
+    var sorted=items.slice().sort(function(a,b){return(fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5);});
+    var heatColors=sorted.map(function(i){return FILL_HEAT[i.fillLevel]||'#333';});
+    var grad='linear-gradient(to right,'+heatColors.map(function(c,i){
+      var pct1=Math.round(i/heatColors.length*100);
+      var pct2=Math.round((i+1)/heatColors.length*100);
+      return c+' '+pct1+'%,'+c+' '+pct2+'%';
+    }).join(',')+')';
+
+    // Dot grid: one dot per item, colored by fill level
+    var dots=sorted.map(function(i){
+      var col=FILL_COLORS[i.fillLevel]||'#444';
+      return '<div class="supply-card-dot" style="background:'+col+'" title="'+esc(splitName(i.name).primary)+' — '+i.fillLevel+'"></div>';
+    }).join('');
+
+    var alertHTML=attnCount?'<span class="supply-card-alert">'+attnCount+' low</span>':halfCount?'<span class="supply-card-alert" style="color:var(--amber,#c09030);border-color:rgba(192,144,48,0.3);background:rgba(192,144,48,0.08)">'+halfCount+' half</span>':'';
+
+    html+='<div class="supply-card" data-gname="'+esc(gname)+'" onclick="supplyOpenDetail(this.dataset.gname)">';
+    html+='<div class="supply-card-heat" style="background:'+grad+'"></div>';
+    html+='<div class="supply-card-body">';
+    html+='<div class="supply-card-name">'+esc(gname)+'</div>';
+    if(gdata.topLoc&&gdata.topLoc!==gname) html+='<div class="supply-card-loc">'+esc(gdata.topLoc)+'</div>';
+    html+='<div class="supply-card-dots">'+dots+'</div>';
+    html+='<div class="supply-card-stats"><span class="supply-card-count">'+items.length+' item'+(items.length!==1?'s':'')+'</span>'+alertHTML+'</div>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+function supplyOpenDetail(gname){
+  _supplyView='detail';
+  _supplyDetailGroup=gname;
+  mobRenderSupply();
+}
+
+function supplyGoBack(){
+  _supplyView='cards';
+  _supplyDetailGroup=null;
+  _supplyChanges={};
+  mobRenderSupply();
+}
+
+function supplyRenderDetail(body, gname){
+  var fillPriority={Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var groups=supplyBuildGroups();
+  var entry=groups.find(function(g){return g[0]===gname;});
+  if(!entry){body.innerHTML='';return;}
+  var items=entry[1].items.slice().sort(function(a,b){
+    return(fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5)||a.name.localeCompare(b.name);
+  });
+  var topLoc=entry[1].topLoc;
+
+  var html='<div class="supply-detail-hdr">';
+  html+='<div class="supply-detail-gname">'+esc(gname)+'</div>';
+  if(topLoc&&topLoc!==gname) html+='<span class="supply-detail-loc">'+esc(topLoc)+'</span>';
+  html+='</div>';
+  items.forEach(function(item){
+    html+='<div class="supply-item">';
+    html+='<div class="supply-item-name">'+esc(splitName(item.name).primary)+'</div>';
+    html+=supplyMeterHTML(item.id, item.fillLevel||'');
+    html+='<button class="loc-insp-btn" style="position:static;width:24px;height:24px;font-size:12px;opacity:0.55;flex-shrink:0;" onclick="openLocInspector('+item.id+',this)" title="Edit">ⓘ</button>';
+    html+='</div>';
+  });
+  body.innerHTML=html;
 }
 
 function supplyMeterHTML(itemId, fillLevel){
-  // Render left→right as Empty→Low→Half→Most→Full (like a battery)
-  // So Full lights all 5 segs, Empty lights 0
-  var levels = ['Empty','Low','Half','Most','Full'];
-  var fillOrder = ['Empty','Low','Half','Most','Full'];
-  var fi = fillOrder.indexOf(fillLevel); // Full=4, Empty=0
-  var html = '<div class="fill-meter">';
-  levels.forEach(function(lvl, idx){
-    // Segment is lit if its position <= fill index
-    var active = fi>=0 && idx <= fi;
-    var segClass = active ? FILL_CLASS[lvl] : 'unset';
-    html += '<div class="fill-seg '+segClass+'" data-item-id="'+itemId+'" data-level="'+lvl+'" onclick="supplySetFill(parseInt(this.dataset.itemId),this.dataset.level)" title="'+lvl+'"></div>';
+  var levels=['Empty','Low','Half','Most','Full'];
+  var fi=levels.indexOf(fillLevel);
+  var html='<div class="fill-meter">';
+  levels.forEach(function(lvl,idx){
+    var active=fi>=0&&idx<=fi;
+    var segClass=active?(FILL_CLASS[lvl]||'unset'):'unset';
+    html+='<div class="fill-seg '+segClass+'" data-item-id="'+itemId+'" data-level="'+lvl+'" onclick="supplySetFill(parseInt(this.dataset.itemId),this.dataset.level)" title="'+lvl+'"></div>';
   });
-  html += '</div>';
+  html+='</div>';
   return html;
 }
 
-function supplySetFill(itemId, level){
-  var item = inventory.find(function(i){return i.id===itemId;});
-  if(!item) return;
-  // If tapping the already-set level, clear it
-  if(item.fillLevel === level) level = '';
-  var prev = item.fillLevel || '';
-  item.fillLevel = level;
-  _supplyChanges[itemId] = level;
+function supplySetFill(itemId,level){
+  var item=inventory.find(function(i){return i.id===itemId;});
+  if(!item)return;
+  if(item.fillLevel===level)level='';
+  item.fillLevel=level;
+  _supplyChanges[itemId]=level;
   updateSupplySaveBar();
-  // Re-render just that item's meter
-  var segs = document.querySelectorAll('.fill-seg[data-item-id="'+itemId+'"]');
-  var levels = ['Empty','Low','Half','Most','Full'];
-  var fi = levels.indexOf(level); // Full=4, Empty=0
-  segs.forEach(function(seg, idx){
-    var lvl = levels[idx];
-    seg.className = 'fill-seg ' + ((fi>=0 && idx<=fi) ? FILL_CLASS[lvl] : 'unset');
+  var levels=['Empty','Low','Half','Most','Full'];
+  var fi=levels.indexOf(level);
+  document.querySelectorAll('.fill-seg[data-item-id="'+itemId+'"]').forEach(function(seg,idx){
+    var lvl=levels[idx];
+    seg.className='fill-seg '+((fi>=0&&idx<=fi)?(FILL_CLASS[lvl]||'unset'):'unset');
   });
+  // Refresh the card dot for this item if in card view
+  if(_supplyView==='cards') setTimeout(mobRenderSupply, 0);
 }
 
-function supplyToggleGroup(groupId){
-  var el = document.getElementById(groupId);
-  if(el) el.classList.toggle('collapsed');
-}
+function supplyToggleGroup(gid){var el=document.getElementById(gid);if(el)el.classList.toggle('collapsed');}
 
 function updateSupplySaveBar(){
-  var count = Object.keys(_supplyChanges).length;
-  var btn = document.getElementById('supply-save-btn');
-  var lbl = document.getElementById('supply-change-count');
-  if(btn) btn.disabled = count===0;
-  if(lbl) lbl.textContent = count ? count+' change'+(count>1?'s':'') : '';
+  var count=Object.keys(_supplyChanges).length;
+  var btn=document.getElementById('supply-save-btn');
+  var lbl=document.getElementById('supply-change-count');
+  if(btn)btn.disabled=count===0;
+  if(lbl)lbl.textContent=count?count+' change'+(count>1?'s':''):'';
 }
 
 async function supplyRunSave(){
-  var changes = Object.entries(_supplyChanges);
-  if(!changes.length) return;
-  var btn = document.getElementById('supply-save-btn');
-  btn.disabled=true; btn.textContent='Saving…';
-  var ok=0, fail=0;
+  var changes=Object.entries(_supplyChanges);
+  if(!changes.length)return;
+  var btn=document.getElementById('supply-save-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  var ok=0,fail=0;
   for(var ci=0;ci<changes.length;ci++){
-    var itemId=parseInt(changes[ci][0]), level=changes[ci][1];
+    var itemId=parseInt(changes[ci][0]),level=changes[ci][1];
     try{
       var r=await fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId,{
         method:'PATCH',
@@ -3443,15 +3491,14 @@ async function supplyRunSave(){
     }catch(e){fail++;}
   }
   _supplyChanges={};
-  btn.textContent = fail ? fail+' failed — retry' : 'Save Changes';
-  btn.disabled=true;
   var lbl=document.getElementById('supply-change-count');
-  if(lbl)lbl.textContent=ok ? '✓ '+ok+' saved' : '';
-  setTimeout(function(){
-    btn.textContent='Save Changes';
-    if(lbl)lbl.textContent='';
-  },2500);
+  btn.textContent=fail?fail+' failed — retry':'Save Changes';
+  btn.disabled=true;
+  if(lbl)lbl.textContent=ok?'✓ '+ok+' saved':'';
+  // Refresh cards to reflect new states
+  setTimeout(function(){mobRenderSupply();btn.textContent='Save Changes';if(lbl)lbl.textContent='';},1800);
 }
+
 
 // ── ADD FILL LEVEL TO INSPECTOR ────────────────────────────────────────────────
 function inspFillSectionHTML(item){
