@@ -378,7 +378,7 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 .mob-shell{display:none;flex-direction:column;height:100vh;height:-webkit-fill-available;background:var(--bg);position:fixed;inset:0;z-index:500;}
 body.mob-mode .mob-shell{display:flex;}
 body.mob-mode .shell{display:none;}
-.mob-hdr{height:54px;display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.mob-hdr{height:54px;display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);}
 .mob-logo{font-family:var(--font-mono);font-size:9px;letter-spacing:0.24em;color:var(--text-dim);text-transform:uppercase;flex-shrink:0;}
 .mob-search-hdr{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--font-ui);font-size:15px;outline:none;-webkit-appearance:none;transition:border-color 0.15s;min-width:0;}
 .mob-search-hdr:focus{border-color:var(--rose);}
@@ -560,7 +560,7 @@ body.mob-mode .shell{display:none;}
 .mob-ask-send{width:42px;height:42px;border-radius:12px;background:var(--rose);border:none;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:opacity 0.15s;}
 .mob-ask-send:active{opacity:0.8;}
 /* ── RESPONSIVE: iPad gets 2-col ── */
-/* ── RESPONSIVE: iPad gets 2-col ── */
+/* ── RESPONSIVE: iPad gets 2-col at 600px ── */
 @media(min-width:600px){
   .mob-boxes{grid-template-columns:repeat(2,1fr);padding:16px 20px;gap:12px;}
   .mob-add-wrap{padding:24px 24px 40px;}
@@ -570,6 +570,138 @@ body.mob-mode .shell{display:none;}
   .mob-sec-label{padding:10px 20px 4px;}
   .mob-card{padding:16px 20px;}
   .mob-count-bar{padding:10px 20px 4px;}
+}
+
+/* iPad sidebar hidden by default on phone */
+.ipad-sidebar{display:none;}
+/* ── IPAD DASHBOARD LAYOUT (768px+) ── */
+@media(min-width:768px){
+  /* Overall shell: sidebar + main, no bottom tabs */
+  .mob-shell{flex-direction:row;}
+  .mob-tabs{display:none;}
+
+  /* Left sidebar */
+  .ipad-sidebar{display:flex;flex-direction:column;width:220px;flex-shrink:0;
+    border-right:1px solid var(--border);background:var(--s1);
+    height:100vh;overflow:hidden;
+  }
+  .ipad-sidebar-hdr{
+    padding:20px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .ipad-sidebar-logo{
+    font-family:var(--font-mono);font-size:8px;letter-spacing:0.28em;
+    text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;
+  }
+  .ipad-sidebar-search{
+    width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:8px;
+    padding:8px 11px;color:var(--text);font-family:var(--font-ui);font-size:13px;
+    outline:none;-webkit-appearance:none;transition:border-color 0.15s;
+  }
+  .ipad-sidebar-search:focus{border-color:var(--rose);}
+  .ipad-sidebar-search::placeholder{color:var(--text-dim);}
+  .ipad-sidebar-nav{flex:1;overflow-y:auto;padding:8px 0 24px;}
+  .ipad-sidebar-nav::-webkit-scrollbar{display:none;}
+
+  /* Sidebar nav items */
+  .ipad-nav-section{margin-bottom:4px;}
+  .ipad-nav-label{
+    font-family:var(--font-mono);font-size:8px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--text-dim);
+    padding:10px 14px 4px;
+  }
+  .ipad-nav-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 14px;cursor:pointer;border-radius:8px;margin:0 6px 1px;
+    font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text-mid);
+    transition:background 0.12s,color 0.12s;-webkit-tap-highlight-color:transparent;
+  }
+  .ipad-nav-item:hover{background:var(--s2);color:var(--text);}
+  .ipad-nav-item.active{background:rgba(176,122,132,0.12);color:var(--rose);}
+  .ipad-nav-item .ipad-nav-icon{font-size:15px;margin-right:8px;opacity:0.8;}
+  .ipad-nav-item .ipad-nav-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+  .ipad-nav-item.active .ipad-nav-count{color:var(--rose);opacity:0.7;}
+
+  /* Location tree in sidebar */
+  .ipad-tree-item{
+    display:flex;align-items:center;gap:6px;
+    padding:7px 10px 7px 14px;cursor:pointer;border-radius:6px;margin:0 6px 1px;
+    font-size:12px;color:var(--text-dim);transition:background 0.1s,color 0.1s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .ipad-tree-item:hover{background:var(--s2);color:var(--text-mid);}
+  .ipad-tree-item.active{background:rgba(176,122,132,0.1);color:var(--rose);}
+  .ipad-tree-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .ipad-tree-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ipad-tree-count{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
+
+  /* Sync pill at bottom of sidebar */
+  .ipad-sidebar-foot{
+    padding:12px 16px;border-top:1px solid var(--border);
+    display:flex;align-items:center;gap:8px;flex-shrink:0;
+  }
+  .ipad-foot-sync{display:flex;align-items:center;gap:5px;flex:1;
+    font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
+
+  /* Main content area */
+  .mob-content{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+
+  /* All pages stack as columns — only active shows */
+  .mob-page{flex:1;overflow-y:auto;overflow-x:hidden;}
+  .mob-page.active{display:flex;}
+  .mob-page::-webkit-scrollbar{width:4px;}
+  .mob-page::-webkit-scrollbar-track{background:transparent;}
+  .mob-page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+  /* Browse refinements */
+  .mob-boxes{grid-template-columns:repeat(3,1fr);padding:20px 24px;gap:14px;}
+  .mob-box{border-radius:14px;padding:18px 16px 14px;}
+  .mob-box-name{font-size:18px;}
+  .mob-browse-hdr{padding:20px 24px 12px;border-bottom:none;}
+  .mob-btitle{font-size:24px;font-weight:700;}
+  .mob-back{font-size:14px;padding:9px 16px;}
+  .mob-bc{padding:4px 24px;}
+  .mob-card{padding:16px 24px;}
+  .mob-sec-label{padding:12px 24px 6px;}
+  .mob-count-bar{padding:10px 24px 4px;}
+  .mob-stats{padding:16px 24px;}
+
+  /* Ask tab — wider chat */
+  .mob-ask-wrap{max-width:700px;margin:0 auto;width:100%;}
+  .mob-ask-examples{padding:28px 24px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mob-ask-ex-title{grid-column:1/-1;}
+  .mob-ask-input-wrap{padding:14px 24px 14px;}
+  .mob-ask-body{padding:12px 24px 0;}
+
+  /* Add tab */
+  .mob-add-wrap{max-width:560px;margin:0 auto;padding:32px 24px 48px;}
+
+  /* Header bar — hide hamburger, show app title */
+  .mob-hdr{padding:0 20px;height:58px;background:var(--s1);border-bottom:1px solid var(--border);}
+  .mob-hamburger{display:none;}
+  .mob-logo{display:none;}
+}
+
+/* ── IPAD STATS DASHBOARD BAR ── */
+.ipad-stats-bar{display:none;}
+@media(min-width:768px){
+  .ipad-stats-bar{
+    display:flex;gap:0;padding:0 24px 20px;flex-shrink:0;
+  }
+  .ipad-stat-cell{
+    flex:1;text-align:center;padding:16px 12px;
+    background:var(--s1);border:1px solid var(--border);
+    border-radius:0;margin-right:-1px;
+  }
+  .ipad-stat-cell:first-child{border-radius:12px 0 0 12px;}
+  .ipad-stat-cell:last-child{border-radius:0 12px 12px 0;margin-right:0;}
+  .ipad-stat-num{font-family:var(--font-mono);font-size:26px;font-weight:500;color:var(--text);letter-spacing:-0.02em;}
+  .ipad-stat-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-top:3px;}
+  /* Browse header on iPad */
+  .mob-browse-hdr{padding:24px 24px 12px;border-bottom:none;}
+  .mob-btitle{font-size:28px;font-weight:700;letter-spacing:-0.01em;}
+  .mob-bcount{font-size:12px;}
+  /* iPad search header full width */
+  .mob-search-hdr{font-size:14px;}
 }
 </style>
 </head>
@@ -671,6 +803,23 @@ body.mob-mode .shell{display:none;}
 
 <!-- MOBILE -->
 <div class="mob-shell" id="mob-shell">
+  <!-- iPad sidebar — hidden on phone, shown on tablet via CSS -->
+  <div class="ipad-sidebar" id="ipad-sidebar">
+    <div class="ipad-sidebar-hdr">
+      <div class="ipad-sidebar-logo">Inventory</div>
+      <input class="ipad-sidebar-search" id="ipad-search" type="search" placeholder="Search…" autocomplete="off" oninput="ipadOnSearch(this.value)">
+    </div>
+    <nav class="ipad-sidebar-nav" id="ipad-nav">
+      <!-- Rendered by JS -->
+    </nav>
+    <div class="ipad-sidebar-foot">
+      <div class="ipad-foot-sync">
+        <div class="mob-sync loading" id="ipad-sync-dot"></div>
+        <span id="ipad-sync-label">loading</span>
+      </div>
+      <a href="index.html" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-decoration:none;letter-spacing:0.08em;">editor →</a>
+    </div>
+  </div>
   <div class="mob-hdr">
     <div class="mob-logo">Inv</div>
     <input class="mob-search-hdr" id="mob-search" type="search" placeholder="Search items…" autocomplete="off" autocorrect="off" spellcheck="false">
@@ -1710,7 +1859,18 @@ function mobRenderBrowseAt(path){
   var statsH='';
   if(!path.length){
     var vis=inventory.filter(function(i){return _pinUnlocked||!i.lockedItem;});
-    statsH='<div class="mob-stats"><div class="mob-stat"><div class="mob-stat-num">'+vis.length+'</div><div class="mob-stat-lbl">Items</div></div><div class="mob-stat"><div class="mob-stat-num">'+vis.filter(function(i){return i.inUse;}).length+'</div><div class="mob-stat-lbl">In Use</div></div><div class="mob-stat"><div class="mob-stat-num">'+new Set(vis.map(function(i){return(i.locationPath||[])[0];}).filter(Boolean)).size+'</div><div class="mob-stat-lbl">Locations</div></div></div>';
+    var inUseCnt=vis.filter(function(i){return i.inUse;}).length;
+    var locCnt=new Set(vis.map(function(i){return(i.locationPath||[])[0];}).filter(Boolean)).size;
+    var valTotal=vis.reduce(function(s,i){return s+(parseFloat(i.estValue)||0);},0);
+    // iPad dashboard stats bar
+    statsH='<div class="ipad-stats-bar">'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+vis.length+'</div><div class="ipad-stat-lbl">Items</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+inUseCnt+'</div><div class="ipad-stat-lbl">In Use</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+locCnt+'</div><div class="ipad-stat-lbl">Locations</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">$'+(valTotal>=1000?(valTotal/1000).toFixed(1)+'k':Math.round(valTotal))+'</div><div class="ipad-stat-lbl">Est. Value</div></div>'
+      +'</div>'
+      // Phone stats
+      +'<div class="mob-stats"><div class="mob-stat"><div class="mob-stat-num">'+vis.length+'</div><div class="mob-stat-lbl">Items</div></div><div class="mob-stat"><div class="mob-stat-num">'+inUseCnt+'</div><div class="mob-stat-lbl">In Use</div></div><div class="mob-stat"><div class="mob-stat-num">'+locCnt+'</div><div class="mob-stat-lbl">Locations</div></div></div>';
   }
   var boxH='';
   if(children.length){
@@ -2307,6 +2467,161 @@ async function mobAskSend(prefill){
   body.scrollTop=body.scrollHeight;
   _mobAskBusy=false;
 }
+
+
+// ── IPAD SIDEBAR ──────────────────────────────────────────────────────────────
+var _ipadTab = 'browse'; // tracks which tab the iPad sidebar is showing
+
+function isIPad(){return window.innerWidth>=768;}
+
+function ipadRenderSidebar(){
+  if(!isIPad())return;
+  var nav=document.getElementById('ipad-nav');
+  if(!nav)return;
+
+  var vis=inventory.filter(function(i){return _pinUnlocked||!i.lockedItem;});
+  var inUseCnt=vis.filter(function(i){return i.inUse;}).length;
+  var tree=buildTree();
+
+  var sl=document.getElementById('ipad-sync-label');
+  var sd=document.getElementById('ipad-sync-dot');
+  if(sl)sl.textContent=inventory.length?inventory.length+' items':'loading';
+  if(sd)sd.className='mob-sync '+(inventory.length?'ok':'loading');
+
+  var html='';
+  function navItem(icon,label,tab,path,count){
+    var isActive=tab==='browse'&&path!=null
+      ?(_ipadTab==='browse'&&_mobBrowsePath.join('::')===(path||[]).join('::'))
+      :_ipadTab===tab;
+    var pid=path!=null?mReg(path):'';
+    return '<div class="ipad-nav-item'+(isActive?' active':'')+'"'
+      +(pid?' data-pid="'+pid+'"':'')+' data-tab="'+tab+'" onclick="ipadNavClick(this)">'
+      +'<span class="ipad-nav-icon">'+icon+'</span><span style="flex:1">'+label+'</span>'
+      +(count!=null?'<span class="ipad-nav-count">'+count+'</span>':'')
+      +'</div>';
+  }
+
+  html+='<div class="ipad-nav-section">';
+  html+='<div class="ipad-nav-label">Browse</div>';
+  html+=navItem('◎','All Locations','browse',[],vis.length);
+  html+=navItem('⌕','Search','find',null,null);
+  html+=navItem('✦','Ask AI','ask',null,null);
+  html+=navItem('＋','Add Item','add',null,null);
+  if(inUseCnt>0)html+=navItem('●','In Use','inuse',null,inUseCnt);
+  html+='</div>';
+
+  html+='<div class="ipad-nav-section">';
+  html+='<div class="ipad-nav-label">Locations</div>';
+  html+=ipadBuildTree(tree.children,[],0);
+  html+='</div>';
+
+  nav.innerHTML=html;
+}
+
+function ipadNavClick(el){
+  var tab=el.dataset.tab;
+  var pid=el.dataset.pid;
+  if(tab==='browse'&&pid){
+    ipadGo(pid);
+  } else if(tab==='inuse'){
+    _ipadTab='find';
+    mobSwitchTab('find');
+    // show in-use items
+    var body=document.getElementById('mob-find-results');
+    if(body){
+      var res=inventory.filter(function(i){return i.inUse&&(_pinUnlocked||!i.lockedItem);});
+      var html='<div class="mob-count-bar">'+res.length+' in use</div>';
+      res.forEach(function(i){html+=mobCard(i,true);});
+      body.innerHTML=html;
+    }
+    ipadRenderSidebar();
+  } else {
+    ipadGoTab(tab);
+  }
+}
+
+
+function ipadBuildTree(children,path,depth){
+  var html='';
+  var indent=depth*12;
+  Object.entries(children).sort(function(a,b){return a[0].localeCompare(b[0]);}).forEach(function(entry){
+    var name=entry[0];var node=entry[1];
+    var childPath=path.concat([name]);
+    var pk=childPath.join('::');
+    var kid=mRegK(pk);
+    var isActive=_ipadTab==='browse'&&_mobBrowsePath.join('::')=== pk;
+    var hue=MOB_DH[Math.min(depth,MOB_DH.length-1)];
+    var color='hsla('+hue+',60%,65%,0.9)';
+    var pid=mReg(childPath);
+    html+='<div class="ipad-tree-item'+(isActive?' active':'')+'" data-pid="'+pid+'" onclick="ipadGo(this.dataset.pid)" style="padding-left:'+(14+indent)+'px">';
+    html+='<div class="ipad-tree-dot" style="background:'+color+'"></div>';
+    html+='<span class="ipad-tree-name">'+esc(name)+'</span>';
+    html+='<span class="ipad-tree-count">'+node.total+'</span>';
+    html+='</div>';
+    // Show children if on this path
+    if(_mobBrowsePath.length>depth&&_mobBrowsePath[depth]===name&&Object.keys(node.children).length>0){
+      html+=ipadBuildTree(node.children,childPath,depth+1);
+    }
+  });
+  return html;
+}
+
+function ipadGo(pidOrArr){
+  // Accept either a path array or a registry ID string
+  var path=Array.isArray(pidOrArr)?pidOrArr:(_mp[pidOrArr]||[]);
+  mobRenderBrowseAt(path);
+  _ipadTab='browse';
+  // Switch content to browse tab
+  document.querySelectorAll('.mob-page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
+  var bp=document.getElementById('mob-page-browse');if(bp)bp.classList.add('active');
+  var bt=document.getElementById('mob-tab-browse');if(bt)bt.classList.add('active');
+  ipadRenderSidebar();
+}
+
+function ipadGoTab(tab){
+  _ipadTab=tab;
+  mobSwitchTab(tab);
+  ipadRenderSidebar();
+}
+
+function ipadOnSearch(val){
+  // On iPad, switch to find tab and search
+  if(val.trim()){
+    _ipadTab='find';
+    document.querySelectorAll('.mob-page').forEach(function(p){p.classList.remove('active');});
+    var fp=document.getElementById('mob-page-find');if(fp)fp.classList.add('active');
+    var ms=document.getElementById('mob-search');if(ms)ms.value=val;
+    mobRenderFind(val);
+  } else {
+    // Cleared — go back to browse
+    ipadGo([]);
+  }
+}
+
+// Override mobRenderBrowseAt to also refresh iPad sidebar
+var _origRenderBrowse=mobRenderBrowseAt;
+function mobRenderBrowseAt(path){
+  _mobBrowsePath=path.slice();
+  _origRenderBrowse(path);
+  if(isIPad())ipadRenderSidebar();
+}
+
+// Hook into setSyncStatus to update iPad sync indicator
+var _origSetSync=setSyncStatus;
+function setSyncStatus(s){
+  _origSetSync(s);
+  var sl=document.getElementById('ipad-sync-label');
+  var sd=document.getElementById('ipad-sync-dot');
+  if(sl)sl.textContent=s==='ok'?inventory.length+' items':s==='loading'?'loading':'error';
+  if(sd)sd.className='mob-sync '+(s==='ok'?'ok':'loading');
+  if(s==='ok'&&isIPad())ipadRenderSidebar();
+}
+
+// Initial render after load
+window.addEventListener('resize',function(){
+  if(isIPad())ipadRenderSidebar();
+});
 
 </script>
 </body>
