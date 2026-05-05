@@ -333,6 +333,8 @@ header{display:flex;align-items:center;padding:0 28px;border-bottom:1px solid va
 /* Keyword match indicator */
 .kw-match-row{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;}
 .kw-match-label{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);flex-shrink:0;}
+.sr-nav-hint{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-top:6px;opacity:0;}
+.sr-card:hover .sr-nav-hint{opacity:1;transition:opacity 0.2s;}
 .kw-match-pill{
   font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
   background:rgba(176,122,132,0.08);border:1px solid rgba(176,122,132,0.2);
@@ -407,7 +409,8 @@ body.mob-mode .shell{display:none;}
 .mob-badge{font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;}
 .mob-pill{font-size:11px;color:var(--text-mid);}
 .mob-inuse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(77,143,106,0.7);animation:inUsePulse 2s ease infinite;display:inline-block;vertical-align:middle;margin-left:5px;}
-.mob-count-bar{font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim);padding:8px 16px 2px;text-transform:uppercase;}
+.mob-count-bar{font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim);padding:8px 16px 2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.mob-search-note{font-family:var(--font-mono);font-size:9px;color:var(--rose);background:rgba(176,122,132,0.1);border:1px solid rgba(176,122,132,0.25);border-radius:4px;padding:2px 7px;letter-spacing:0.04em;}
 .mob-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:10px;color:var(--text-dim);font-family:var(--font-mono);font-size:11px;text-align:center;}
 .mob-empty-icon{font-size:28px;opacity:0.3;margin-bottom:4px;}
 .mob-browse-hdr{padding:10px 16px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
@@ -562,6 +565,11 @@ body.mob-mode .shell{display:none;}
 .ask-section{font-weight:600;color:var(--text);margin-top:12px;margin-bottom:5px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);font-size:13px;}
 .ask-section:first-child{margin-top:0;padding-top:0;border-top:none;}
 .mob-ask-action{display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 14px;border-radius:10px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.3);color:var(--green);}
+.mob-ask-context-chip{font-family:var(--font-mono);font-size:10px;letter-spacing:0.05em;color:var(--text-dim);background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.mob-ask-context-chip strong{color:var(--text-mid);font-weight:500;}
+.mob-ask-context-chip.expanded{color:var(--amber);border-color:rgba(158,122,50,0.3);background:rgba(158,122,50,0.06);}
+.mob-ask-expand-btn{font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;color:var(--rose);background:rgba(176,122,132,0.1);border:1px solid rgba(176,122,132,0.3);border-radius:5px;padding:3px 8px;cursor:pointer;white-space:nowrap;margin-left:auto;-webkit-tap-highlight-color:transparent;}
+.mob-ask-expand-btn:hover{background:rgba(176,122,132,0.2);}
 .mob-ask-input-wrap{display:flex;gap:10px;padding:10px 12px 12px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;align-items:flex-end;}
 .mob-ask-input{flex:1;background:var(--s2);border:1.5px solid var(--border2);border-radius:22px;padding:10px 16px;color:var(--text);font-family:var(--font-ui);font-size:15px;outline:none;-webkit-appearance:none;resize:none;min-height:44px;max-height:120px;transition:border-color 0.15s;line-height:1.45;}
 .mob-ask-input:focus{border-color:var(--rose);}
@@ -1688,7 +1696,10 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
   const srInUseBadge=item.inUse?`<span class="indicator-badge" style="color:#4d8f6a;border-color:#4d8f6a40;margin-left:4px"><span class="inuse-dot" style="width:4px;height:4px"></span>In Use</span>`:'';
   const srDocBtn=item.docUrl?`<button class="doc-view-btn" onclick="openDocViewer('${esc(item.docUrl)}','${esc(item.name)}')" title="View document" style="margin-left:4px">📎</button>`:'';
 
-  return`<div class="sr-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border}">
+  // Clicking card navigates browse to item's location
+  const cardPid = regPath(path.length ? path.slice(0,-1) : path);
+  return`<div class="sr-card" style="border-left-color:${cs.text};background:${cs.bg};border-color:${cs.border};cursor:pointer"
+    data-item-id="${item.id}" data-nav-pid="${cardPid}" onclick="navigateToSearchItem(this)">
     <div class="sr-row1">
       <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
         <span class="sr-name-primary">${highlight(primary)}</span>${secondary?`<span class="sr-name-secondary"> — ${highlight(secondary)}</span>`:''}
@@ -1698,7 +1709,36 @@ function searchCardHTML(item, q, nameMatch, matchedKw){
     </div>
     ${locPath}
     ${kwIndicator}
+    <div class="sr-nav-hint">Tap to locate in Browse →</div>
   </div>`;
+}
+
+// Navigate browse to item location from search result
+function navigateToSearchItem(el){
+  const itemId = parseInt(el.dataset.itemId);
+  const pid = el.dataset.navPid;
+  const item = inventory.find(i=>i.id===itemId);
+  if(!item) return;
+  const path = _paths[pid] || [];
+  // Clear search
+  document.getElementById('search-input').value = '';
+  searchQuery = '';
+  // Navigate to the parent location
+  navigate(path);
+  // After render, highlight the item card
+  setTimeout(()=>{
+    const cards = document.querySelectorAll('.item-card');
+    for(const c of cards){
+      if(c.textContent.includes(item.name.slice(0,20))){
+        c.scrollIntoView({behavior:'smooth', block:'center'});
+        c.style.transition = 'box-shadow 0.35s, border-left-color 0.35s';
+        c.style.boxShadow = '0 0 0 2px var(--rose), 0 8px 24px rgba(176,122,132,0.2)';
+        c.style.borderLeftColor = 'var(--rose)';
+        setTimeout(()=>{c.style.boxShadow='';c.style.borderLeftColor='';}, 2500);
+        break;
+      }
+    }
+  }, 280);
 }
 
 // Search
@@ -1808,7 +1848,15 @@ function mobRenderFind(q){
   if(!q){el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon" style="font-size:32px;margin-bottom:8px">◎</div><div style="font-size:13px;margin-bottom:4px">Search your inventory</div><div style="font-size:11px">Find items by name, location, or category</div></div>';return;}
   else{var ql=q.toLowerCase();res=inventory.filter(function(i){if(!_pinUnlocked&&i.lockedItem)return false;return i.name.toLowerCase().indexOf(ql)!==-1||(i.keywords||'').toLowerCase().indexOf(ql)!==-1||(i.locationPath||[]).join(' > ').toLowerCase().indexOf(ql)!==-1||(i.category||'').toLowerCase().indexOf(ql)!==-1;});}
   if(!res.length){el.innerHTML='<div class="mob-empty"><div class="mob-empty-icon">&#9900;</div>No results for &ldquo;'+esc(q)+'&rdquo;</div>';return;}
-  var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+'</div>';
+  // Note how each result matched (name vs keyword vs location)
+  var ql=q.toLowerCase();
+  var nameMatches=res.filter(function(i){return i.name.toLowerCase().indexOf(ql)!==-1;}).length;
+  var kwMatches=res.filter(function(i){return (i.keywords||'').toLowerCase().indexOf(ql)!==-1&&i.name.toLowerCase().indexOf(ql)===-1;}).length;
+  var locMatches=res.filter(function(i){return (i.locationPath||[]).join(' > ').toLowerCase().indexOf(ql)!==-1&&i.name.toLowerCase().indexOf(ql)===-1;}).length;
+  var notes='';
+  if(kwMatches>0)notes+='<span class="mob-search-note">+'+kwMatches+' via keywords</span>';
+  if(locMatches>0)notes+='<span class="mob-search-note">+'+locMatches+' by location</span>';
+  var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+notes+'</div>';
   res.forEach(function(item){html+=mobCard(item,true);});
   el.innerHTML=html;
 }
@@ -2329,6 +2377,12 @@ INVENTORY: ${JSON.stringify(snapshot)}`;
   document.getElementById('chat-send-btn').disabled = false;
 }
 
+function mobAskExpand(originalQ){
+  // Re-run the same question with expanded (all-inventory) mode
+  window._askExpandNext = true;
+  mobAskSend(originalQ);
+}
+
 function chatDownload(dlId){
   const d = window['_chatCsv_'+dlId]; if(!d) return;
   const blob = new Blob([d.data],{type:'text/csv'});
@@ -2406,6 +2460,69 @@ function formatAskReply(text){
   return html||'<em>—</em>';
 }
 
+
+// ── SMART AI CONTEXT ─────────────────────────────────────────────────────────
+var AI_CAT_KEYWORDS = {
+  'Cables & Charging': ['charger','charging','cable','usb','power adapter','cord','plug','wall charger','power bank','battery charger'],
+  'Electronics': ['electronics','device','gadget','laptop','macbook','ipad','iphone','tablet','computer','monitor','speaker','headphone','earphone','airpod','camera'],
+  'Camera/Photo Gear': ['camera','photo','lens','tripod','dji','drone','flash','gimbal','gopro','mavic','mirrorless'],
+  'Firearms & Ammo': ['gun','firearm','pistol','rifle','ammo','ammunition','magazine','holster','handgun','9mm','glock','kahr','weapon','ccw'],
+  'Military': ['military','army','tactical','uniform','gear','boots','backpack','kit','ruck','field'],
+  'Clothing': ['clothes','clothing','shirt','pants','jacket','coat','hoodie','wear','outfit'],
+  'Footwear': ['shoes','boots','sneakers','footwear','sandals'],
+  'Tools & Hardware': ['tools','hardware','drill','screwdriver','hammer','wrench','toolbox'],
+  'Health & Supplements': ['supplement','vitamin','protein','health','medicine','medication','pill','capsule'],
+  'Automotive': ['car','tesla','auto','vehicle','automotive'],
+  'Bags & Carry': ['bag','backpack','carry','luggage','duffel','pouch'],
+  'Books & Notebooks': ['book','notebook','journal','notes','reading'],
+  'Gym & Fitness': ['gym','fitness','workout','exercise','weights','barbell'],
+};
+
+function detectAICategories(question){
+  var q = question.toLowerCase();
+  var matched = [];
+  Object.entries(AI_CAT_KEYWORDS).forEach(function([cat, keywords]){
+    if(keywords.some(function(kw){ return q.includes(kw); })){
+      matched.push(cat);
+    }
+  });
+  return matched;
+}
+
+function buildSmartPayload(question, expandedMode){
+  var inUseCnt = inventory.filter(function(i){return i.inUse;}).length;
+  var categories = expandedMode ? [] : detectAICategories(question);
+  var filtered = categories.length
+    ? inventory.filter(function(i){ return categories.includes(i.category); })
+    : inventory;
+  // Always include items whose keywords match the question tokens
+  if(categories.length && !expandedMode){
+    var q = question.toLowerCase();
+    var tokens = q.split(/\s+/).filter(function(t){return t.length>2;});
+    inventory.forEach(function(i){
+      if(filtered.includes(i)) return;
+      var kw = (i.keywords||'').toLowerCase();
+      var nm = (i.name||'').toLowerCase();
+      if(tokens.some(function(t){ return kw.includes(t)||nm.includes(t); })){
+        filtered.push(i);
+      }
+    });
+  }
+  var compactLines = filtered.map(function(i){
+    var loc = (i.locationPath||[]).join(' > ')||'Unassigned';
+    var qty = parseInt(i.qty)||1;
+    var kw = i.keywords||'';
+    if(!kw&&i.notes){ var ki=i.notes.indexOf('| keywords:'); if(ki!==-1)kw=i.notes.slice(ki+11).trim().slice(0,60); }
+    var s = i.name+'|'+loc;
+    if(qty>1) s += '|x'+qty;
+    if(kw) s += '|'+kw.slice(0,60);
+    if(i.fillLevel&&i.fillLevel!=='Full'&&i.fillLevel!=='') s += '|fill:'+i.fillLevel;
+    if(i.inUse) s += '|IN_USE';
+    return s;
+  });
+  return { compactLines: compactLines, categories: categories, itemCount: filtered.length };
+}
+
 async function mobAskSend(prefill){
   if(_mobAskBusy)return;
   var inp=document.getElementById('mob-ask-input');
@@ -2438,40 +2555,46 @@ async function mobAskSend(prefill){
   body.scrollTop=body.scrollHeight;
   _mobAskBusy=true;
 
-  // ── FULL INVENTORY PAYLOAD (super-compact format, all items) ─────────────
-  // Format: Name|Location|xQty(if>1)|keywords(truncated)|fillLevel(if not full)
-  var inUseCnt=inventory.filter(function(i){return i.inUse;}).length;
-  var compactLines=inventory.map(function(i){
-    var loc=(i.locationPath||[]).join(' > ')||'Unassigned';
-    var qty=parseInt(i.qty)||1;
-    var kw=i.keywords||'';
-    if(!kw&&i.notes){
-      var ki=i.notes.indexOf('| keywords:');
-      if(ki!==-1)kw=i.notes.slice(ki+11).trim().slice(0,50);
-    }
-    var s=i.name+'|'+loc;
-    if(qty>1)s+='|x'+qty;
-    if(kw)s+='|'+kw.slice(0,50);
-    if(i.fillLevel&&i.fillLevel!=='Full'&&i.fillLevel!=='')s+='|fill:'+i.fillLevel;
-    if(i.inUse)s+='|IN_USE';
-    return s;
-  });
+  // ── SMART CONTEXT: detect categories, filter payload, show heads-up ──────
+  var _expandedMode = prefill ? false : (window._askExpandNext||false);
+  window._askExpandNext = false;
+  var payload = buildSmartPayload(q, _expandedMode);
+  var compactLines = payload.compactLines;
+  var matchedCats = payload.categories;
+  var inUseCnt = inventory.filter(function(i){return i.inUse;}).length;
 
-  var systemPrompt='You are an inventory assistant for JD Meyers.\n'
-    +'Total: '+inventory.length+' items, '+inUseCnt+' currently in use.\n\n'
-    +'IMPORTANT SEARCH RULES:\n'
-    +'- Check BOTH item names AND the keywords field (after the | separator)\n'
-    +'- When counting items, also check the qty field (x2 means 2 units, x7 means 7 units)\n'
-    +'- Items may be spread across multiple locations — find ALL matches\n'
-    +'- Firearms/weapons may use coded keywords: check for caliber, brand, type\n\n'
-    +'FORMAT (mobile chat):\n'
-    +'- **bold** for item names and numbers\n'
-    +'- Bullet list for multiple items\n'
-    +'- ## Heading for groupings\n'
-    +'- Be concise. No JSON, no code blocks.\n\n'
-    +'Respond ONLY as JSON: {"reply":"formatted answer","action":"answer"|"search"|"navigate","search_query":"...","navigate_path":["Bedroom","Closet"]}\n\n'
-    +'INVENTORY (Name|Location|xQty|keywords|fillLevel|IN_USE):\n'
-    +compactLines.join('\n');
+  // Show context chip above the thinking bubble
+  var contextNote = '';
+  if(matchedCats.length && !_expandedMode){
+    contextNote = '<div class="mob-ask-context-chip" id="ctx-'+thinkId+'">'
+      +'Searching in: <strong>'+matchedCats.join(', ')+'</strong>'
+      +' &nbsp;<button class="mob-ask-expand-btn" onclick="mobAskExpand('+JSON.stringify(q)+')">Search all ↗</button>'
+      +'</div>';
+    body.insertAdjacentHTML('beforeend', contextNote);
+  } else if(_expandedMode){
+    contextNote = '<div class="mob-ask-context-chip expanded">Searching all '+inventory.length+' items</div>';
+    body.insertAdjacentHTML('beforeend', contextNote);
+  }
+
+  var systemPrompt = 'You are an inventory assistant for JD Meyers.\n'
+    + 'Total inventory: '+inventory.length+' items, '+inUseCnt+' in use.\n'
+    + (matchedCats.length && !_expandedMode
+        ? 'Showing '+payload.itemCount+' items from: '+matchedCats.join(', ')+'\n'
+        : 'Showing all '+payload.itemCount+' items.\n')
+    + '\nSEARCH RULES:\n'
+    + '- Check BOTH item names AND keywords (after | separator)\n'
+    + '- qty field: x2=2 units, x7=7 units — count these when asked "how many"\n'
+    + '- Items may appear in multiple locations — list ALL of them\n'
+    + '- For broad queries, be inclusive: a USB-C wall charger includes any wall charger with USB-C output\n'
+    + '- Firearms/weapons: check by caliber, brand name, AND type keywords\n'
+    + '\nFORMAT (mobile):\n'
+    + '- **bold** item names and key numbers\n'
+    + '- Bullet list for multiple items\n'
+    + '- ## Heading for groupings\n'
+    + '- Be concise and complete. No JSON, no code blocks.\n'
+    + '\nRespond ONLY as JSON: {"reply":"formatted answer","action":"answer"|"search"|"navigate","search_query":"...","navigate_path":["Bedroom","Closet"]}\n'
+    + '\nINVENTORY (Name|Location|xQty|keywords|fillLevel|IN_USE):\n'
+    + compactLines.join('\n');
 
   try{
     var res=await fetch(SUPABASE_URL+'/functions/v1/suggest-item',{
