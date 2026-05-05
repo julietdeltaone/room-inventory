@@ -415,11 +415,11 @@ body.mob-mode .shell{display:none;}
 .mob-bc::-webkit-scrollbar{display:none;}
 .mob-bc button{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);cursor:pointer;white-space:nowrap;background:none;border:none;padding:0;}
 .mob-bc-sep{font-family:var(--font-mono);font-size:10px;color:var(--border2);}
-.mob-boxes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;}
-.mob-box{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px 12px;cursor:pointer;border-left:3px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.1s;}
+.mob-boxes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px;}
+.mob-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 14px 14px;cursor:pointer;border-top:3px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.1s;display:flex;flex-direction:column;}
 .mob-box:active{background:var(--s2);}
-.mob-box-name{font-size:15px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:4px;}
-.mob-box-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.mob-box-name{font-size:17px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:3px;}
+.mob-box-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;}
 .mob-sec-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);padding:10px 16px 4px;display:flex;align-items:center;gap:10px;}
 .mob-sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
 .mob-stats{display:flex;padding:12px 0;}
@@ -526,13 +526,8 @@ body.mob-mode .shell{display:none;}
 .mob-lp-exp.open{transform:rotate(90deg);}
 .mob-lp-children{padding-left:16px;border-left:1px solid var(--border);margin-left:20px;display:none;}
 .mob-lp-children.open{display:block;}
-/* ── BIGGER BROWSE BOXES ── */
-.mob-boxes{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px;}
-.mob-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;border-left:4px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.1s;}
-.mob-box:active{background:var(--s2);}
-.mob-box-name{font-size:16px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:5px;}
-.mob-box-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:6px;}
-.mob-box-preview{display:flex;flex-direction:column;gap:2px;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+/* ── BOX PREVIEW ── */
+.mob-box-preview{display:flex;flex-direction:column;gap:2px;margin-top:auto;padding-top:8px;border-top:1px solid var(--border);}
 .mob-box-prev-item{font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 </style>
 </head>
@@ -649,11 +644,6 @@ body.mob-mode .shell{display:none;}
     <div class="mob-page active" id="mob-page-browse">
       <div id="mob-browse-inner"></div>
     </div>
-  </div>
-  <div class="mob-tabs">
-    <button class="mob-tab" id="mob-tab-find" onclick="mobSwitchTab('find')"><div class="mob-tab-icon">⌕</div><div class="mob-tab-lbl">Find</div></button>
-    <button class="mob-tab active" id="mob-tab-browse" onclick="mobSwitchTab('browse')"><div class="mob-tab-icon">◎</div><div class="mob-tab-lbl">Browse</div></button>
-    <button class="mob-tab" id="mob-tab-add" onclick="mobSwitchTab('add')"><div class="mob-tab-icon">＋</div><div class="mob-tab-lbl">Add</div></button>
     <div class="mob-page" id="mob-page-add">
       <div class="mob-add-wrap">
         <div><div class="mob-add-title">Add Item</div><div class="mob-add-sub">Saves to inventory</div></div>
@@ -695,6 +685,16 @@ body.mob-mode .shell{display:none;}
       </div>
     </div>
   </div>
+  <div class="mob-tabs">
+    <button class="mob-tab" id="mob-tab-find" onclick="mobSwitchTab('find')"><div class="mob-tab-icon">⌕</div><div class="mob-tab-lbl">Find</div></button>
+    <button class="mob-tab active" id="mob-tab-browse" onclick="mobSwitchTab('browse')"><div class="mob-tab-icon">◎</div><div class="mob-tab-lbl">Browse</div></button>
+    <button class="mob-tab" id="mob-tab-add" onclick="mobSwitchTab('add')"><div class="mob-tab-icon">＋</div><div class="mob-tab-lbl">Add</div></button>
+  </div>
+</div>
+<!-- DRAWER -->
+<div class="mob-drawer-ov" id="mob-drawer-ov">
+  <div class="mob-drawer-bg" onclick="mobCloseDrawer()"></div>
+  <div class="mob-drawer"><div class="mob-drawer-hdr"><span class="mob-drawer-title">Inventory</span><button class="mob-drawer-x" onclick="mobCloseDrawer()">✕</button></div><div id="mob-drawer-content"></div></div>
 </div>
 <!-- LOC PICKER -->
 <div class="mob-lp-ov" id="mob-lp-ov">
@@ -706,9 +706,7 @@ body.mob-mode .shell{display:none;}
     <div class="mob-lp-tree" id="mob-lp-tree"></div>
   </div>
 </div>
-  <div class="mob-drawer-bg" onclick="mobCloseDrawer()"></div>
-  <div class="mob-drawer"><div class="mob-drawer-hdr"><span class="mob-drawer-title">Inventory</span><button class="mob-drawer-x" onclick="mobCloseDrawer()">✕</button></div><div id="mob-drawer-content"></div></div>
-</div>
+<!-- DETAIL SHEET -->
 <div class="mob-detail-ov" id="mob-detail-ov">
   <div class="mob-detail-bg" onclick="mobCloseDetail()"></div>
   <div class="mob-detail-sheet"><div class="mob-detail-handle"></div><div class="mob-detail-hdr" id="mob-detail-hdr"></div><div class="mob-detail-body" id="mob-detail-body"></div><div class="mob-detail-actions" id="mob-detail-actions"></div></div>
@@ -1634,7 +1632,7 @@ function mobRenderBrowseAt(path){
       var childPath=path.concat([name]);
       var prevItems=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&(i.locationPath||[]).length===childPath.length&&pathStartsWith(i.locationPath||[],childPath);}).slice(0,3);
       var prevH=prevItems.length?'<div class="mob-box-preview">'+prevItems.map(function(i){return'<div class="mob-box-prev-item">&middot; '+esc(splitName(i.name).primary)+'</div>';}).join('')+(cn.total>3?'<div class="mob-box-prev-item" style="opacity:0.5">&plus; more</div>':'')+'</div>':'';
-      return'<div class="mob-box" style="border-left-color:'+cc+'" onclick="mNav('+JSON.stringify(pid)+')"><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+'</div>';
+      return'<div class="mob-box" style="border-top-color:'+cc+'" onclick="mNav('+JSON.stringify(pid)+')"><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+'</div>';
     }).join('')+'</div>';
   }
   var itemsH='';
