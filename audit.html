@@ -655,6 +655,76 @@ async function runEnrich(id){
   finally{const b=document.getElementById('enrich-btn');if(b){b.disabled=false;b.textContent='✦ L5 + KW';}}
 }
 
+
+// ── AUDIT TREE NAV ─────────────────────────────────────────────────────────
+var _auditTreeOpen=false,_auditTreeExp=new Set();
+function toggleAuditTree(){
+  _auditTreeOpen=!_auditTreeOpen;
+  const p=document.getElementById('audit-tree-panel');
+  if(p)p.style.display=_auditTreeOpen?'block':'none';
+  if(_auditTreeOpen)renderAuditTree();
+}
+function buildLocTree(){
+  const t={};
+  inventory.forEach(function(i){
+    let node=t;(i.locationPath||[]).forEach(function(seg){
+      if(!node[seg])node[seg]={children:{},count:0};
+      node[seg].count++;node=node[seg].children;
+    });
+  });
+  return t;
+}
+function renderAuditTree(){
+  const p=document.getElementById('audit-tree-panel');if(!p)return;
+  p.innerHTML=buildAuditTreeHTML(buildLocTree(),[],0);
+}
+function buildAuditTreeHTML(node,path,depth){
+  const colors=['#6e8fa8','#9e7a32','#7a6ea8','#4d8f6a','#b07a84'];
+  const c=colors[depth%colors.length];let html='';
+  Object.entries(node).sort(function(a,b){return b[1].count-a[1].count;}).forEach(function(e){
+    const name=e[0],info=e[1],childPath=path.concat([name]),pk=childPath.join('::');
+    const isExp=_auditTreeExp.has(pk),hasCh=Object.keys(info.children).length>0;
+    const matchCount=fq().filter(function(i){const p=i.locationPath||[];return childPath.every(function(seg,idx){return p[idx]===seg;});}).length;
+    html+='<div style="display:flex;align-items:center;gap:6px;padding:7px 10px 7px '+(10+depth*12)+'px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent" onclick="auditTreeClick(''+pk+'')">'
+      +'<div style="width:6px;height:6px;border-radius:50%;background:'+c+';flex-shrink:0"></div>'
+      +'<span style="flex:1;font-size:12px;color:var(--text)">'+esc(name)+'</span>'
+      +(matchCount?'<span style="font-family:var(--font-mono);font-size:9px;color:var(--rose);background:rgba(176,122,132,.12);padding:1px 5px;border-radius:20px">'+matchCount+'</span>':'')
+      +(hasCh?'<button style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:0 2px;transform:'+(isExp?'rotate(90deg)':'none')+'" onclick="event.stopPropagation();auditTreeToggle(''+pk+'')">›</button>':'')
+      +'</div>';
+    if(hasCh&&isExp)html+=buildAuditTreeHTML(info.children,childPath,depth+1);
+  });
+  return html;
+}
+function auditTreeToggle(pk){if(_auditTreeExp.has(pk))_auditTreeExp.delete(pk);else _auditTreeExp.add(pk);renderAuditTree();}
+function auditTreeClick(pk){
+  const path=pk.split('::');
+  const filtered=fq().filter(function(i){const p=i.locationPath||[];return path.every(function(seg,idx){return p[idx]===seg;});});
+  if(!filtered.length){toast('No queue items at this location');return;}
+  const idx=fq().findIndex(function(i){return i.id===filtered[0].id;});
+  if(idx>=0)batchStart=Math.floor(idx/BATCH_SIZE)*BATCH_SIZE;
+  renderQueue();selectItem(filtered[0].id);
+  toast('📍 '+path[path.length-1]+' — '+filtered.length+' in queue');
+}
+
+// ── BULK ACTIONS ──────────────────────────────────────────────────────────────
+async function bulkSetFreq(){
+  const freq=document.getElementById('bulk-freq-sel').value;
+  if(!freq){toast('Select a frequency first');return;}
+  const batch=fq().slice(batchStart,batchStart+BATCH_SIZE);
+  let saved=0;
+  for(const item of batch){item.auditFreq=freq;const ok=await sbSave(item);if(ok)saved++;}
+  buildQueue();renderQueue();toast('✓ Set '+freq+' on '+saved+' items');
+}
+async function bulkMarkAudited(){
+  const batch=fq().slice(batchStart,batchStart+BATCH_SIZE);
+  const noFreq=batch.filter(function(i){return !i.auditFreq;});
+  if(noFreq.length){toast('⚠ '+noFreq.length+' items need a frequency — use Set Freq first');return;}
+  const now=new Date().toISOString();let saved=0;
+  for(const item of batch){item.lastAudited=now;const ok=await sbSave(item);if(ok)saved++;}
+  buildQueue();renderQueue();toast('✓ Marked '+saved+' as audited');
+  nextBatch();
+}
+
 // ── UTIL ──────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 let _tTimer;
