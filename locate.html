@@ -595,63 +595,79 @@ body.mob-mode .shell{display:none;}
 .ipad-sidebar{display:none;}
 /* ── IPAD DASHBOARD LAYOUT (768px+) ── */
 @media(min-width:768px){
+  /* Overall shell: sidebar + main, no bottom tabs */
   .mob-shell{flex-direction:row;}
   .mob-tabs{display:none;}
 
-  /* Sidebar: collapsible */
-  .ipad-sidebar{display:flex;flex-direction:column;width:260px;flex-shrink:0;
+  /* Left sidebar */
+  .ipad-sidebar{display:flex;flex-direction:column;width:220px;flex-shrink:0;
     border-right:1px solid var(--border);background:var(--s1);
-    height:100vh;overflow:hidden;transition:width 0.25s cubic-bezier(0.16,1,0.3,1);}
-  .ipad-sidebar.collapsed{width:56px;}
-  .ipad-sidebar.collapsed .ipad-sidebar-logo,
-  .ipad-sidebar.collapsed .ipad-sidebar-search,
-  .ipad-sidebar.collapsed .ipad-nav-label,
-  .ipad-sidebar.collapsed .ipad-nav-count,
-  .ipad-sidebar.collapsed .ipad-sidebar-nav,
-  .ipad-sidebar.collapsed .ipad-foot-links,
-  .ipad-sidebar.collapsed .ipad-foot-sync span{display:none;}
-  .ipad-sidebar.collapsed .ipad-nav-item{justify-content:center;padding:14px 0;}
-  .ipad-sidebar.collapsed .ipad-nav-item span:last-child{display:none;}
-  .ipad-sidebar.collapsed .ipad-sidebar-hdr{padding:12px 8px;justify-content:center;}
-  .ipad-sidebar-toggle{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-dim);padding:4px;-webkit-tap-highlight-color:transparent;transition:color 0.15s;flex-shrink:0;}
-  .ipad-sidebar-toggle:hover{color:var(--text);}
-  .ipad-sidebar-hdr{padding:16px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;}
-  .ipad-sidebar-logo{font-family:var(--font-mono);font-size:8px;letter-spacing:0.28em;text-transform:uppercase;color:var(--text-dim);flex:1;}
-  .ipad-sidebar-search{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--font-ui);font-size:15px;outline:none;-webkit-appearance:none;transition:border-color 0.15s;margin-top:8px;}
+    height:100vh;overflow:hidden;
+  }
+  .ipad-sidebar-hdr{
+    padding:20px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .ipad-sidebar-logo{
+    font-family:var(--font-mono);font-size:8px;letter-spacing:0.28em;
+    text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;
+  }
+  .ipad-sidebar-search{
+    width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:8px;
+    padding:8px 11px;color:var(--text);font-family:var(--font-ui);font-size:13px;
+    outline:none;-webkit-appearance:none;transition:border-color 0.15s;
+  }
   .ipad-sidebar-search:focus{border-color:var(--rose);}
   .ipad-sidebar-search::placeholder{color:var(--text-dim);}
-  .ipad-sidebar-nav{flex:1;overflow-y:auto;padding:6px 0 24px;}
+  .ipad-sidebar-nav{flex:1;overflow-y:auto;padding:8px 0 24px;}
   .ipad-sidebar-nav::-webkit-scrollbar{display:none;}
 
-  /* Nav items — big tap targets */
+  /* Sidebar nav items */
   .ipad-nav-section{margin-bottom:4px;}
-  .ipad-nav-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);padding:12px 16px 5px;}
-  .ipad-nav-item{display:flex;align-items:center;padding:12px 14px;min-height:50px;cursor:pointer;border-radius:10px;margin:0 8px 2px;font-family:var(--font-ui);font-size:15px;font-weight:500;color:var(--text-mid);transition:background 0.12s,color 0.12s;-webkit-tap-highlight-color:transparent;}
+  .ipad-nav-label{
+    font-family:var(--font-mono);font-size:8px;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--text-dim);
+    padding:10px 14px 4px;
+  }
+  .ipad-nav-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 14px;cursor:pointer;border-radius:8px;margin:0 6px 1px;
+    font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--text-mid);
+    transition:background 0.12s,color 0.12s;-webkit-tap-highlight-color:transparent;
+  }
   .ipad-nav-item:hover{background:var(--s2);color:var(--text);}
   .ipad-nav-item.active{background:rgba(176,122,132,0.12);color:var(--rose);}
-  /* Add Item — prominent rose button in sidebar */
-  .ipad-nav-item.add-item-nav{background:rgba(176,122,132,0.1);color:var(--rose);border:1px solid rgba(176,122,132,0.3);margin-bottom:8px;}
-  .ipad-nav-item.add-item-nav:hover{background:rgba(176,122,132,0.18);}
-  .ipad-nav-item .ipad-nav-icon{font-size:18px;margin-right:10px;opacity:0.9;}
-  .ipad-nav-item .ipad-nav-count{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);background:var(--s3);padding:2px 7px;border-radius:20px;margin-left:auto;}
-  .ipad-nav-item.active .ipad-nav-count{color:var(--rose);background:rgba(176,122,132,0.15);}
-  .ipad-nav-item .supply-attn-badge{background:rgba(143,72,72,0.25);color:#d08080;font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid rgba(143,72,72,0.3);margin-left:auto;}
+  .ipad-nav-item .ipad-nav-icon{font-size:15px;margin-right:8px;opacity:0.8;}
+  .ipad-nav-item .ipad-nav-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+  .ipad-nav-item.active .ipad-nav-count{color:var(--rose);opacity:0.7;}
 
-  /* Location tree — bigger tap targets */
-  .ipad-tree-item{display:flex;align-items:center;gap:8px;padding:10px 12px 10px 14px;min-height:44px;cursor:pointer;border-radius:8px;margin:0 8px 1px;font-size:13px;color:var(--text-dim);transition:background 0.1s,color 0.1s;-webkit-tap-highlight-color:transparent;}
+  /* Location tree in sidebar */
+  .ipad-tree-item{
+    display:flex;align-items:center;gap:6px;
+    padding:7px 10px 7px 14px;cursor:pointer;border-radius:6px;margin:0 6px 1px;
+    font-size:12px;color:var(--text-dim);transition:background 0.1s,color 0.1s;
+    -webkit-tap-highlight-color:transparent;
+  }
   .ipad-tree-item:hover{background:var(--s2);color:var(--text-mid);}
   .ipad-tree-item.active{background:rgba(176,122,132,0.1);color:var(--rose);}
-  .ipad-tree-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .ipad-tree-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
   .ipad-tree-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .ipad-tree-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+  .ipad-tree-count{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
 
-  .ipad-sidebar-foot{padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
-  .ipad-foot-sync{display:flex;align-items:center;gap:5px;flex:1;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
-  .ipad-foot-links{display:flex;gap:10px;}
+  /* Sync pill at bottom of sidebar */
+  .ipad-sidebar-foot{
+    padding:12px 16px;border-top:1px solid var(--border);
+    display:flex;align-items:center;gap:8px;flex-shrink:0;
+  }
+  .ipad-foot-sync{display:flex;align-items:center;gap:5px;flex:1;
+    font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
 
+  /* Main content area — mob-shell is already fixed inset:0, so just flex:1 */
   .mob-content{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+
+  /* All pages stack as columns — only active shows */
   .mob-page{flex:1;overflow-x:hidden;display:none;}
   .mob-page.active{display:flex;flex-direction:column;overflow-y:auto;}
+  /* Ask page: no scroll on the page — scroll is inside mob-ask-thread */
   #mob-page-ask{overflow:hidden;}
   #mob-page-ask.active{display:flex;flex-direction:column;overflow:hidden;}
   #mob-page-ask .mob-ask-wrap{display:flex;flex-direction:column;width:100%;max-width:700px;margin:0 auto;min-height:0;flex:1;height:100%;}
@@ -661,28 +677,20 @@ body.mob-mode .shell{display:none;}
   .mob-page::-webkit-scrollbar-track{background:transparent;}
   .mob-page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-  /* Browse: bigger boxes, better typography */
-  .mob-boxes{grid-template-columns:repeat(2,1fr);padding:20px 24px;gap:16px;}
-  .mob-box{border-radius:16px;padding:20px 18px 16px;min-height:120px;}
-  .mob-box-name{font-size:20px;}
-  .mob-box-count{font-size:12px;margin-bottom:12px;padding-bottom:12px;}
-  .mob-box-prev-item{font-size:13px;}
-  .mob-browse-hdr{padding:22px 24px 10px;border-bottom:none;}
-  .mob-btitle{font-size:26px;font-weight:700;}
-  .mob-back{font-size:15px;padding:11px 18px;border-radius:12px;}
+  /* Browse refinements */
+  .mob-boxes{grid-template-columns:repeat(3,1fr);padding:20px 28px;gap:16px;}
+  .mob-box{border-radius:14px;padding:18px 16px 14px;}
+  .mob-box-name{font-size:18px;}
+  .mob-browse-hdr{padding:20px 24px 12px;border-bottom:none;}
+  .mob-btitle{font-size:24px;font-weight:700;}
+  .mob-back{font-size:14px;padding:9px 16px;}
   .mob-bc{padding:4px 24px;}
-  /* Bigger cards on iPad */
-  .mob-card{padding:18px 24px;}
-  .mob-card-name{font-size:18px;}
-  .mob-card-loc{padding:8px 12px;margin-bottom:8px;}
-  .mob-lseg{font-size:13px;}
-  .mob-badge{font-size:11px;padding:3px 9px;}
-  .mob-pill{font-size:13px;}
-  .mob-sec-label{padding:12px 24px 6px;font-size:10px;}
-  .mob-count-bar{padding:10px 24px 4px;font-size:11px;}
+  .mob-card{padding:16px 24px;}
+  .mob-sec-label{padding:12px 24px 6px;}
+  .mob-count-bar{padding:10px 24px 4px;}
   .mob-stats{padding:16px 24px;}
 
-  /* Ask */
+  /* Ask tab — scoped to #mob-page-ask for iPad, using flex column chain */
   #mob-page-ask{position:relative;}
   #mob-page-ask .mob-ask-wrap{position:absolute;inset:0;display:flex;flex-direction:column;max-width:700px;width:100%;margin:0 auto;}
   #mob-page-ask .mob-ask-thread{flex:1;min-height:0;overflow-y:auto;}
@@ -691,140 +699,91 @@ body.mob-mode .shell{display:none;}
   #mob-page-ask .mob-ask-empty{padding:80px 48px;}
   .mob-ask-bubble.user{max-width:70%;}
 
-  /* Add — centered, generous padding, bigger inputs */
-  .mob-add-wrap{max-width:600px;margin:0 auto;padding:28px 24px 48px;}
-  .mob-add-title{font-size:28px;}
-  .mob-field-inp,.mob-field-sel,.mob-loc-btn{font-size:17px;padding:15px 16px;border-radius:12px;}
-  .mob-submit-btn{font-size:18px;padding:18px;border-radius:14px;}
-
-  /* Supply — bigger fill segments */
+  /* Add tab */
+  .mob-add-wrap{max-width:560px;margin:0 auto;padding:32px 24px 48px;}
+  /* Supply tab */
   .mob-supply-hdr{padding:24px 28px 12px;}
-  .mob-supply-title{font-size:24px;}
   .mob-supply-group-hdr{padding:10px 28px 6px;}
-  .mob-supply-item{padding:16px 28px;}
-  .mob-supply-save-bar{padding:16px 28px;}
-  .fill-seg{width:24px;height:32px;border-radius:5px;}
-  .fill-meter{gap:5px;}
+  .mob-supply-item{padding:13px 28px;}
+  .mob-supply-save-bar{padding:14px 28px;}
+  .fill-seg{width:18px;height:26px;}
+  .fill-meter{gap:4px;}
 
+  /* Hide the mobile header entirely on iPad — sidebar replaces it */
   .mob-hdr{display:none;}
-}
-@media(min-width:1024px){
-  .mob-boxes{grid-template-columns:repeat(3,1fr);}
 }
 
 /* ── IPAD STATS DASHBOARD BAR ── */
 .ipad-stats-bar{display:none;}
 @media(min-width:768px){
-  .ipad-stats-bar{display:flex;gap:0;padding:16px 24px;flex-shrink:0;}
-  /* Fix 3: stat cells are now tappable */
+  .ipad-stats-bar{
+    display:flex;gap:0;padding:20px 28px 20px;flex-shrink:0;
+  }
   .ipad-stat-cell{
-    flex:1;text-align:center;padding:14px 12px;
+    flex:1;text-align:center;padding:16px 12px;
     background:var(--s1);border:1px solid var(--border);
     border-radius:0;margin-right:-1px;
-    cursor:pointer;transition:background 0.15s,border-color 0.15s;
-    -webkit-tap-highlight-color:transparent;
   }
-  .ipad-stat-cell:hover{background:var(--s2);border-color:var(--border2);}
   .ipad-stat-cell:first-child{border-radius:12px 0 0 12px;}
   .ipad-stat-cell:last-child{border-radius:0 12px 12px 0;margin-right:0;}
-  .ipad-stat-num{font-family:var(--font-mono);font-size:24px;font-weight:500;color:var(--text);letter-spacing:-0.02em;}
+  .ipad-stat-num{font-family:var(--font-mono);font-size:26px;font-weight:500;color:var(--text);letter-spacing:-0.02em;}
   .ipad-stat-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-top:3px;}
-  .mob-btitle{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
+  /* Browse header on iPad */
+  .mob-browse-hdr{padding:24px 28px 8px;border-bottom:none;}
+  .mob-btitle{font-size:28px;font-weight:700;letter-spacing:-0.01em;}
   .mob-bcount{font-size:12px;}
-  .mob-search-hdr{font-size:15px;}
+  /* iPad search header full width */
+  .mob-search-hdr{font-size:14px;}
 }
 
-/* Fix 6: Needs Attention strip */
-.attn-strip{display:none;flex-shrink:0;}
-.attn-strip.visible{display:flex;gap:8px;padding:10px 24px;background:rgba(143,72,72,0.06);border-bottom:1px solid rgba(143,72,72,0.15);flex-wrap:wrap;align-items:center;}
-.attn-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#d08080;flex-shrink:0;}
-.attn-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:rgba(143,72,72,0.12);border:1px solid rgba(143,72,72,0.25);color:#d08080;font-family:var(--font-mono);font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
-.attn-chip:hover{background:rgba(143,72,72,0.2);}
-.attn-chip-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
-/* Daily-use pinned strip */
-.daily-strip{display:none;flex-shrink:0;}
-.daily-strip.visible{display:flex;gap:8px;padding:8px 24px;background:rgba(77,143,106,0.05);border-bottom:1px solid rgba(77,143,106,0.1);overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;}
-.daily-strip::-webkit-scrollbar{display:none;}
-.daily-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);flex-shrink:0;align-self:center;}
-.daily-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.2);color:var(--green);font-size:12px;white-space:nowrap;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
-.daily-chip:hover{background:rgba(77,143,106,0.18);}
-
-/* Fix 8: Search history */
-.search-hist{padding:8px 0;display:none;}
-.search-hist.visible{display:block;}
-.search-hist-label{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);padding:6px 16px 4px;}
-.search-hist-item{display:flex;align-items:center;padding:10px 16px;cursor:pointer;gap:10px;-webkit-tap-highlight-color:transparent;}
-.search-hist-item:hover{background:var(--s2);}
-.search-hist-icon{font-size:13px;color:var(--text-dim);}
-.search-hist-text{flex:1;font-size:14px;color:var(--text-mid);}
-.search-hist-clear{font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:2px 6px;}
-
-/* Fix 9: Loc picker — bigger rows, checkmark */
-.mob-lp-row{display:flex;align-items:center;gap:10px;padding:16px 16px;min-height:56px;cursor:pointer;border-left:3px solid transparent;transition:background 0.1s;-webkit-tap-highlight-color:transparent;}
-.mob-lp-row:active{background:var(--s2);}
-.mob-lp-row.sel{background:rgba(176,122,132,0.1);border-left-color:var(--rose);}
-.mob-lp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.mob-lp-name{flex:1;font-size:17px;color:var(--text);}
-.mob-lp-row.sel .mob-lp-name{color:var(--rose);font-weight:600;}
-.mob-lp-cnt{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);}
-.mob-lp-check{font-size:18px;color:var(--rose);flex-shrink:0;opacity:0;}
-.mob-lp-row.sel .mob-lp-check{opacity:1;}
-.mob-lp-exp{background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:0 4px;transition:transform 0.15s;min-width:28px;text-align:center;}
-.mob-lp-exp.open{transform:rotate(90deg);}
-.mob-lp-children{padding-left:16px;border-left:1px solid var(--border);margin-left:20px;display:none;}
-.mob-lp-children.open{display:block;}
-/* Loc picker header — bigger on iPad */
+/* ── NEW FEATURE STYLES ───────────────────────────────────────────────────── */
+/* Sidebar toggle */
+.ipad-toggle-btn{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-dim);padding:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+.ipad-toggle-btn:hover{color:var(--text);}
+/* Sidebar collapsed state */
 @media(min-width:768px){
-  .mob-lp-sheet{height:72vh;max-width:500px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);border-radius:18px 18px 0 0;}
-  .mob-lp-ov.open .mob-lp-sheet{transform:translateX(-50%) translateY(0);}
-  .mob-lp-title{font-size:20px;}
-  .mob-lp-done{font-size:18px;}
-  .mob-lp-name{font-size:18px;}
-  .mob-lp-row{padding:18px 20px;min-height:60px;}
+  .ipad-sidebar{transition:width 0.25s cubic-bezier(0.16,1,0.3,1);}
+  .ipad-sidebar.ipad-collapsed{width:52px;overflow:hidden;}
+  .ipad-sidebar.ipad-collapsed .ipad-sidebar-logo,
+  .ipad-sidebar.ipad-collapsed .ipad-sidebar-search,
+  .ipad-sidebar.ipad-collapsed .ipad-nav-label,
+  .ipad-sidebar.ipad-collapsed .ipad-nav-count,
+  .ipad-sidebar.ipad-collapsed .ipad-sidebar-nav,
+  .ipad-sidebar.ipad-collapsed .ipad-foot-editor{display:none;}
+  .ipad-sidebar.ipad-collapsed .ipad-nav-item{justify-content:center;padding:14px 0;}
+  .ipad-sidebar.ipad-collapsed .ipad-nav-item span:not(.ipad-nav-icon){display:none;}
+  .ipad-sidebar.ipad-collapsed .ipad-sidebar-hdr{padding:12px 8px;justify-content:center;}
+  /* Bigger tap targets + font for iPad */
+  .ipad-nav-item{padding:12px 14px;min-height:50px;font-size:15px;border-radius:10px;margin:0 8px 2px;}
+  .ipad-nav-icon{font-size:18px;margin-right:10px;}
+  .ipad-tree-item{padding:10px 12px 10px 14px;min-height:44px;font-size:13px;border-radius:8px;margin:0 8px 1px;}
+  .ipad-tree-dot{width:7px;height:7px;}
+  .ipad-sidebar-search{font-size:15px;padding:11px 14px;border-radius:10px;margin-top:8px;}
+  /* Add Item nav — rose prominent */
+  .ipad-nav-item.ipad-add-nav{background:rgba(176,122,132,0.1);color:var(--rose)!important;border:1px solid rgba(176,122,132,0.28);margin-bottom:8px;}
+  .ipad-nav-item.ipad-add-nav:hover{background:rgba(176,122,132,0.18);}
+  /* Stat cells clickable hover */
+  .ipad-stat-cell{transition:background 0.15s;}
+  .ipad-stat-cell:hover{background:var(--s2);}
+  .ipad-stat-num{font-size:24px;}
+  /* Bigger fill segments */
+  .fill-seg{width:22px;height:30px;border-radius:5px;}
+  .fill-meter{gap:4px;}
+  /* Cards bigger */
+  .mob-box{border-radius:14px;padding:20px 18px 16px;min-height:110px;}
+  .mob-box-name{font-size:20px;}
+  .mob-card{padding:18px 24px;}
+  .mob-card-name{font-size:18px;}
+  .mob-card-loc{padding:8px 12px;}
+  .mob-badge{font-size:11px;padding:3px 9px;}
+  .mob-pill{font-size:13px;}
+  /* Add tab bigger inputs */
+  .mob-field-inp,.mob-field-sel,.mob-loc-btn{font-size:17px;padding:14px 16px;border-radius:12px;}
+  .mob-submit-btn{font-size:18px;padding:18px;border-radius:14px;}
+  .mob-add-title{font-size:28px;}
+  .mob-add-wrap{max-width:600px;margin:0 auto;padding:28px 24px 48px;}
 }
-
-/* Fix 10: Add CTA card on browse home */
-.add-cta-card{display:none;margin:0 24px 8px;padding:16px 20px;background:rgba(176,122,132,0.08);border:1px solid rgba(176,122,132,0.25);border-radius:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s;align-items:center;gap:14px;}
-@media(min-width:768px){.add-cta-card{display:flex;}}
-.add-cta-card:hover{background:rgba(176,122,132,0.14);}
-.add-cta-icon{font-size:24px;color:var(--rose);flex-shrink:0;}
-.add-cta-text{flex:1;}
-.add-cta-title{font-size:16px;font-weight:600;color:var(--rose);}
-.add-cta-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
-.add-cta-arr{font-size:20px;color:rgba(176,122,132,0.5);}
-
-/* Fix 13: "What else is here" in detail sheet */
-.mob-here-section{margin-top:8px;}
-.mob-here-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
-.mob-here-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--s3);border-radius:8px;margin-bottom:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.mob-here-item:hover{background:var(--s2);}
-.mob-here-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.mob-here-name{font-size:13px;color:var(--text);flex:1;}
-.mob-here-cat{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
-
-/* Fix 14: Used Today button */
-.mob-used-btn{padding:11px;border-radius:10px;border:1px solid rgba(77,143,106,0.3);background:rgba(77,143,106,0.08);color:var(--green);font-family:var(--font-ui);font-size:14px;font-weight:500;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:background 0.1s;flex:1;}
-.mob-used-btn:active{background:rgba(77,143,106,0.18);}
-
-/* Fix 15: Fill quick-change in detail sheet */
-.mob-fill-row{display:flex;gap:6px;padding:10px 12px;background:var(--s2);border-radius:8px;align-items:center;}
-.mob-fill-lbl{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);flex-shrink:0;}
-.mob-fill-segs{display:flex;gap:4px;flex:1;}
-.mob-fill-seg-btn{flex:1;height:28px;border-radius:4px;border:1px solid var(--border2);background:var(--s3);cursor:pointer;font-family:var(--font-mono);font-size:8px;color:var(--text-dim);transition:all 0.12s;-webkit-tap-highlight-color:transparent;}
-.mob-fill-seg-btn.active-full{background:#3d8f5a;border-color:#3d8f5a;color:#fff;}
-.mob-fill-seg-btn.active-most{background:#7a9e44;border-color:#7a9e44;color:#fff;}
-.mob-fill-seg-btn.active-half{background:#9e7a22;border-color:#9e7a22;color:#fff;}
-.mob-fill-seg-btn.active-low{background:#8f3a20;border-color:#8f3a20;color:#fff;}
-.mob-fill-seg-btn.active-empty{background:#8f3838;border-color:#8f3838;color:#fff;}
-
-/* Fix 19: Bigger bottom tab icons and labels */
-.mob-tab-icon{font-size:20px;line-height:1;}
-.mob-tab-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;}
-/* Fix 18: Supply badge on bottom tab */
-.tab-badge{position:absolute;top:6px;right:calc(50% - 18px);background:#8f4848;color:#fff;font-family:var(--font-mono);font-size:9px;font-weight:600;padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;}
-.mob-tab{position:relative;}
-
-/* ── LOCATE INSPECTOR ── */
+/* ── END NEW FEATURE STYLES ──────────────────────────────────────────────── */
 .loc-insp-overlay{position:fixed;inset:0;z-index:900;display:none;}
 .loc-insp-overlay.open{display:block;}
 .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);}
@@ -1089,7 +1048,7 @@ body.mob-mode .shell{display:none;}
   <!-- iPad sidebar — hidden on phone, shown on tablet via CSS -->
   <div class="ipad-sidebar" id="ipad-sidebar">
     <div class="ipad-sidebar-hdr">
-      <button class="ipad-sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+      <button class="ipad-toggle-btn" onclick="toggleIpadSidebar()">☰</button>
       <div class="ipad-sidebar-logo">Inventory</div>
       <input class="ipad-sidebar-search" id="ipad-search" type="search" placeholder="Search…" autocomplete="off" oninput="ipadOnSearch(this.value)">
     </div>
@@ -1101,7 +1060,7 @@ body.mob-mode .shell{display:none;}
         <div class="mob-sync loading" id="ipad-sync-dot"></div>
         <span id="ipad-sync-label">loading</span>
       </div>
-      <a href="index.html" class="ipad-foot-links" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-decoration:none;letter-spacing:0.08em;">editor →</a>
+      <a href="index.html" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-decoration:none;letter-spacing:0.08em;">editor →</a>
     </div>
   </div>
   <div class="mob-hdr">
@@ -1114,22 +1073,16 @@ body.mob-mode .shell{display:none;}
   </div>
   <div class="mob-content">
     <div class="mob-page" id="mob-page-find">
-      <div class="search-hist" id="search-hist"></div>
+      <div id="search-hist-panel"></div>
       <div id="mob-find-results"><div class="mob-empty"><div class="mob-empty-icon">◎</div>Loading…</div></div>
     </div>
     <div class="mob-page active" id="mob-page-browse">
-      <!-- Fix 6: Needs Attention strip -->
-      <div class="attn-strip" id="attn-strip"></div>
-      <!-- Fix 20: Daily-use quick access -->
-      <div class="daily-strip" id="daily-strip"></div>
-      <!-- Fix 10: Add Item CTA card (iPad only, shown on home) -->
-      <div class="add-cta-card" id="add-cta-card" onclick="ipadGoTab('add')">
-        <div class="add-cta-icon">＋</div>
-        <div class="add-cta-text">
-          <div class="add-cta-title">Add Item</div>
-          <div class="add-cta-sub">Saves directly to inventory with AI enrichment</div>
-        </div>
-        <div class="add-cta-arr">›</div>
+      <div id="attn-strip" style="display:none"></div>
+      <div id="daily-strip" style="display:none"></div>
+      <div id="add-cta-card" style="display:none;margin:12px 16px;padding:16px 18px;background:rgba(176,122,132,0.09);border:1px solid rgba(176,122,132,0.28);border-radius:14px;cursor:pointer;align-items:center;gap:14px" onclick="ipadGoTab('add')">
+        <div style="font-size:22px;color:var(--rose)">＋</div>
+        <div style="flex:1"><div style="font-size:16px;font-weight:600;color:var(--rose)">Add Item</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px">Saves to inventory with AI enrichment</div></div>
+        <div style="font-size:20px;color:rgba(176,122,132,0.5)">›</div>
       </div>
       <div id="mob-browse-inner"></div>
     </div>
@@ -1212,7 +1165,7 @@ body.mob-mode .shell{display:none;}
     <button class="mob-tab active" id="mob-tab-browse" onclick="mobSwitchTab('browse')"><div class="mob-tab-icon">◎</div><div class="mob-tab-lbl">Browse</div></button>
     <button class="mob-tab" id="mob-tab-add" onclick="mobSwitchTab('add')"><div class="mob-tab-icon">＋</div><div class="mob-tab-lbl">Add</div></button>
     <button class="mob-tab" id="mob-tab-ask" onclick="mobSwitchTab('ask')"><div class="mob-tab-icon">✦</div><div class="mob-tab-lbl">Ask</div></button>
-    <button class="mob-tab" id="mob-tab-supply" onclick="mobSwitchTab('supply')"><div class="mob-tab-icon">⬡</div><div class="mob-tab-lbl">Supply</div><div class="tab-badge" id="supply-tab-badge" style="display:none"></div></button>
+    <button class="mob-tab" id="mob-tab-supply" onclick="mobSwitchTab('supply')" style="position:relative"><div class="mob-tab-icon">⬡</div><div class="mob-tab-lbl">Supply</div><span id="supply-tab-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 18px);background:#8f4848;color:#fff;font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:20px"></span></button>
   </div>
 </div>
 <!-- DRAWER -->
@@ -1225,10 +1178,7 @@ body.mob-mode .shell{display:none;}
   <div class="mob-lp-bg" onclick="mobLPClose(false)"></div>
   <div class="mob-lp-sheet">
     <div class="mob-lp-handle"></div>
-    <div class="mob-lp-hdr">
-      <div class="mob-lp-title">Pick Location</div>
-      <button class="mob-lp-done" onclick="mobLPClose(true)">Done</button>
-    </div>
+    <div class="mob-lp-hdr"><div class="mob-lp-title">Pick Location</div><button class="mob-lp-done" onclick="mobLPClose(true)">Done</button></div>
     <div class="mob-lp-sel" id="mob-lp-sel"></div>
     <div class="mob-lp-tree" id="mob-lp-tree"></div>
   </div>
@@ -2116,11 +2066,8 @@ async function load(){
       if(rows.length<page)break;from+=page;
     }
     inventory=all;setSyncStatus('ok');renderSidebar();renderStage();restoreSbCollapse();
-    // Init all new iPad features after inventory loads
-    initNewFeatures();updateSupplyBadge();
-    if(document.body.classList.contains('mob-mode')){
-      mobRenderBrowseAt([]);
-    }
+    if(document.body.classList.contains('mob-mode')){mobRenderBrowseAt([]);}
+    setTimeout(function(){updateSupplyBadge();},100);
   }catch(err){
     setSyncStatus('error');
     document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
@@ -2153,7 +2100,7 @@ load();
 
 // ── VIEW TOGGLE ──────────────────────────────────────────────────────────────
 const VIEW_KEY='inv_locate_view';
-function getViewPref(){var s=localStorage.getItem(VIEW_KEY);return s||((window.innerWidth<=768)?'mobile':'desktop');}
+function getViewPref(){var s=localStorage.getItem(VIEW_KEY);if(s)return s;return(window.innerWidth>=600)?'mobile':'desktop';}
 function setViewMode(mode){
   localStorage.setItem(VIEW_KEY,mode);
   var btn=document.getElementById('view-toggle-btn');
@@ -2280,7 +2227,14 @@ function mobOpenDetail(pid){
   var fields=[['Category',item.category],['Condition',item.condition],['Keep',item.keep],['Qty',item.qty],['Est. Value',item.estValue?'$'+item.estValue:null]].filter(function(f){return f[1];});
   var rawNote=item.notes||'';var kwIdx=rawNote.toLowerCase().indexOf('| keywords:');var dispNote=kwIdx!==-1?rawNote.slice(0,kwIdx).trim():rawNote;
   document.getElementById('mob-detail-body').innerHTML='<div class="mob-dloc">'+locH+'</div><div class="mob-dfields">'+fields.map(function(f){return'<div class="mob-dfield"><div class="mob-dlbl">'+esc(f[0])+'</div><div class="mob-dval">'+esc(f[1])+'</div></div>';}).join('')+'</div>'+(dispNote?'<div class="mob-dnotes"><div class="mob-dnotes-lbl">Notes</div><div class="mob-dnotes-txt">'+esc(dispNote)+'</div></div>':'');
-  document.getElementById('mob-detail-actions').innerHTML='<button class="mob-dbtn" onclick="mobCloseDetail()">Close</button><a class="mob-dbtn" href="index.html" style="color:var(--rose);border-color:rgba(176,122,132,0.35);text-decoration:none">Open Editor</a>';
+  // What else is here
+  var _hereHTML='';
+  if(loc.length){var _here=inventory.filter(function(i){return i.id!==id&&(i.locationPath||[]).join('::')===loc.join('::')&&(_pinUnlocked||!i.lockedItem);}).slice(0,4);if(_here.length){_hereHTML='<div style="margin-top:10px"><div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Also here</div>';_here.forEach(function(hi){var cs=catC(hi.category);var hn=splitName(hi.name);var hpid=mReg([hi.id]);_hereHTML+='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s3);border-radius:8px;margin-bottom:4px;cursor:pointer" onclick="mobCloseDetail();mobOpenDetail(\''+hpid+'\')"><div style="width:6px;height:6px;border-radius:50%;background:'+cs.text+';flex-shrink:0"></div><span style="font-size:13px;color:var(--text);flex:1">'+esc(hn.primary)+'</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">'+esc(hi.category)+'</span></div>';});_hereHTML+='</div>';}}
+  // Fill quick-change
+  var _fillHTML='';
+  if(item.fillLevel){var _fc={'Full':'#3d8f5a','Most':'#7a9e44','Half':'#9e7a22','Low':'#8f3a20','Empty':'#8f3838'};_fillHTML='<div style="display:flex;gap:5px;margin-top:8px;align-items:center"><span style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--text-dim);flex-shrink:0;margin-right:4px">Fill</span>'+['Full','Most','Half','Low','Empty'].map(function(fl){var isCur=fl===item.fillLevel;return'<button style="flex:1;padding:7px 2px;border-radius:5px;border:1px solid '+(isCur?_fc[fl]:'var(--border2)')+';background:'+(isCur?_fc[fl]+'22':'var(--s3)')+';color:'+(isCur?_fc[fl]:'var(--text-dim)')+';font-family:var(--font-mono);font-size:9px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="quickSetFill('+id+',\''+fl+'\',this)">'+fl+'</button>';}).join('')+'</div>';}
+  document.getElementById('mob-detail-body').innerHTML+=_fillHTML+_hereHTML;
+  document.getElementById('mob-detail-actions').innerHTML='<button class="mob-dbtn" onclick="mobCloseDetail()">Close</button><button style="flex:1;padding:13px;border-radius:10px;border:1px solid rgba(77,143,106,0.3);background:rgba(77,143,106,0.08);color:var(--green);font-family:var(--font-ui);font-size:14px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="markUsedToday('+id+',this)">Used Today ✓</button><a class="mob-dbtn" href="index.html" style="color:var(--rose);border-color:rgba(176,122,132,0.35);text-decoration:none">Edit</a>';
   document.getElementById('mob-detail-ov').classList.add('open');
 }
 function mobCloseDetail(){document.getElementById('mob-detail-ov').classList.remove('open');}
@@ -2310,37 +2264,27 @@ function mobRenderBrowseAt(path){
     var inUseCnt=vis.filter(function(i){return i.inUse;}).length;
     var locCnt=new Set(vis.map(function(i){return(i.locationPath||[])[0];}).filter(Boolean)).size;
     var valTotal=vis.reduce(function(s,i){return s+(parseFloat(i.estValue)||0);},0);
-    // Fix 3: tappable stat cells
+    // iPad dashboard stats bar
     statsH='<div class="ipad-stats-bar">'
-      +'<div class="ipad-stat-cell" onclick="null" style="cursor:default"><div class="ipad-stat-num">'+vis.length+'</div><div class="ipad-stat-lbl">Items</div></div>'
-      +'<div class="ipad-stat-cell" onclick="ipadStatClick(\'inuse\')"><div class="ipad-stat-num">'+inUseCnt+'</div><div class="ipad-stat-lbl">In Use ›</div></div>'
-      +'<div class="ipad-stat-cell" onclick="null" style="cursor:default"><div class="ipad-stat-num">'+locCnt+'</div><div class="ipad-stat-lbl">Locations</div></div>'
-      +'<div class="ipad-stat-cell" onclick="ipadStatClick(\'supply\')"><div class="ipad-stat-num">$'+(valTotal>=1000?(valTotal/1000).toFixed(1)+'k':Math.round(valTotal))+'</div><div class="ipad-stat-lbl">Est. Value ›</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+vis.length+'</div><div class="ipad-stat-lbl">Items</div></div>'
+      +'<div class="ipad-stat-cell" style="cursor:pointer" onclick="showInUseItems()"><div class="ipad-stat-num">'+inUseCnt+'</div><div class="ipad-stat-lbl">In Use ›</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+locCnt+'</div><div class="ipad-stat-lbl">Locations</div></div>'
+      +'<div class="ipad-stat-cell" style="cursor:pointer" onclick="ipadGoTab(\'supply\')"><div class="ipad-stat-num">$'+(valTotal>=1000?(valTotal/1000).toFixed(1)+'k':Math.round(valTotal))+'</div><div class="ipad-stat-lbl">Est. Value ›</div></div>'
       +'</div>'
       // Phone stats
       +'<div class="mob-stats"><div class="mob-stat"><div class="mob-stat-num">'+vis.length+'</div><div class="mob-stat-lbl">Items</div></div><div class="mob-stat"><div class="mob-stat-num">'+inUseCnt+'</div><div class="mob-stat-lbl">In Use</div></div><div class="mob-stat"><div class="mob-stat-num">'+locCnt+'</div><div class="mob-stat-lbl">Locations</div></div></div>';
   }
-  // Fix 6+20: render strips when at home
-  if(!path.length){
-    setTimeout(function(){renderAttnStrip();renderDailyStrip();},0);
-    var addCta=document.getElementById('add-cta-card');
-    if(addCta)addCta.style.display='';
-  } else {
-    var addCta=document.getElementById('add-cta-card');
-    if(addCta)addCta.style.display='none';
-    var attnStrip=document.getElementById('attn-strip');
-    if(attnStrip)attnStrip.className='attn-strip';
-    var dailyStrip=document.getElementById('daily-strip');
-    if(dailyStrip)dailyStrip.className='daily-strip';
-  }
+  // Show/hide CTA + strips at home
+  var _addCta=document.getElementById('add-cta-card');
+  if(_addCta)_addCta.style.display=(!path.length&&isIPad())?'flex':'none';
+  if(!path.length){setTimeout(function(){renderAttnStrip();renderDailyStrip();},30);}
+  else{var _as=document.getElementById('attn-strip');if(_as)_as.style.display='none';var _ds=document.getElementById('daily-strip');if(_ds)_ds.style.display='none';}
   var boxH='';
-  // Fix 2: sort by count desc, suppress Unassigned on home view
   if(children.length){
     var cc=mDC(depth);
-    var sortedChildren=children.slice().sort(function(a,b){return b[1].total-a[1].total;});
-    // On home, hide Unassigned if it has few items
-    if(!path.length)sortedChildren=sortedChildren.filter(function(e){return e[0]!=='Unassigned'||e[1].total>10;});
-    boxH='<div class="mob-boxes">'+sortedChildren.map(function(entry){
+    var sortedCh=children.slice().sort(function(a,b){return b[1].total-a[1].total;});
+    if(!path.length)sortedCh=sortedCh.filter(function(e){return e[0]!=='Unassigned'||e[1].total>=5;});
+    boxH='<div class="mob-boxes">'+sortedCh.map(function(entry){
       var name=entry[0];var cn=entry[1];
       var pid=mReg(path.concat([name]));
       var childPath=path.concat([name]);
@@ -2487,6 +2431,7 @@ function mobLPBuildTree(ch,path,depth){
       +'<span class="mob-lp-name">'+esc(name)+'</span>'
       +'<span class="mob-lp-cnt">'+node.total+'</span>'
       +(hasCh?'<button class="mob-lp-exp'+(isExp?' open':'')+'" data-kid="'+kid+'" onclick="event.stopPropagation();mobLPToggle(this.dataset.kid)">&rsaquo;</button>':'')
+      +'<span style="font-size:16px;color:var(--rose);opacity:'+(isSel?'1':'0')+';flex-shrink:0;margin-left:4px">✓</span>'
       +'</div>';
     if(hasCh&&isExp)html+='<div class="mob-lp-children open">'+mobLPBuildTree(node.children,p,depth+1)+'</div>';
   });
@@ -3292,13 +3237,9 @@ function ipadRenderSidebar(){
   html+=navItem('◎','All Locations','browse',[],vis.length);
   html+=navItem('⌕','Search','find',null,null);
   html+=navItem('✦','Ask AI','ask',null,null);
-  // Fix 16: Add Item gets prominent styling
-  var addActive=_ipadTab==='add';
-  html+='<div class="ipad-nav-item add-item-nav'+(addActive?' active':'')+'" data-tab="add" onclick="ipadNavClick(this)"><span class="ipad-nav-icon">＋</span><span style="flex:1">Add Item</span></div>';
+  html+='<div class="ipad-nav-item ipad-add-nav'+((_ipadTab==="add")?' active':'')+'"\ data-tab="add" onclick="ipadNavClick(this)"><span class="ipad-nav-icon">＋</span><span style="flex:1">Add Item</span></div>';
   var supplyAttn=inventory.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
-  // Fix 18: Supply badge with red pill
-  var supplyActive=_ipadTab==='supply';
-  html+='<div class="ipad-nav-item'+(supplyActive?' active':'')+'" data-tab="supply" onclick="ipadNavClick(this)"><span class="ipad-nav-icon">⬡</span><span style="flex:1">Supply Run</span>'+(supplyAttn?'<span class="supply-attn-badge">'+supplyAttn+'</span>':'')+'</div>';
+  html+='<div class="ipad-nav-item'+((_ipadTab==="supply")?' active':'')+'"\ data-tab="supply" onclick="ipadNavClick(this)"><span class="ipad-nav-icon">⬡</span><span style="flex:1">Supply Run</span>'+(supplyAttn?'<span style="background:rgba(143,72,72,0.25);color:#d08080;font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid rgba(143,72,72,0.3)">'+supplyAttn+'</span>':'')+'</div>';
   if(inUseCnt>0)html+=navItem('●','In Use','inuse',null,inUseCnt);
   html+='</div>';
 
@@ -3416,40 +3357,40 @@ window.addEventListener('resize',function(){
 });
 
 
-// ── FIX 1: SIDEBAR TOGGLE ────────────────────────────────────────────────────
-function toggleSidebar(){
-  var sb=document.getElementById('ipad-sidebar');
-  if(sb){
-    sb.classList.toggle('collapsed');
-    try{localStorage.setItem('ipad-sidebar-collapsed',sb.classList.contains('collapsed')?'1':'0');}catch(e){}
-  }
-}
-function restoreSidebarState(){
+// ── NEW FEATURES JS ───────────────────────────────────────────────────────────
+
+function toggleIpadSidebar(){
   var sb=document.getElementById('ipad-sidebar');
   if(!sb)return;
-  try{if(localStorage.getItem('ipad-sidebar-collapsed')==='1')sb.classList.add('collapsed');}catch(e){}
+  sb.classList.toggle('ipad-collapsed');
+  try{localStorage.setItem('ipad-sb-collapsed',sb.classList.contains('ipad-collapsed')?'1':'0');}catch(e){}
 }
 
-// ── FIX 3: TAPPABLE STATS ────────────────────────────────────────────────────
-function ipadStatClick(type){
-  if(type==='inuse'){ipadGoTab('find');var res=inventory.filter(function(i){return i.inUse&&(_pinUnlocked||!i.lockedItem);});var html='<div class="mob-count-bar">'+res.length+' in use</div>';res.forEach(function(i){html+=mobCard(i,true);});document.getElementById('mob-find-results').innerHTML=html;}
-  else if(type==='supply'){ipadGoTab('supply');}
+function showInUseItems(){
+  var res=inventory.filter(function(i){return i.inUse&&(_pinUnlocked||!i.lockedItem);});
+  var html='<div class="mob-count-bar">'+res.length+' in use</div>';
+  res.forEach(function(i){html+=mobCard(i,true);});
+  document.getElementById('mob-find-results').innerHTML=html;
+  mobSwitchTab('find');
 }
 
-// ── FIX 6: NEEDS ATTENTION STRIP ─────────────────────────────────────────────
 function renderAttnStrip(){
-  var strip=document.getElementById('attn-strip');if(!strip)return;
+  var strip=document.getElementById('attn-strip');
+  if(!strip)return;
   var empty=inventory.filter(function(i){return i.fillLevel==='Empty'&&(_pinUnlocked||!i.lockedItem);}).length;
   var low=inventory.filter(function(i){return i.fillLevel==='Low'&&(_pinUnlocked||!i.lockedItem);}).length;
-  var sell=inventory.filter(function(i){return(i.keep==='Maybe'||i.keep==='Sell')&&(_pinUnlocked||!i.lockedItem);}).length;
-  if(!empty&&!low&&!sell){strip.className='attn-strip';return;}
-  var html='<span class="attn-label">Needs Attention</span>';
-  if(empty)html+='<span class="attn-chip" onclick="ipadGoTab(\'supply\')"><span class="attn-chip-dot"></span>'+empty+' empty</span>';
-  if(low)html+='<span class="attn-chip" onclick="ipadGoTab(\'supply\')"><span class="attn-chip-dot" style="background:#c06030"></span>'+low+' low</span>';
-  if(sell)html+='<span class="attn-chip" style="background:rgba(158,122,50,0.12);border-color:rgba(158,122,50,0.3);color:var(--amber)" onclick="mobShowSell()"><span class="attn-chip-dot" style="background:var(--amber)"></span>'+sell+' to review</span>';
-  strip.className='attn-strip visible';strip.innerHTML=html;
+  var review=inventory.filter(function(i){return(i.keep==='Maybe'||i.keep==='Sell')&&(_pinUnlocked||!i.lockedItem);}).length;
+  if(!empty&&!low&&!review){strip.style.display='none';return;}
+  var chipStyle='display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;background:rgba(143,72,72,0.12);border:1px solid rgba(143,72,72,0.25);color:#d08080;font-family:var(--font-mono);font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent';
+  var html='<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#d08080;flex-shrink:0">Attention</span>';
+  if(empty)html+='<span style="'+chipStyle+'" onclick="ipadGoTab(\'supply\')"><span style="width:6px;height:6px;border-radius:50%;background:#d08080;flex-shrink:0"></span>'+empty+' empty</span>';
+  if(low)html+='<span style="'+chipStyle.replace('#d08080','#c07030').replace('143,72,72','160,100,50')+'" onclick="ipadGoTab(\'supply\')"><span style="width:6px;height:6px;border-radius:50%;background:#c07030;flex-shrink:0"></span>'+low+' low</span>';
+  if(review)html+='<span style="'+chipStyle.replace('#d08080','#9e7a32').replace('143,72,72','158,122,50')+'" onclick="mobShowReview()"><span style="width:6px;height:6px;border-radius:50%;background:#9e7a32;flex-shrink:0"></span>'+review+' to review</span>';
+  strip.style.cssText='display:flex;gap:8px;padding:10px 16px;background:rgba(143,72,72,0.06);border-bottom:1px solid rgba(143,72,72,0.15);flex-wrap:wrap;align-items:center';
+  strip.innerHTML=html;
 }
-function mobShowSell(){
+
+function mobShowReview(){
   var res=inventory.filter(function(i){return(i.keep==='Maybe'||i.keep==='Sell')&&(_pinUnlocked||!i.lockedItem);});
   var html='<div class="mob-count-bar">'+res.length+' items to review</div>';
   res.forEach(function(i){html+=mobCard(i,true);});
@@ -3457,157 +3398,69 @@ function mobShowSell(){
   mobSwitchTab('find');
 }
 
-// ── FIX 20: DAILY USE STRIP ──────────────────────────────────────────────────
 function renderDailyStrip(){
-  var strip=document.getElementById('daily-strip');if(!strip)return;
-  var daily=inventory.filter(function(i){return i.frequency==='Daily'&&(_pinUnlocked||!i.lockedItem);}).slice(0,12);
-  if(!daily.length){strip.className='daily-strip';return;}
-  var html='<span class="daily-label">Daily</span>';
+  var strip=document.getElementById('daily-strip');
+  if(!strip)return;
+  var daily=inventory.filter(function(i){return i.frequency==='Daily'&&(_pinUnlocked||!i.lockedItem);}).slice(0,10);
+  if(!daily.length){strip.style.display='none';return;}
+  var html='<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);flex-shrink:0;align-self:center">Daily</span>';
   daily.forEach(function(i){
     var n=splitName(i.name);
     var pid=mReg([i.id]);
-    html+='<span class="daily-chip" onclick="mobOpenDetail(\''+pid+'\')">'+esc(n.primary)+'</span>';
+    html+='<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.2);color:var(--green);font-size:12px;white-space:nowrap;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent" data-pid="'+pid+'" onclick="mobOpenDetail(this.dataset.pid)">'+esc(n.primary)+'</span>';
   });
-  strip.className='daily-strip visible';strip.innerHTML=html;
+  strip.style.cssText='display:flex;gap:8px;padding:8px 16px;background:rgba(77,143,106,0.05);border-bottom:1px solid rgba(77,143,106,0.1);overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch';
+  strip.innerHTML=html;
 }
 
-// ── FIX 8: SEARCH HISTORY ────────────────────────────────────────────────────
-var SRCH_HIST_KEY='inv_search_hist';
+var SRCH_HIST_KEY='inv_srch_hist2';
 function getSrchHist(){try{return JSON.parse(localStorage.getItem(SRCH_HIST_KEY)||'[]');}catch(e){return[];}}
-function pushSrchHist(q){if(!q||!q.trim())return;var h=getSrchHist().filter(function(s){return s!==q;});h.unshift(q);if(h.length>6)h=h.slice(0,6);try{localStorage.setItem(SRCH_HIST_KEY,JSON.stringify(h));}catch(e){}}
-function renderSrchHist(show){
-  var el=document.getElementById('search-hist');if(!el)return;
+function pushSrchHist(q){if(!q||q.length<2)return;var h=getSrchHist().filter(function(s){return s!==q;});h.unshift(q);if(h.length>6)h=h.slice(0,6);try{localStorage.setItem(SRCH_HIST_KEY,JSON.stringify(h));}catch(e){}}
+function renderSrchHist(){
+  var el=document.getElementById('search-hist-panel');if(!el)return;
   var h=getSrchHist();
-  if(!show||!h.length){el.className='search-hist';return;}
-  var html='<div class="search-hist-label">Recent <button class="search-hist-clear" onclick="clearSrchHist()">Clear</button></div>';
-  h.forEach(function(q){html+='<div class="search-hist-item" onclick="applySrchHist(\''+esc(q)+'\')"><span class="search-hist-icon">↺</span><span class="search-hist-text">'+esc(q)+'</span></div>';});
-  el.className='search-hist visible';el.innerHTML=html;
+  if(!h.length){el.innerHTML='';return;}
+  var html='<div style="padding:6px 16px 2px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center">Recent <button style="font-size:10px;color:var(--text-dim);background:none;border:none;cursor:pointer" onclick="clearSrchHist()">Clear</button></div>';
+  h.forEach(function(q){html+='<div style="display:flex;align-items:center;padding:11px 16px;cursor:pointer;gap:10px;-webkit-tap-highlight-color:transparent;border-bottom:1px solid var(--border)" onclick="applySrchHist(\''+esc(q)+'\')"><span style="font-size:13px;color:var(--text-dim)">↺</span><span style="flex:1;font-size:14px;color:var(--text-mid)">'+esc(q)+'</span></div>';});
+  el.innerHTML=html;
 }
-function applySrchHist(q){var ms=document.getElementById('mob-search');if(ms)ms.value=q;mobRenderFind(q);}
-function clearSrchHist(){try{localStorage.removeItem(SRCH_HIST_KEY);}catch(e){}renderSrchHist(false);}
+function applySrchHist(q){var ms=document.getElementById('mob-search');if(ms)ms.value=q;mobRenderFind(q);document.getElementById('search-hist-panel').innerHTML='';}
+function clearSrchHist(){try{localStorage.removeItem(SRCH_HIST_KEY);}catch(e){}document.getElementById('search-hist-panel').innerHTML='';}
 
-// ── FIX 18: SUPPLY TAB BADGE ─────────────────────────────────────────────────
 function updateSupplyBadge(){
   var n=inventory.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
-  var b=document.getElementById('supply-tab-badge');if(!b)return;
-  if(n>0){b.style.display='block';b.textContent=n;}else{b.style.display='none';}
+  var b=document.getElementById('supply-tab-badge');
+  if(b){b.style.display=n?'block':'none';if(n)b.textContent=n;}
 }
 
-// ── FIX 9: LOC PICKER — add checkmark to rows ─────────────────────────────────
-// Override mobLPBuildTree to include checkmark
-function mobLPBuildTree(ch,path,depth){
-  var html='';
-  Object.entries(ch).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(entry){
-    var name=entry[0];var node=entry[1];var p=path.concat([name]);var pk=p.join('::');
-    var hasCh=Object.keys(node.children).length>0;var isExp=_maddLpExp.has(pk);
-    var isSel=_maddLpSel&&_maddLpSel.join('::')=== pk;
-    var color='hsla('+MOB_DH[depth%MOB_DH.length]+',65%,68%,0.9)';
-    var kid=mRegK(pk);
-    html+='<div class="mob-lp-row'+(isSel?' sel':'')+'\" data-kid=\"'+kid+'\" onclick=\"mobLPSelect(this.dataset.kid)\" style=\"padding-left:'+(16+depth*14)+'px;border-left-color:'+(isSel?'var(--rose)':color+'40')+'\">'\
-      +'<div class=\"mob-lp-dot\" style=\"background:'+color+'\"></div>'\
-      +'<span class=\"mob-lp-name\">'+esc(name)+'</span>'\
-      +'<span class=\"mob-lp-cnt\">'+node.total+'</span>'\
-      +(hasCh?'<button class=\"mob-lp-exp'+(isExp?' open':'')+'\" data-kid=\"'+kid+'\" onclick=\"event.stopPropagation();mobLPToggle(this.dataset.kid)\">›</button>':'')\
-      +'<span class=\"mob-lp-check\">✓</span>'\
-      +'</div>';
-    if(hasCh&&isExp)html+='<div class=\"mob-lp-children open\">'+mobLPBuildTree(node.children,p,depth+1)+'</div>';
-  });
-  return html;
-}
-
-// ── FIX 13+14+15: ENHANCED DETAIL SHEET ──────────────────────────────────────
-// Override mobOpenDetail to include "what else is here", used today, fill quick-change
-var _origMobOpenDetail = null; // will be set after original loads
-function enhancedMobOpenDetail(pid){
-  var arr=_mp[pid];if(!arr)return;var id=arr[0];
-  var item=inventory.find(function(i){return i.id===id;});if(!item)return;
-  var loc=item.locationPath||[];var n=splitName(item.name);
-  var locH=loc.length?loc.map(function(seg,i){return(i>0?'<span style="color:var(--border2)">›</span>':'')+'<span class="mob-dlseg'+(i===loc.length-1?' leaf':'')+'">'+esc(seg)+'</span>';}).join(''):'<span style="color:var(--text-dim);font-style:italic">No location</span>';
-  document.getElementById('mob-detail-hdr').innerHTML='<div class="mob-detail-name">'+esc(n.primary)+(n.secondary?'<span class="mob-detail-sec">'+esc(n.secondary)+'</span>':'')+'</div>'+(item.inUse?'<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><span class="mob-inuse-dot"></span><span style="font-size:12px;color:var(--green)">In Use</span></div>':'');
-  var fields=[['Category',item.category],['Condition',item.condition],['Keep',item.keep],['Qty',item.qty],['Est. Value',item.estValue?'$'+item.estValue:null],['Year',item.yearPurchased]].filter(function(f){return f[1];});
-  var rawNote=item.notes||'';var kwIdx=rawNote.toLowerCase().indexOf('| keywords:');var dispNote=kwIdx!==-1?rawNote.slice(0,kwIdx).trim():rawNote;
-
-  // Fix 15: Fill quick-change
-  var fillHTML='';
-  if(item.fillLevel){
-    var fills=['Full','Most','Half','Low','Empty'];
-    var fillSegs=fills.map(function(fl){
-      var cls=fl===item.fillLevel?'mob-fill-seg-btn active-'+fl.toLowerCase():'mob-fill-seg-btn';
-      return'<button class="'+cls+'" onclick="detailSetFill('+id+',\''+fl+'\',this)">'+fl+'</button>';
-    }).join('');
-    fillHTML='<div class="mob-fill-row"><span class="mob-fill-lbl">Fill</span><div class="mob-fill-segs">'+fillSegs+'</div></div>';
-  }
-
-  // Fix 13: What else is here
-  var hereHTML='';
-  if(loc.length){
-    var here=inventory.filter(function(i){return i.id!==id&&pathStartsWith(i.locationPath||[],loc)&&(i.locationPath||[]).length===loc.length&&(_pinUnlocked||!i.lockedItem);}).slice(0,4);
-    if(here.length){
-      hereHTML='<div class="mob-here-section"><div class="mob-here-lbl">Also here ('+here.length+(here.length===4?'+':'')+')</div>';
-      here.forEach(function(hi){
-        var cs=catC(hi.category);
-        var hn=splitName(hi.name);
-        var hpid=mReg([hi.id]);
-        hereHTML+='<div class="mob-here-item" onclick="mobCloseDetail();enhancedMobOpenDetail(\''+hpid+'\')"><div class="mob-here-dot" style="background:'+cs.text+'"></div><span class="mob-here-name">'+esc(hn.primary)+'</span><span class="mob-here-cat">'+esc(hi.category)+'</span></div>';
-      });
-      hereHTML+='</div>';
-    }
-  }
-
-  document.getElementById('mob-detail-body').innerHTML='<div class="mob-dloc">'+locH+'</div>'+fillHTML+'<div class="mob-dfields">'+fields.map(function(f){return'<div class="mob-dfield"><div class="mob-dlbl">'+esc(f[0])+'</div><div class="mob-dval">'+esc(f[1])+'</div></div>';}).join('')+'</div>'+(dispNote?'<div class="mob-dnotes"><div class="mob-dnotes-lbl">Notes</div><div class="mob-dnotes-txt">'+esc(dispNote)+'</div></div>':'')+hereHTML;
-
-  // Fix 14: Used Today + close actions
-  document.getElementById('mob-detail-actions').innerHTML='<button class="mob-dbtn" onclick="mobCloseDetail()">Close</button><button class="mob-used-btn" onclick="markUsedToday('+id+',this)">Used Today ✓</button><a class="mob-dbtn" href="index.html" style="color:var(--rose);border-color:rgba(176,122,132,0.35);text-decoration:none">Edit</a>';
-  document.getElementById('mob-detail-ov').classList.add('open');
-}
-
-function detailSetFill(itemId, fillLevel, btn){
+function quickSetFill(itemId, fillLevel, btn){
   var item=inventory.find(function(i){return i.id===itemId;});if(!item)return;
   item.fillLevel=fillLevel;
-  // Update button states
-  var segs=btn.parentElement.querySelectorAll('.mob-fill-seg-btn');
-  segs.forEach(function(b){b.className='mob-fill-seg-btn';});
-  btn.className='mob-fill-seg-btn active-'+fillLevel.toLowerCase();
-  // Save
+  var fc={'Full':'#3d8f5a','Most':'#7a9e44','Half':'#9e7a22','Low':'#8f3a20','Empty':'#8f3838'};
+  var segs=btn.parentElement.querySelectorAll('button');
+  segs.forEach(function(b){var fl=b.textContent;b.style.borderColor='var(--border2)';b.style.background='var(--s3)';b.style.color='var(--text-dim)';});
+  btn.style.borderColor=fc[fillLevel]||'var(--rose)';btn.style.background=(fc[fillLevel]||'var(--rose)')+'22';btn.style.color=fc[fillLevel]||'var(--rose)';
   fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({fill_level:fillLevel})}).catch(function(){});
   updateSupplyBadge();renderAttnStrip();
 }
 
-function markUsedToday(itemId, btn){
+function markUsedToday(itemId,btn){
   var item=inventory.find(function(i){return i.id===itemId;});if(!item)return;
-  var today=todayLastUsed();
-  item.lastUsed=today;
-  btn.textContent='✓ Saved';btn.style.opacity='0.6';
+  var today=todayLastUsed();item.lastUsed=today;
+  if(btn){btn.textContent='✓ Saved';btn.style.opacity='0.6';}
   fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({last_used:today})}).catch(function(){});
-  setTimeout(function(){btn.textContent='Used Today ✓';btn.style.opacity='';},2000);
+  setTimeout(function(){if(btn){btn.textContent='Used Today ✓';btn.style.opacity='';}},2000);
 }
 
-// ── FIX 2: Hide Unassigned from home, sort by count ──────────────────────────
-// Override mobRenderBrowseAt home stats to exclude Unassigned, show attention
-var _origMobRenderBrowseAt=null; // patched below after original
-
-// ── INIT NEW FEATURES ─────────────────────────────────────────────────────────
-function initNewFeatures(){
-  restoreSidebarState();
-  // Wire enhanced detail
-  window.mobOpenDetail=enhancedMobOpenDetail;
-  // Search history — show on focus
+// Wire search history to mob-search
+(function(){
   var ms=document.getElementById('mob-search');
-  if(ms){
-    ms.addEventListener('focus',function(){if(!this.value)renderSrchHist(true);});
-    ms.addEventListener('blur',function(){setTimeout(function(){renderSrchHist(false);},200);});
-    var origInput=ms.oninput;
-    ms.addEventListener('input',function(){
-      if(this.value.trim()){renderSrchHist(false);}
-      else{renderSrchHist(true);}
-    });
-  }
-  // Push search to history on Enter
-  if(ms){ms.addEventListener('keydown',function(e){if(e.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim());});}
-  // iPad search history
-  var is=document.getElementById('ipad-search');
-  if(is){is.addEventListener('keydown',function(e){if(e.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim());});}
-}
+  if(!ms)return;
+  ms.addEventListener('focus',function(){if(!this.value.trim())renderSrchHist();});
+  ms.addEventListener('blur',function(){setTimeout(function(){var p=document.getElementById('search-hist-panel');if(p)p.innerHTML='';},200);});
+  ms.addEventListener('input',function(){if(this.value.trim())document.getElementById('search-hist-panel').innerHTML='';else renderSrchHist();});
+  ms.addEventListener('keydown',function(e){if(e.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim());});
+})();
 
 // ── FILL LEVEL SYSTEM ─────────────────────────────────────────────────────────
 const FILL_LEVELS = ['Full','Most','Half','Low','Empty'];
