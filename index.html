@@ -675,6 +675,27 @@ td[data-col="notes"], th[data-col="notes"] { min-width: 100px; max-width: 180px;
 td[data-col="category"], th[data-col="category"] { min-width: 90px; white-space: nowrap; }
 td[data-col="frequency"], td[data-col="criticality"], td[data-col="replaceability"], td[data-col="keep"] { white-space: nowrap; min-width: 70px; }
 td[data-col="score"], th[data-col="score"] { min-width: 54px; white-space: nowrap; }
+
+/* ── AUDIT BADGE ── */
+.audit-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.audit-badge:hover { opacity: 0.75; }
+.audit-none    { color: var(--text-dim);  border-color: var(--border2); background: transparent; }
+.audit-ok      { color: var(--green);     border-color: rgba(77,143,106,0.35); background: rgba(77,143,106,0.08); }
+.audit-soon    { color: var(--amber);     border-color: rgba(158,122,50,0.35); background: rgba(158,122,50,0.08); }
+.audit-overdue { color: var(--red);       border-color: rgba(143,72,72,0.35);  background: rgba(143,72,72,0.08); }
 td[data-col="est_value"], th[data-col="est_value"] { min-width: 54px; white-space: nowrap; }
 td[data-col="condition"], th[data-col="condition"] { min-width: 60px; white-space: nowrap; }
 td[data-col="year"], th[data-col="year"] { min-width: 64px; white-space: nowrap; }
@@ -2069,6 +2090,7 @@ CSV FORMAT:
             <th style="text-align:center" class="sortable" data-key="fillLevel" data-col="fill">Fill</th>
             <th data-col="notes">Notes</th>
             <th class="sortable" data-key="_score" style="text-align:center" data-col="score">Score</th>
+            <th style="text-align:center" data-col="audit">Audit</th>
             <th style="text-align:center" data-col="misplaced">⚑</th>
             <th data-col="actions"></th>
           </tr>
@@ -3910,6 +3932,7 @@ function buildRow(item,dupMap){
       return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)||'<span style="color:var(--text-dim);font-size:10px">--</span>'}</span>${kwText}`;
     })()}</td>
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
+    <td data-col="audit" style="text-align:center">${(()=>{const af=item.auditFreq;const la=item.lastAudited;const freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};if(!af){return`<a href="audit.html?item=${item.id}" target="_blank" class="audit-badge audit-none">AUDIT</a>`;}const days=freqDays[af];const due=la?new Date(la).getTime()+days*86400000:0;const now=Date.now();const overdue=due&&now>due;const soon=due&&!overdue&&(due-now)<30*86400000;const cls=overdue?'audit-overdue':soon?'audit-soon':'audit-ok';const short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};return`<a href="audit.html?item=${item.id}" target="_blank" class="audit-badge ${cls}">${short[af]||af}</a>`;})()}</td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn cam-btn" onclick="openDocUpload(${item.id},event)" title="Upload document photo">📷</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
   return tr;
@@ -5992,6 +6015,7 @@ const COL_DEFS=[
   {col:'fill',label:'Fill'},
   {col:'notes',label:'Notes'},
   {col:'score',label:'Score',hideable:false},
+  {col:'audit',label:'Audit'},
   {col:'misplaced',label:'Misplaced'},
   {col:'actions',label:'Actions',hideable:false},
 ];
@@ -6006,7 +6030,7 @@ function saveColPrefs(){
 }
 
 // Default px widths per col — used when no saved width exists
-const COL_DEFAULTS={name:160,loc:150,qty:55,category:110,frequency:70,criticality:90,replaceability:100,condition:80,keep:70,year:60,lastused:75,estvalue:65,doctype:85,digital:65,fill:55,notes:120,score:70,misplaced:70,actions:55};
+const COL_DEFAULTS={name:160,loc:150,qty:55,category:110,frequency:70,criticality:90,replaceability:100,condition:80,keep:70,year:60,lastused:75,estvalue:65,doctype:85,digital:65,fill:55,notes:120,score:70,audit:65,misplaced:70,actions:55};
 
 function applyColVisibility(){
   COL_DEFS.forEach(({col})=>{
