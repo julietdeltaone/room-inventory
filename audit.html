@@ -167,13 +167,15 @@ header {
 .field-input, .field-select, .field-textarea {
   background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 5px 8px; color: var(--text); font-family: var(--font-sans); font-size: 12px;
-  outline: none; transition: border-color 0.15s; width: 100%;
+  outline: none; transition: border-color 0.15s, background 0.15s, color 0.15s; width: 100%;
+  -webkit-appearance: none; appearance: none;
 }
+.field-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23565660'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
 .field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--rose); }
-.field-select option { background: var(--s2); }
-.field-textarea { resize: vertical; min-height: 60px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; }
-.field-input.flagged, .field-select.flagged { border-color: rgba(158,122,50,0.5); background: rgba(158,122,50,0.04); }
-.field-input.filled, .field-select.filled { border-color: rgba(77,143,106,0.4); }
+.field-select option { background: var(--s2); color: var(--text); }
+.field-textarea { resize: vertical; min-height: 70px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; -webkit-appearance: none; appearance: none; }
+.field-input.flagged, .field-select.flagged { border-color: rgba(158,122,50,0.5) !important; background: rgba(158,122,50,0.06) !important; color: var(--text) !important; }
+.field-input.filled { border-color: rgba(77,143,106,0.4); }
 
 /* Audit frequency selector */
 .freq-selector { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -602,6 +604,37 @@ function scrollToField(label) {
   if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); }
 }
 
+const KEEP_COLORS = {'Keep':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'},'Maybe':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Sell':{bg:'rgba(255,154,60,0.1)',color:'#ff9a3c',border:'rgba(255,154,60,0.25)'},'Donate':{bg:'rgba(160,200,255,0.1)',color:'#a0c8ff',border:'rgba(160,200,255,0.25)'},'Trash':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'}};
+const FREQ_COLORS = {'Daily':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'},'Weekly':{bg:'rgba(100,180,255,0.1)',color:'#64b4ff',border:'rgba(100,180,255,0.25)'},'Monthly':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Rarely':{bg:'rgba(255,154,60,0.1)',color:'#ff9a3c',border:'rgba(255,154,60,0.25)'},'Never':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'}};
+const CRIT_COLORS = {'Essential':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'},'Important':{bg:'rgba(100,180,255,0.1)',color:'#64b4ff',border:'rgba(100,180,255,0.25)'},'Nice to Have':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Redundant':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'}};
+const REPL_COLORS = {'Irreplaceable':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'},'Hard/Expensive':{bg:'rgba(255,154,60,0.1)',color:'#ff9a3c',border:'rgba(255,154,60,0.25)'},'Moderate':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Easy/Cheap':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'}};
+const COND_COLORS = {'New':{color:'#44ff88',border:'rgba(68,255,136,0.25)',bg:'rgba(68,255,136,0.07)'},'Good':{color:'#64b4ff',border:'rgba(100,180,255,0.25)',bg:'rgba(100,180,255,0.07)'},'Fair':{color:'#ffb450',border:'rgba(255,180,80,0.25)',bg:'rgba(255,180,80,0.07)'},'Poor':{color:'#ff5050',border:'rgba(255,80,80,0.25)',bg:'rgba(255,80,80,0.07)'}};
+const FILL_COLORS = {'Full':{color:'var(--green)',border:'rgba(90,158,122,0.3)',bg:'rgba(90,158,122,0.08)'},'Most':{color:'var(--rose)',border:'rgba(183,110,121,0.25)',bg:'rgba(183,110,121,0.08)'},'Half':{color:'var(--amber)',border:'rgba(184,146,74,0.25)',bg:'rgba(184,146,74,0.08)'},'Low':{color:'#a06040',border:'rgba(160,96,64,0.3)',bg:'rgba(160,96,64,0.08)'},'Empty':{color:'var(--red)',border:'rgba(158,90,90,0.25)',bg:'rgba(158,90,90,0.08)'}};
+
+function applySelectColor(el, colorMap) {
+  const c = colorMap[el.value];
+  if (c) {
+    el.style.color       = c.color;
+    el.style.borderColor = c.border;
+    el.style.background  = c.bg;
+  } else {
+    el.style.color = el.style.borderColor = el.style.background = '';
+  }
+}
+
+function colorSelect(field, options, colorMap, item, missing) {
+  const val     = item[field] || '';
+  const flagged = missing.includes(fieldLabel(field));
+  const c       = !flagged && colorMap[val];
+  const style   = c ? `color:${c.color};border-color:${c.border};background:${c.bg}` : '';
+  const flagCls = flagged ? ' flagged' : '';
+  return `<select class="field-select${flagCls}" id="f-${field}" style="${style}"
+    onchange="liveUpdate(${item.id},'${field}',this.value);applySelectColor(this,${colorMap===KEEP_COLORS?'KEEP_COLORS':colorMap===FREQ_COLORS?'FREQ_COLORS':colorMap===CRIT_COLORS?'CRIT_COLORS':colorMap===REPL_COLORS?'REPL_COLORS':colorMap===COND_COLORS?'COND_COLORS':'FILL_COLORS'})">
+    <option value="">--</option>
+    ${options.map(o=>`<option${val===o?' selected':''}>${esc(o)}</option>`).join('')}
+  </select>`;
+}
+
 function renderEditor(item) {
   const status  = itemStatus(item);
   const missing = getMissingFields(item);
@@ -735,15 +768,15 @@ function renderEditor(item) {
         </div>
         <div class="field-group">
           <div class="field-label required${isMissing('condition')?' flagged':''}">Condition</div>
-          ${sel('condition',['New','Good','Fair','Poor'])}
+          ${colorSelect('condition',['New','Good','Fair','Poor'],COND_COLORS,item,missing)}
         </div>
         <div class="field-group">
           <div class="field-label required${isMissing('keep')?' flagged':''}">Keep</div>
-          ${sel('keep',['Keep','Maybe','Sell','Donate','Trash'])}
+          ${colorSelect('keep',['Keep','Maybe','Sell','Donate','Trash'],KEEP_COLORS,item,missing)}
         </div>
         <div class="field-group">
           <div class="field-label">Fill Level</div>
-          ${sel('fillLevel',['Full','Most','Half','Low','Empty'])}
+          ${colorSelect('fillLevel',['Full','Most','Half','Low','Empty'],FILL_COLORS,item,missing)}
         </div>
       </div>
     </div>
@@ -754,15 +787,15 @@ function renderEditor(item) {
       <div class="field-grid">
         <div class="field-group">
           <div class="field-label required${isMissing('frequency')?' flagged':''}">Frequency</div>
-          ${sel('frequency',['Daily','Weekly','Monthly','Rarely','Never'])}
+          ${colorSelect('frequency',['Daily','Weekly','Monthly','Rarely','Never'],FREQ_COLORS,item,missing)}
         </div>
         <div class="field-group">
           <div class="field-label required${isMissing('criticality')?' flagged':''}">Criticality</div>
-          ${sel('criticality',['Essential','Important','Nice to Have','Redundant'])}
+          ${colorSelect('criticality',['Essential','Important','Nice to Have','Redundant'],CRIT_COLORS,item,missing)}
         </div>
         <div class="field-group">
           <div class="field-label required${isMissing('replaceability')?' flagged':''}">Replaceability</div>
-          ${sel('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'])}
+          ${colorSelect('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'],REPL_COLORS,item,missing)}
         </div>
         <div class="field-group">
           <div class="field-label">Doc Type</div>
@@ -803,7 +836,7 @@ function renderEditor(item) {
       <div class="action-bar-left">
         <button class="skip-btn" onclick="skipItem(${item.id})">Skip →</button>
       </div>
-      <button class="btn btn-enrich btn-sm" id="enrich-btn" onclick="runEnrich(${item.id})">✦ Enrich L5</button>
+      <button class="btn btn-enrich btn-sm" id="enrich-btn" onclick="runEnrich(${item.id})">✦ L5 Enrich + Keywords</button>
       <button class="btn btn-green" onclick="markDone(${item.id})">✓ Mark Audited</button>
     </div>
   `;
@@ -816,13 +849,20 @@ function liveUpdate(id, field, value) {
   const item = inventory.find(i => i.id === id);
   if (!item) return;
   item[field] = value;
-  // update field styling live
   const el = document.getElementById('f-' + field);
   if (el && el.type !== 'checkbox') {
     const miss = getMissingFields(item);
     const isM = miss.includes(fieldLabel(field));
-    el.classList.toggle('flagged', isM);
-    el.classList.toggle('filled', !!value && !isM);
+    if (isM) {
+      el.classList.add('flagged');
+      el.style.color = el.style.borderColor = el.style.background = '';
+    } else {
+      el.classList.remove('flagged');
+      // re-apply color map if applicable
+      const maps = { frequency: FREQ_COLORS, criticality: CRIT_COLORS, replaceability: REPL_COLORS, keep: KEEP_COLORS, condition: COND_COLORS, fillLevel: FILL_COLORS };
+      if (maps[field] && el.tagName === 'SELECT') applySelectColor(el, maps[field]);
+      else { el.style.color = el.style.borderColor = el.style.background = ''; if (value) el.classList.add('filled'); else el.classList.remove('filled'); }
+    }
   }
   scheduleSave(item);
 }
@@ -971,15 +1011,14 @@ async function runEnrich(id) {
     if (s.notes && s.notes.trim()) applyEnrichNotes(item, s.notes);
 
     await saveItem(item);
-    toast(`✓ Enrich L5 done — "${item.name}"`);
-    // Re-render the editor with updated values
+    toast(`✓ L5 + keywords done — "${item.name}"`);
     renderEditor(item);
     renderQueue();
   } catch(err) {
     toast(`✗ Enrich failed: ${err.message}`);
   } finally {
     const b = document.getElementById('enrich-btn');
-    if (b) { b.disabled = false; b.textContent = '✦ Enrich L5'; }
+    if (b) { b.disabled = false; b.textContent = '✦ L5 Enrich + Keywords'; }
   }
 }
 
