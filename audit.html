@@ -161,6 +161,10 @@ header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:
 .skip-btn:hover{color:var(--text-mid);}
 .freq-req-inline{font-family:var(--font-mono);font-size:9px;color:var(--rose);display:none;}
 .freq-req-inline.show{display:inline;}
+.atree-row{display:flex;align-items:center;gap:8px;padding-top:8px;padding-right:10px;padding-bottom:8px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent;transition:background .1s;}
+.atree-row:hover{background:var(--s2);}
+.atree-tog{background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px;transition:transform .15s;flex-shrink:0;line-height:1;}
+.atree-tog.open{transform:rotate(90deg);}
 
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--border2);border-radius:var(--radius);padding:7px 16px;font-family:var(--font-mono);font-size:11px;color:var(--text);opacity:0;transition:opacity .2s,transform .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -196,7 +200,11 @@ header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:
 <div class="app" id="app" style="display:none">
   <div class="queue-panel">
     <div class="queue-head">
-      <div class="queue-title">Queue — Batch <span id="batch-num">1</span></div>
+      <div class="queue-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Queue — Batch <span id="batch-num">1</span></span>
+        <button class="btn btn-ghost" style="padding:2px 8px;font-size:9px;font-family:var(--font-mono)" onclick="toggleAuditTree()">🌲 Location</button>
+      </div>
+      <div id="audit-tree-panel" style="display:none;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:var(--s1)"></div>
       <div class="qf-row">
         <button class="qf-btn active"    data-filter="all"        onclick="setQF('all',this)">All</button>
         <button class="qf-btn"           data-filter="unreviewed" onclick="setQF('unreviewed',this)">Unreviewed</button>
@@ -225,6 +233,20 @@ header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:
       <button class="btn btn-ghost" style="padding:3px 8px;font-size:9px" onclick="prevBatch()" id="prev-btn" disabled>← Prev</button>
       <div class="batch-lbl" id="batch-lbl"></div>
       <button class="btn btn-ghost" style="padding:3px 8px;font-size:9px" onclick="nextBatch()" id="next-btn">Next →</button>
+    </div>
+    <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--s1);flex-shrink:0">
+      <div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:6px">Batch Actions</div>
+      <div style="display:flex;gap:5px;margin-bottom:6px">
+        <select id="bulk-freq-sel" style="flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:5px;padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none">
+          <option value="">— Set Frequency —</option>
+          <option value="Quarterly">Quarterly (90d)</option>
+          <option value="Bi-Annual">Bi-Annual (180d)</option>
+          <option value="Annual">Annual (365d)</option>
+          <option value="Never">Never (one-time)</option>
+        </select>
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px;font-family:var(--font-mono);flex-shrink:0" onclick="bulkSetFreq()">Apply</button>
+      </div>
+      <button class="btn btn-green" style="width:100%;padding:7px;font-size:11px;font-family:var(--font-mono)" onclick="bulkMarkAudited()">✓ Mark Batch Audited</button>
     </div>
   </div>
 
@@ -681,16 +703,17 @@ function renderAuditTree(){
 function buildAuditTreeHTML(node,path,depth){
   const colors=['#6e8fa8','#9e7a32','#7a6ea8','#4d8f6a','#b07a84'];
   const c=colors[depth%colors.length];let html='';
-  Object.entries(node).sort(function(a,b){return b[1].count-a[1].count;}).forEach(function(e){
-    const name=e[0],info=e[1],childPath=path.concat([name]),pk=childPath.join('::');
+  const ind=10+depth*12;
+  Object.entries(node).sort((a,b)=>b[1].count-a[1].count).forEach(([name,info])=>{
+    const childPath=path.concat([name]),pk=childPath.join('::');
     const isExp=_auditTreeExp.has(pk),hasCh=Object.keys(info.children).length>0;
-    const matchCount=fq().filter(function(i){const p=i.locationPath||[];return childPath.every(function(seg,idx){return p[idx]===seg;});}).length;
-    html+='<div style="display:flex;align-items:center;gap:6px;padding:7px 10px 7px '+(10+depth*12)+'px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent" onclick="auditTreeClick(''+pk+'')">'
-      +'<div style="width:6px;height:6px;border-radius:50%;background:'+c+';flex-shrink:0"></div>'
-      +'<span style="flex:1;font-size:12px;color:var(--text)">'+esc(name)+'</span>'
-      +(matchCount?'<span style="font-family:var(--font-mono);font-size:9px;color:var(--rose);background:rgba(176,122,132,.12);padding:1px 5px;border-radius:20px">'+matchCount+'</span>':'')
-      +(hasCh?'<button style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:0 2px;transform:'+(isExp?'rotate(90deg)':'none')+'" onclick="event.stopPropagation();auditTreeToggle(''+pk+'')">›</button>':'')
-      +'</div>';
+    const matchCount=fq().filter(i=>{const p=i.locationPath||[];return childPath.every((s,j)=>p[j]===s);}).length;
+    html+=`<div class="atree-row" data-pk="${esc(pk)}" style="padding-left:${ind}px">
+      <div style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0"></div>
+      <span style="flex:1;font-size:13px;color:var(--text)">${esc(name)}</span>
+      ${matchCount?`<span style="font-family:var(--font-mono);font-size:10px;color:var(--rose);background:rgba(176,122,132,.12);padding:2px 7px;border-radius:20px">${matchCount}</span>`:''}
+      ${hasCh?`<button class="atree-tog${isExp?' open':''}" data-pk="${esc(pk)}">›</button>`:''}
+    </div>`;
     if(hasCh&&isExp)html+=buildAuditTreeHTML(info.children,childPath,depth+1);
   });
   return html;
@@ -698,13 +721,14 @@ function buildAuditTreeHTML(node,path,depth){
 function auditTreeToggle(pk){if(_auditTreeExp.has(pk))_auditTreeExp.delete(pk);else _auditTreeExp.add(pk);renderAuditTree();}
 function auditTreeClick(pk){
   const path=pk.split('::');
-  const filtered=fq().filter(function(i){const p=i.locationPath||[];return path.every(function(seg,idx){return p[idx]===seg;});});
+  const filtered=fq().filter(i=>{const p=i.locationPath||[];return path.every((s,j)=>p[j]===s);});
   if(!filtered.length){toast('No queue items at this location');return;}
-  const idx=fq().findIndex(function(i){return i.id===filtered[0].id;});
+  const idx=fq().findIndex(i=>i.id===filtered[0].id);
   if(idx>=0)batchStart=Math.floor(idx/BATCH_SIZE)*BATCH_SIZE;
   renderQueue();selectItem(filtered[0].id);
   toast('📍 '+path[path.length-1]+' — '+filtered.length+' in queue');
 }
+
 
 // ── BULK ACTIONS ──────────────────────────────────────────────────────────────
 async function bulkSetFreq(){
@@ -775,6 +799,13 @@ function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e
     document.getElementById('loading-screen').innerHTML=`<div class="loading"><div style="font-family:var(--font-mono);font-size:11px;color:var(--red)">Failed: ${err.message}</div></div>`;
   }
 })();
+// Event delegation for audit tree rows
+document.addEventListener('click',function(e){
+  const tog=e.target.closest('.atree-tog');
+  if(tog){e.stopPropagation();auditTreeToggle(tog.dataset.pk);return;}
+  const row=e.target.closest('.atree-row');
+  if(row)auditTreeClick(row.dataset.pk);
+});
 </script>
 </body>
 </html>
