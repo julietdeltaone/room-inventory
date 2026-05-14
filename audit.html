@@ -322,10 +322,14 @@ async function init() {
 // ─── SUPABASE ──────────────────────────────────────────────────────────────
 async function sbLoadAll() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?select=*&order=id.asc`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    headers: {
+      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': 'return=representation'
+    }
   });
-  if (!res.ok) throw new Error('Load failed');
-  return res.json();
+  if (!res.ok) throw new Error('Load failed: ' + res.status);
+  const rows = await res.json();
+  return rows.map(rowToItem);
 }
 
 async function sbUpsert(item) {
@@ -333,11 +337,82 @@ async function sbUpsert(item) {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=minimal'
     },
-    body: JSON.stringify([item])
+    body: JSON.stringify([itemToRow(item)])
   });
   return res.ok;
+}
+
+function itemToRow(item) {
+  return {
+    id: item.id,
+    name: item.name || '',
+    sn: item.sn || '',
+    category: item.category || '',
+    location: (item.locationPath || []).join(' > '),
+    doc_type: item.docType || '',
+    digital_copy: item.digitalCopy ? true : false,
+    fill_level: item.fillLevel || '',
+    qty: item.qty || '1',
+    frequency: item.frequency || '',
+    criticality: item.criticality || '',
+    replaceability: item.replaceability || '',
+    condition: item.condition || '',
+    keep: item.keep || '',
+    year_purchased: item.yearPurchased || '',
+    last_used: item.lastUsed || '',
+    est_value: item.estValue || '',
+    notes: item.notes || '',
+    misplaced: item.misplaced ? true : false,
+    last_modified: new Date().toISOString(),
+    keywords: item.keywords || '',
+    change_log: item.changeLog ? JSON.stringify(item.changeLog) : '[]',
+    created_at: item.createdAt || null,
+    in_use: item.inUse ? true : false,
+    locked_item: item.lockedItem ? true : false,
+    locked_notes: item.lockedNotes ? true : false,
+    mil_sub: item.milSub || null,
+    doc_url: item.docUrl || null,
+    audit_freq: item.auditFreq || null,
+    last_audited: item.lastAudited || null,
+  };
+}
+
+function rowToItem(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    sn: row.sn,
+    category: row.category,
+    locationPath: row.location ? row.location.split(' > ').filter(Boolean) : [],
+    docType: row.doc_type,
+    digitalCopy: row.digital_copy,
+    fillLevel: row.fill_level,
+    qty: row.qty,
+    frequency: row.frequency,
+    criticality: row.criticality,
+    replaceability: row.replaceability,
+    condition: row.condition,
+    keep: row.keep,
+    yearPurchased: row.year_purchased,
+    lastUsed: row.last_used,
+    estValue: row.est_value,
+    notes: row.notes,
+    misplaced: row.misplaced,
+    keywords: row.keywords || '',
+    changeLog: row.change_log ? (typeof row.change_log === 'string' ? JSON.parse(row.change_log) : row.change_log) : [],
+    createdAt: row.created_at || null,
+    lastModified: row.last_modified || null,
+    inUse: row.in_use ? true : false,
+    lockedItem: row.locked_item ? true : false,
+    lockedNotes: row.locked_notes ? true : false,
+    milSub: row.mil_sub || null,
+    docUrl: row.doc_url || null,
+    auditFreq: row.audit_freq || null,
+    lastAudited: row.last_audited || null,
+  };
 }
 
 // ─── QUEUE BUILDING ────────────────────────────────────────────────────────
