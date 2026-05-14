@@ -203,7 +203,20 @@ header {
 .skip-btn { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 4px 0; text-decoration: underline; text-decoration-style: dotted; }
 .skip-btn:hover { color: var(--text-mid); }
 
-/* Checkbox */
+/* Diff display */
+.diff-panel { margin-bottom: 18px; border: 1px solid rgba(110,143,168,0.25); border-radius: var(--radius); background: rgba(110,143,168,0.05); overflow: hidden; }
+.diff-panel-header { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--steel); padding: 7px 12px; border-bottom: 1px solid rgba(110,143,168,0.15); display: flex; justify-content: space-between; align-items: center; }
+.diff-panel-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; padding: 0; line-height: 1; }
+.diff-panel-close:hover { color: var(--text); }
+.diff-row { display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; padding: 5px 12px; border-bottom: 1px solid rgba(110,143,168,0.08); font-family: var(--font-mono); font-size: 10px; align-items: start; }
+.diff-row:last-child { border-bottom: none; }
+.diff-field { color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 1px; }
+.diff-old { color: var(--red); text-decoration: line-through; opacity: 0.7; word-break: break-word; }
+.diff-new { color: var(--green); word-break: break-word; }
+.diff-old:empty::before, .diff-new:empty::before { content: '—'; opacity: 0.4; text-decoration: none; }
+
+/* Audit history */
+.audit-hist { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); padding: 6px 0; }
 .field-checkbox { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 11px; color: var(--text-mid); padding: 3px 0; }
 .field-checkbox input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--rose); cursor: pointer; }
 .field-checkbox:hover { color: var(--text); }
@@ -707,6 +720,8 @@ function renderEditor(item) {
       ${bannerMsg[status]||''}
     </div>
 
+    <div id="diff-panel" style="display:none"></div>
+
     ${missing.length ? `<div class="missing-fields">
       <div class="missing-label">Missing fields</div>
       <div class="missing-tags">${missing.map(f=>`<span class="missing-tag" onclick="scrollToField('${f}')">${f}</span>`).join('')}</div>
@@ -819,10 +834,15 @@ function renderEditor(item) {
       </div>
     </div>
 
-    <!-- NOTES -->
+    <!-- NOTES & KEYWORDS -->
     <div class="field-section">
-      <div class="field-section-title">Notes</div>
+      <div class="field-section-title">Notes & Keywords</div>
       <textarea class="field-textarea" id="f-notes" oninput="liveUpdate(${item.id},'notes',this.value)">${esc(item.notes||'')}</textarea>
+      <div style="margin-top:8px">
+        <div class="field-label" style="margin-bottom:4px">Keywords <span style="color:var(--text-dim);font-weight:normal;text-transform:none;letter-spacing:0">(comma-separated, auto-filled by enrich)</span></div>
+        <input class="field-input${item.keywords?' filled':''}" id="f-keywords" type="text" value="${esc(item.keywords||'')}" placeholder="e.g. charger, usb-c, portable, anker" oninput="liveUpdate(${item.id},'keywords',this.value)">
+        ${item.keywords ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${item.keywords.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span style="font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:20px;background:var(--s3);border:1px solid var(--border2);color:var(--text-mid)">${esc(k)}</span>`).join('')}</div>` : ''}
+      </div>
     </div>
 
     <!-- AUDIT INFO -->
@@ -986,6 +1006,11 @@ async function runEnrich(id) {
   const btn = document.getElementById('enrich-btn');
   if (btn) { btn.disabled = true; btn.textContent = '✦ Enriching…'; }
 
+  // Snapshot before for diff
+  const DIFF_FIELDS = ['name','category','frequency','criticality','replaceability','keep','estValue','notes','keywords'];
+  const before = {};
+  DIFF_FIELDS.forEach(f => { before[f] = item[f] || ''; });
+
   const catCounts = {};
   inventory.forEach(i => { catCounts[i.category] = (catCounts[i.category]||0)+1; });
   const topCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
@@ -1010,10 +1035,36 @@ async function runEnrich(id) {
     if (s.estimatedValue) item.estValue       = s.estimatedValue;
     if (s.notes && s.notes.trim()) applyEnrichNotes(item, s.notes);
 
+    // Build diff
+    const diffs = DIFF_FIELDS.filter(f => (item[f]||'') !== before[f]);
+    const FIELD_LABELS = { name:'Name', category:'Category', frequency:'Frequency', criticality:'Criticality', replaceability:'Replaceability', keep:'Keep', estValue:'Est. Value', notes:'Notes', keywords:'Keywords' };
+
     await saveItem(item);
-    toast(`✓ L5 + keywords done — "${item.name}"`);
     renderEditor(item);
     renderQueue();
+
+    // Show diff panel
+    if (diffs.length) {
+      const panel = document.getElementById('diff-panel');
+      if (panel) {
+        panel.style.display = 'block';
+        panel.innerHTML = `<div class="diff-panel">
+          <div class="diff-panel-header">
+            ✦ Enrich changed ${diffs.length} field${diffs.length>1?'s':''}
+            <button class="diff-panel-close" onclick="document.getElementById('diff-panel').style.display='none'">✕</button>
+          </div>
+          ${diffs.map(f => `<div class="diff-row">
+            <div class="diff-field">${FIELD_LABELS[f]||f}</div>
+            <div class="diff-old">${esc(before[f])}</div>
+            <div class="diff-new">${esc(item[f]||'')}</div>
+          </div>`).join('')}
+        </div>`;
+      }
+      toast(`✓ L5 done — ${diffs.length} field${diffs.length>1?'s':''} updated`);
+    } else {
+      toast('✓ L5 done — no changes');
+    }
+
   } catch(err) {
     toast(`✗ Enrich failed: ${err.message}`);
   } finally {
