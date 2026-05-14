@@ -815,6 +815,13 @@ body.mob-mode .shell{display:none;}
 .loc-insp-save:disabled{opacity:0.35;cursor:not-allowed;}
 .loc-insp-status{font-family:var(--font-mono);font-size:11px;text-align:center;min-height:16px;letter-spacing:0.04em;color:var(--green);}
 /* Inspector trigger button on cards */
+/* ── AUDIT BADGE (locate) ── */
+.loc-audit-badge{display:inline-block;padding:1px 6px;border-radius:20px;font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:0.05em;text-decoration:none;cursor:pointer;border:1px solid;transition:opacity 0.15s;white-space:nowrap;vertical-align:middle;}
+.loc-audit-badge:hover{opacity:0.75;}
+.loc-audit-none{color:var(--text-dim);border-color:var(--border2);background:transparent;}
+.loc-audit-ok{color:#4d8f6a;border-color:rgba(77,143,106,0.35);background:rgba(77,143,106,0.08);}
+.loc-audit-soon{color:#9e7a32;border-color:rgba(158,122,50,0.35);background:rgba(158,122,50,0.08);}
+.loc-audit-overdue{color:#8f4848;border-color:rgba(143,72,72,0.35);background:rgba(143,72,72,0.08);}
 .loc-insp-btn{
   display:inline-flex;align-items:center;justify-content:center;
   width:22px;height:22px;border-radius:50%;flex-shrink:0;
@@ -1853,6 +1860,7 @@ function itemCardHTML(item){
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         ${docBtn}
         ${item.estValue?`<span class="item-price"><span class="item-price-label">est.</span>$${esc(item.estValue)}</span>`:''}
+        ${(()=>{const af=item.auditFreq;const la=item.lastAudited;const freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};if(!af)return`<a href="audit.html?item=${item.id}" target="_blank" class="loc-audit-badge loc-audit-none" onclick="event.stopPropagation()">AUDIT</a>`;const days=freqDays[af];const due=la?new Date(la).getTime()+days*86400000:0;const now=Date.now();const overdue=due&&now>due;const soon=due&&!overdue&&(due-now)<30*86400000;const cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';const short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};return`<a href="audit.html?item=${item.id}" target="_blank" class="loc-audit-badge ${cls}" onclick="event.stopPropagation()">${short[af]||af}</a>`;})()}
       </div>
     </div>
     <div class="item-row2">
@@ -2119,7 +2127,7 @@ function mobCard(item, fromSearch){
   return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="'+clickFn+'">'
     +'<div class="mob-card-name">'+esc(n.primary)+(n.secondary?'<span class="mob-card-sec">'+esc(n.secondary)+'</span>':'')+iud+'<button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect & edit">ⓘ</button></div>'
     +'<div class="mob-card-loc">'+locH+'</div>'
-    +'<div class="mob-card-meta"><span class="mob-badge" style="background:'+cs.bg+';color:'+cs.text+'">'+esc(item.category||'Misc')+'</span>'+(item.condition?'<span class="mob-pill">'+esc(item.condition)+'</span>':'')+(item.qty&&item.qty!=='1'?'<span class="mob-pill" style="color:var(--text-mid);font-weight:600">×'+esc(item.qty)+'</span>':'')+'</div>'
+    +'<div class="mob-card-meta"><span class="mob-badge" style="background:'+cs.bg+';color:'+cs.text+'">'+esc(item.category||'Misc')+'</span>'+(item.condition?'<span class="mob-pill">'+esc(item.condition)+'</span>':'')+(item.qty&&item.qty!=='1'?'<span class="mob-pill" style="color:var(--text-mid);font-weight:600">×'+esc(item.qty)+'</span>':'')+(function(){var af=item.auditFreq;if(!af)return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge loc-audit-none" onclick="event.stopPropagation()">AUDIT</a>';var short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};var freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};var days=freqDays[af];var la=item.lastAudited;var due=la?new Date(la).getTime()+days*86400000:0;var now=Date.now();var overdue=due&&now>due;var soon=due&&!overdue&&(due-now)<30*86400000;var cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge '+cls+'" onclick="event.stopPropagation()">'+(short[af]||af)+'</a>';}())+'</div>'
     +luHtml
     +'</div>';
 }
