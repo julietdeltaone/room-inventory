@@ -8,1089 +8,608 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #111113;
-  --s1:       #18181b;
-  --s2:       #1e1e22;
-  --s3:       #242428;
-  --s4:       #2a2a2f;
-  --border:   #2c2c31;
-  --border2:  #383840;
-  --rose:     #b07a84;
-  --rose-dim: rgba(176,122,132,0.14);
-  --steel:    #6e8fa8;
-  --steel-dim:rgba(110,143,168,0.12);
-  --text:     #e8e8ea;
-  --text-mid: #909098;
-  --text-dim: #565660;
-  --green:    #4d8f6a;
-  --red:      #8f4848;
-  --amber:    #9e7a32;
-  --radius:   6px;
-  --font-mono: 'DM Mono', monospace;
-  --font-sans: 'Inter', system-ui, sans-serif;
-
-  --audit-q:   #6e8fa8;
-  --audit-ba:  #9e7a32;
-  --audit-a:   #7a6ea8;
-  --audit-never: #565660;
+  --bg:#111113;--s1:#18181b;--s2:#1e1e22;--s3:#242428;--s4:#2a2a2f;
+  --border:#2c2c31;--border2:#383840;
+  --rose:#b07a84;--rose-dim:rgba(176,122,132,0.14);
+  --steel:#6e8fa8;--text:#e8e8ea;--text-mid:#909098;--text-dim:#565660;
+  --green:#4d8f6a;--red:#8f4848;--amber:#9e7a32;
+  --radius:5px;--font-mono:'DM Mono',monospace;--font-sans:'Inter',system-ui,sans-serif;
+  --audit-q:#6e8fa8;--audit-ba:#9e7a32;--audit-a:#7a6ea8;--audit-never:#565660;
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:12px;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 13px; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-::-webkit-scrollbar { width: 3px; height: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+header{height:42px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;gap:10px;}
+.logo{font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.22em;color:var(--rose);text-transform:uppercase;white-space:nowrap;}
+.header-mid{flex:1;display:flex;align-items:center;gap:10px;}
+.header-right{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 
-/* ── HEADER ── */
-header {
-  height: 46px; display: flex; align-items: center; justify-content: space-between;
-  padding: 0 18px; border-bottom: 1px solid var(--border);
-  background: var(--bg); position: sticky; top: 0; z-index: 200; gap: 12px;
-}
-.logo { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.22em; color: var(--rose); text-transform: uppercase; white-space: nowrap; }
-.header-right { display: flex; align-items: center; gap: 6px; }
+.save-pill{display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:2px 7px;border-radius:20px;border:1px solid var(--border);background:var(--s2);transition:all .3s;}
+.save-pill.saving{color:var(--amber);border-color:rgba(158,122,50,.4);}
+.save-pill.saved{color:var(--green);border-color:rgba(77,143,106,.4);}
+.save-pill.error{color:var(--red);border-color:rgba(143,72,72,.4);}
+.save-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.prog-wrap{display:flex;align-items:center;gap:6px;}
+.prog-track{width:80px;height:3px;background:var(--border);border-radius:2px;}
+.prog-fill{height:100%;background:var(--rose);border-radius:2px;transition:width .4s;}
+.prog-label{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;}
+.stat-chips{display:flex;gap:6px;}
+.sc{font-family:var(--font-mono);font-size:9px;display:flex;align-items:center;gap:3px;color:var(--text-dim);}
+.sc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 
-/* ── BUTTONS ── */
-.btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--radius); font-family: var(--font-sans); font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid; transition: all 0.13s; white-space: nowrap; }
-.btn-ghost { background: transparent; color: var(--text-mid); border-color: var(--border2); }
-.btn-ghost:hover { border-color: var(--text-mid); color: var(--text); }
-.btn-enrich { color: var(--rose) !important; border-color: rgba(176,122,132,0.35) !important; background: rgba(176,122,132,0.07) !important; }
-.btn-enrich:hover { background: rgba(176,122,132,0.14) !important; border-color: var(--rose) !important; }
-.btn-primary { background: var(--rose); color: #fff; border-color: var(--rose); }
-.btn-primary:hover { background: #c97882; border-color: #c97882; }
-.btn-green { background: transparent; color: var(--green); border-color: rgba(77,143,106,0.35); }
-.btn-green:hover { background: rgba(77,143,106,0.12); }
-.btn-sm { padding: 3px 9px; font-size: 11px; }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius);font-family:var(--font-sans);font-size:11px;font-weight:500;cursor:pointer;border:1px solid;transition:all .12s;white-space:nowrap;text-decoration:none;}
+.btn-ghost{background:transparent;color:var(--text-mid);border-color:var(--border2);}
+.btn-ghost:hover{border-color:var(--text-mid);color:var(--text);}
+.btn-green{background:transparent;color:var(--green);border-color:rgba(77,143,106,.4);}
+.btn-green:hover{background:rgba(77,143,106,.12);}
+.btn-enrich{color:var(--rose)!important;border-color:rgba(176,122,132,.35)!important;background:rgba(176,122,132,.07)!important;}
+.btn-enrich:hover{background:rgba(176,122,132,.15)!important;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
 
-/* ── LAYOUT ── */
-.app { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 46px); }
+.app{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 42px);}
 
-/* ── QUEUE PANEL ── */
-.queue-panel {
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  position: sticky; top: 46px; height: calc(100vh - 46px); overflow: hidden;
-}
-.queue-header {
-  padding: 14px 14px 10px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.queue-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 10px; }
-.progress-track { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 8px; }
-.progress-fill { height: 100%; background: var(--rose); border-radius: 2px; transition: width 0.4s; }
-.progress-labels { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); }
-.progress-labels span:first-child { color: var(--rose); }
+/* QUEUE */
+.queue-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.queue-head{padding:9px 12px 7px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.queue-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.qf-row{display:flex;gap:3px;flex-wrap:wrap;}
+.qf-btn{font-family:var(--font-mono);font-size:8px;padding:2px 6px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .12s;}
+.qf-btn.active{border-color:var(--rose);color:var(--rose);background:var(--rose-dim);}
+.qf-btn.qf-green.active{border-color:rgba(77,143,106,.4);color:var(--green);background:rgba(77,143,106,.08);}
+.queue-list{flex:1;overflow-y:auto;}
+.qi{padding:6px 11px;cursor:pointer;border-left:3px solid transparent;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;transition:background .1s;}
+.qi:hover{background:var(--s2);}
+.qi.active{background:var(--s2);border-left-color:var(--rose);}
+.qi.done{opacity:.45;}
+.qi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.qi-dot.unreviewed{background:var(--text-dim);}
+.qi-dot.incomplete{background:var(--amber);}
+.qi-dot.overdue{background:var(--red);}
+.qi-dot.clean{background:var(--green);}
+.qi-info{flex:1;min-width:0;}
+.qi-name{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qi-loc{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fpip{display:inline-block;padding:1px 5px;border-radius:20px;font-family:var(--font-mono);font-size:7px;font-weight:500;border:1px solid;}
+.fpip.fq{color:var(--audit-q);border-color:rgba(110,143,168,.4);background:rgba(110,143,168,.06);}
+.fpip.fba{color:var(--audit-ba);border-color:rgba(158,122,50,.4);background:rgba(158,122,50,.06);}
+.fpip.fa{color:var(--audit-a);border-color:rgba(122,110,168,.4);background:rgba(122,110,168,.06);}
+.fpip.fn{color:var(--audit-never);border-color:var(--border);}
+.qi-sec{padding:4px 11px;background:var(--s1);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);}
+.queue-foot{padding:6px 12px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:5px;align-items:center;}
+.batch-lbl{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);flex:1;text-align:center;}
 
-.queue-filters { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
-.qf-btn { font-family: var(--font-mono); font-size: 9px; padding: 2px 7px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.13s; }
-.qf-btn.active { border-color: var(--rose); color: var(--rose); background: var(--rose-dim); }
+/* EDIT PANEL */
+.edit-panel{display:flex;flex-direction:column;overflow:hidden;}
+.edit-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px;color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;}
 
-.queue-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+/* ITEM HEADER */
+.item-hbar{padding:7px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:9px;}
+.item-num{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);white-space:nowrap;flex-shrink:0;}
+.item-title{flex:1;min-width:0;}
+.item-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.item-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:1px;}
 
-.queue-item {
-  padding: 9px 14px; cursor: pointer; border-left: 3px solid transparent;
-  transition: background 0.1s, border-color 0.1s;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 8px;
-}
-.queue-item:hover { background: var(--s2); }
-.queue-item.active { background: var(--s2); border-left-color: var(--rose); }
-.queue-item.done { opacity: 0.45; }
+/* STATUS + DIFF BANDS */
+.status-band{padding:4px 14px;flex-shrink:0;font-family:var(--font-mono);font-size:9px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.status-band.unreviewed{background:rgba(86,86,96,.08);color:var(--text-dim);}
+.status-band.incomplete{background:rgba(158,122,50,.07);color:var(--amber);}
+.status-band.overdue{background:rgba(143,72,72,.07);color:var(--red);}
+.status-band.clean{background:rgba(77,143,106,.07);color:var(--green);}
+.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.missing-chips{display:flex;gap:3px;flex-wrap:wrap;}
+.mc{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:20px;background:rgba(158,122,50,.1);border:1px solid rgba(158,122,50,.3);color:var(--amber);cursor:pointer;}
+.mc:hover{background:rgba(158,122,50,.2);}
+.diff-band{padding:3px 14px;flex-shrink:0;background:rgba(110,143,168,.05);border-bottom:1px solid rgba(110,143,168,.12);display:none;align-items:center;gap:6px;flex-wrap:wrap;}
+.diff-band.show{display:flex;}
+.diff-label{font-family:var(--font-mono);font-size:8px;color:var(--steel);white-space:nowrap;}
+.diff-items{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
+.di{font-family:var(--font-mono);font-size:8px;display:flex;align-items:center;gap:2px;}
+.di-f{color:var(--text-dim);}
+.di-old{color:var(--red);text-decoration:line-through;opacity:.7;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.di-new{color:var(--green);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.diff-x{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:10px;margin-left:auto;flex-shrink:0;}
 
-.qi-status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.qi-status-dot.unreviewed { background: var(--text-dim); }
-.qi-status-dot.incomplete  { background: var(--amber); }
-.qi-status-dot.clean       { background: var(--green); }
+/* FORM */
+.form-body{flex:1;overflow-y:auto;padding:8px 14px 4px;}
 
-.qi-info { flex: 1; min-width: 0; }
-.qi-name { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-.qi-sub  { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.qi-freq { flex-shrink: 0; }
+/* AUDIT FREQ */
+.freq-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:7px;}
+.freq-opt{padding:5px 2px;border-radius:var(--radius);border:1px solid var(--border2);font-family:var(--font-mono);font-size:9px;cursor:pointer;background:transparent;color:var(--text-dim);transition:all .12s;text-align:center;line-height:1.3;}
+.freq-opt:hover{border-color:var(--text-mid);color:var(--text);}
+.freq-opt.selected-q{border-color:var(--audit-q);color:var(--audit-q);background:rgba(110,143,168,.1);}
+.freq-opt.selected-ba{border-color:var(--audit-ba);color:var(--audit-ba);background:rgba(158,122,50,.1);}
+.freq-opt.selected-a{border-color:var(--audit-a);color:var(--audit-a);background:rgba(122,110,168,.1);}
+.freq-opt.selected-never{border-color:var(--border2);color:var(--text-mid);background:var(--s2);}
+.freq-hint{font-family:var(--font-mono);font-size:8px;color:var(--rose);margin:-4px 0 5px;display:none;}
+.freq-hint.show{display:block;}
 
-.freq-pip { display: inline-block; padding: 1px 5px; border-radius: 20px; font-family: var(--font-mono); font-size: 8px; font-weight: 500; border: 1px solid; }
-.freq-q    { color: var(--audit-q);     border-color: rgba(110,143,168,0.4); background: rgba(110,143,168,0.08); }
-.freq-ba   { color: var(--audit-ba);    border-color: rgba(158,122,50,0.4);  background: rgba(158,122,50,0.08); }
-.freq-a    { color: var(--audit-a);     border-color: rgba(122,110,168,0.4); background: rgba(122,110,168,0.08); }
-.freq-never{ color: var(--audit-never); border-color: var(--border);         background: transparent; }
+.sec{font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin:7px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--border);}
 
-.queue-batch-footer {
-  padding: 10px 14px; border-top: 1px solid var(--border); flex-shrink: 0;
-  display: flex; gap: 6px; align-items: center;
-}
+/* COMPACT GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:5px;}
+.gf{display:flex;flex-direction:column;gap:2px;}
+.gfull{margin-bottom:5px;}
+.fl{font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);}
+.fl.req::after{content:' *';color:var(--rose);}
+.fl.flag{color:var(--amber);}
 
-/* ── EDIT PANEL ── */
-.edit-panel { padding: 20px 24px; overflow-y: auto; }
+.fi,.fs,.ft{background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:4px 7px;color:var(--text);font-family:var(--font-sans);font-size:11px;outline:none;transition:border-color .15s,background .15s,color .15s;width:100%;-webkit-appearance:none;appearance:none;}
+.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23565660'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;padding-right:20px;}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--rose);}
+.fi.flagged,.fs.flagged{border-color:rgba(158,122,50,.5)!important;background:rgba(158,122,50,.05)!important;color:var(--text)!important;}
+.fi.filled{border-color:rgba(77,143,106,.35);}
+.fs option{background:var(--s2);color:var(--text);}
+.ft{resize:vertical;min-height:48px;font-family:var(--font-mono);font-size:10px;line-height:1.5;}
 
-.edit-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 100px); gap: 8px; }
-.edit-empty-icon { font-size: 32px; opacity: 0.2; }
-.edit-empty-text { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; }
+.chk-row{display:flex;gap:10px;margin-bottom:5px;}
+.chk-l{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;color:var(--text-mid);}
+.chk-l input{width:11px;height:11px;accent-color:var(--rose);cursor:pointer;}
+.chk-l:hover{color:var(--text);}
+.kw-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;margin-bottom:5px;}
+.kw-tag{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:20px;background:var(--s3);border:1px solid var(--border2);color:var(--text-dim);}
+.audit-ts{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:8px;padding-bottom:6px;}
 
-/* Item header */
-.item-header { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-.item-number { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
-.item-name-display { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1.2; margin-bottom: 6px; }
-.item-loc-display { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); }
-.item-loc-display span { color: var(--text-dim); margin: 0 4px; }
+/* ACTION BAR */
+.action-bar{padding:7px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;align-items:center;background:var(--bg);}
+.skip-btn{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;padding:2px 0;}
+.skip-btn:hover{color:var(--text-mid);}
+.freq-req-inline{font-family:var(--font-mono);font-size:8px;color:var(--rose);display:none;}
+.freq-req-inline.show{display:inline;}
 
-/* Audit status banner */
-.audit-banner {
-  padding: 8px 12px; border-radius: var(--radius); margin-bottom: 18px;
-  display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-mono); font-size: 10px;
-}
-.audit-banner.unreviewed { background: rgba(86,86,96,0.15); border: 1px solid var(--border2); color: var(--text-dim); }
-.audit-banner.incomplete  { background: rgba(158,122,50,0.1); border: 1px solid rgba(158,122,50,0.3); color: var(--amber); }
-.audit-banner.clean       { background: rgba(77,143,106,0.1); border: 1px solid rgba(77,143,106,0.3); color: var(--green); }
-.audit-banner-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
-
-/* Missing fields */
-.missing-fields { margin-bottom: 18px; }
-.missing-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); margin-bottom: 6px; }
-.missing-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.missing-tag { font-family: var(--font-mono); font-size: 9px; padding: 2px 7px; border-radius: 20px; background: rgba(158,122,50,0.12); border: 1px solid rgba(158,122,50,0.3); color: var(--amber); cursor: pointer; transition: background 0.12s; }
-.missing-tag:hover { background: rgba(158,122,50,0.2); }
-
-/* Field grid */
-.field-section { margin-bottom: 22px; }
-.field-section-title { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-dim); margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
-.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.field-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.field-full { grid-column: 1 / -1; }
-
-.field-group { display: flex; flex-direction: column; gap: 4px; }
-.field-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
-.field-label.required::after { content: ' *'; color: var(--rose); }
-.field-label.flagged { color: var(--amber); }
-
-.field-input, .field-select, .field-textarea {
-  background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 5px 8px; color: var(--text); font-family: var(--font-sans); font-size: 12px;
-  outline: none; transition: border-color 0.15s, background 0.15s, color 0.15s; width: 100%;
-  -webkit-appearance: none; appearance: none;
-}
-.field-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23565660'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
-.field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--rose); }
-.field-select option { background: var(--s2); color: var(--text); }
-.field-textarea { resize: vertical; min-height: 70px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; -webkit-appearance: none; appearance: none; }
-.field-input.flagged, .field-select.flagged { border-color: rgba(158,122,50,0.5) !important; background: rgba(158,122,50,0.06) !important; color: var(--text) !important; }
-.field-input.filled { border-color: rgba(77,143,106,0.4); }
-
-/* Audit frequency selector */
-.freq-selector { display: flex; gap: 6px; flex-wrap: wrap; }
-.freq-opt {
-  padding: 6px 12px; border-radius: var(--radius); border: 1px solid var(--border2);
-  font-family: var(--font-mono); font-size: 10px; cursor: pointer;
-  background: transparent; color: var(--text-dim); transition: all 0.13s;
-  flex: 1; text-align: center; min-width: 80px;
-}
-.freq-opt:hover { border-color: var(--text-mid); color: var(--text); }
-.freq-opt.selected-q     { border-color: var(--audit-q);  color: var(--audit-q);  background: rgba(110,143,168,0.12); }
-.freq-opt.selected-ba    { border-color: var(--audit-ba); color: var(--audit-ba); background: rgba(158,122,50,0.12); }
-.freq-opt.selected-a     { border-color: var(--audit-a);  color: var(--audit-a);  background: rgba(122,110,168,0.12); }
-.freq-opt.selected-never { border-color: var(--border2);  color: var(--text-mid); background: var(--s2); }
-.freq-required-hint { font-family: var(--font-mono); font-size: 9px; color: var(--rose); margin-top: 4px; display: none; }
-.freq-required-hint.visible { display: block; }
-
-/* Action bar */
-.action-bar {
-  display: flex; gap: 8px; align-items: center; margin-top: 24px;
-  padding-top: 16px; border-top: 1px solid var(--border); position: sticky;
-  bottom: 0; background: var(--bg); padding-bottom: 8px;
-}
-.action-bar-left { flex: 1; display: flex; gap: 6px; }
-.skip-btn { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 4px 0; text-decoration: underline; text-decoration-style: dotted; }
-.skip-btn:hover { color: var(--text-mid); }
-
-/* Diff display */
-.diff-panel { margin-bottom: 18px; border: 1px solid rgba(110,143,168,0.25); border-radius: var(--radius); background: rgba(110,143,168,0.05); overflow: hidden; }
-.diff-panel-header { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--steel); padding: 7px 12px; border-bottom: 1px solid rgba(110,143,168,0.15); display: flex; justify-content: space-between; align-items: center; }
-.diff-panel-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; padding: 0; line-height: 1; }
-.diff-panel-close:hover { color: var(--text); }
-.diff-row { display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; padding: 5px 12px; border-bottom: 1px solid rgba(110,143,168,0.08); font-family: var(--font-mono); font-size: 10px; align-items: start; }
-.diff-row:last-child { border-bottom: none; }
-.diff-field { color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 1px; }
-.diff-old { color: var(--red); text-decoration: line-through; opacity: 0.7; word-break: break-word; }
-.diff-new { color: var(--green); word-break: break-word; }
-.diff-old:empty::before, .diff-new:empty::before { content: '—'; opacity: 0.4; text-decoration: none; }
-
-/* Audit history */
-.audit-hist { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); padding: 6px 0; }
-.field-checkbox { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 11px; color: var(--text-mid); padding: 3px 0; }
-.field-checkbox input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--rose); cursor: pointer; }
-.field-checkbox:hover { color: var(--text); }
-
-/* Loc display */
-.loc-seg { color: var(--text-mid); }
-.loc-arrow { color: var(--text-dim); margin: 0 3px; font-size: 10px; }
-
-/* Toast */
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--s3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 8px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--text); opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 9999; pointer-events: none; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Loading */
-.loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 46px); gap: 12px; }
-.loading-dots { display: flex; gap: 5px; }
-.loading-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--rose); animation: ldot 1.2s infinite; }
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes ldot { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
-.loading-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; }
-
-/* Stat chips in header */
-.stat-chips { display: flex; gap: 8px; align-items: center; }
-.stat-chip { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
-.stat-chip-dot { width: 5px; height: 5px; border-radius: 50%; }
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 13px;font-family:var(--font-mono);font-size:10px;color:var(--text);opacity:0;transition:opacity .2s,transform .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;}
+.ldots{display:flex;gap:4px;}
+.ldots span{width:4px;height:4px;border-radius:50%;background:var(--rose);animation:ld 1.2s infinite;}
+.ldots span:nth-child(2){animation-delay:.2s;}
+.ldots span:nth-child(3){animation-delay:.4s;}
+@keyframes ld{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">AUDIT</div>
-  <div class="stat-chips" id="stat-chips"></div>
+  <div class="header-mid">
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-label" id="prog-label">0 / 0</div>
+    </div>
+    <div class="stat-chips" id="stat-chips"></div>
+    <div class="save-pill" id="save-pill"><div class="save-dot"></div><span id="save-lbl">—</span></div>
+  </div>
   <div class="header-right">
-    <a href="index.html" class="btn btn-ghost btn-sm" style="text-decoration:none">← Editor</a>
-    <a href="locate.html" class="btn btn-ghost btn-sm" style="text-decoration:none">Locate →</a>
+    <a href="index.html" class="btn btn-ghost">← Editor</a>
+    <a href="locate.html" class="btn btn-ghost">Locate →</a>
   </div>
 </header>
 
-<div id="loading-screen" class="loading-screen">
-  <div class="loading-dots"><span></span><span></span><span></span></div>
-  <div class="loading-label">Loading inventory…</div>
+<div id="loading-screen" class="app" style="grid-template-columns:1fr">
+  <div class="loading"><div class="ldots"><span></span><span></span><span></span></div><div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:.1em">Loading…</div></div>
 </div>
 
 <div class="app" id="app" style="display:none">
-
-  <!-- QUEUE PANEL -->
   <div class="queue-panel">
-    <div class="queue-header">
-      <div class="queue-title">Audit Queue — Batch <span id="batch-num">1</span></div>
-      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      <div class="progress-labels">
-        <span id="prog-done">0 audited</span>
-        <span id="prog-total">of 0</span>
-      </div>
-      <div class="queue-filters">
-        <button class="qf-btn active" data-filter="all" onclick="setQueueFilter('all',this)">All</button>
-        <button class="qf-btn" data-filter="unreviewed" onclick="setQueueFilter('unreviewed',this)">Unreviewed</button>
-        <button class="qf-btn" data-filter="incomplete" onclick="setQueueFilter('incomplete',this)">Incomplete</button>
-        <button class="qf-btn" data-filter="overdue" onclick="setQueueFilter('overdue',this)">Overdue</button>
+    <div class="queue-head">
+      <div class="queue-title">Queue — Batch <span id="batch-num">1</span></div>
+      <div class="qf-row">
+        <button class="qf-btn active"    onclick="setQF('all',this)">All</button>
+        <button class="qf-btn"           onclick="setQF('unreviewed',this)">Unreviewed</button>
+        <button class="qf-btn"           onclick="setQF('incomplete',this)">Incomplete</button>
+        <button class="qf-btn"           onclick="setQF('overdue',this)">Overdue</button>
+        <button class="qf-btn qf-green"  onclick="setQF('clean',this)">✓ Reviewed</button>
       </div>
     </div>
     <div class="queue-list" id="queue-list"></div>
-    <div class="queue-batch-footer">
-      <button class="btn btn-ghost btn-sm" onclick="prevBatch()" id="prev-batch-btn" disabled>← Prev</button>
-      <button class="btn btn-ghost btn-sm" onclick="nextBatch()" id="next-batch-btn">Next →</button>
-      <div style="flex:1"></div>
-      <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)" id="batch-label"></span>
+    <div class="queue-foot">
+      <button class="btn btn-ghost" style="padding:3px 8px;font-size:9px" onclick="prevBatch()" id="prev-btn" disabled>← Prev</button>
+      <div class="batch-lbl" id="batch-lbl"></div>
+      <button class="btn btn-ghost" style="padding:3px 8px;font-size:9px" onclick="nextBatch()" id="next-btn">Next →</button>
     </div>
   </div>
 
-  <!-- EDIT PANEL -->
-  <div class="edit-panel" id="edit-panel">
-    <div class="edit-empty" id="edit-empty">
-      <div class="edit-empty-icon">◈</div>
-      <div class="edit-empty-text">Select an item from the queue</div>
+  <div class="edit-panel">
+    <div class="edit-empty" id="edit-empty"><div style="font-size:26px;opacity:.12">◈</div><div>Select an item</div></div>
+    <div id="edit-form" style="display:none;flex-direction:column;height:100%">
+      <div class="item-hbar">
+        <div class="item-num" id="item-num"></div>
+        <div class="item-title">
+          <div class="item-name" id="item-name-disp"></div>
+          <div class="item-loc" id="item-loc-disp"></div>
+        </div>
+        <button class="btn btn-enrich" style="font-size:10px;flex-shrink:0" id="enrich-btn">✦ L5 + KW</button>
+      </div>
+      <div class="status-band unreviewed" id="status-band"></div>
+      <div class="diff-band" id="diff-band"></div>
+      <div class="form-body" id="form-body"></div>
+      <div class="action-bar">
+        <div style="flex:1"><button class="skip-btn" id="skip-btn">Skip →</button></div>
+        <span class="freq-req-inline" id="freq-req">freq required ↑</span>
+        <button class="btn btn-green" id="done-btn">✓ Mark Audited</button>
+      </div>
     </div>
-    <div id="edit-form" style="display:none"></div>
   </div>
-
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── SUPABASE ──────────────────────────────────────────────────────────────
-const SUPABASE_URL   = 'https://npdtjxjhepaqhrqtvueu.supabase.co';
-const SUPABASE_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
-const SUPABASE_TABLE = 'inventory';
+const SUPABASE_URL='https://npdtjxjhepaqhrqtvueu.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8';
+const SUPABASE_TABLE='inventory';
+const BATCH_SIZE=10;
+const FREQ_DAYS={Quarterly:90,'Bi-Annual':180,Annual:365};
+const LOCATION_ORDER=[];
 
-const BATCH_SIZE = 10;
-const FREQ_DAYS  = { Quarterly: 90, 'Bi-Annual': 180, Annual: 365 };
+let inventory=[],queue=[],batchStart=0,currentFilter='all',currentItemId=null,_saveTimer=null;
 
-// Location sort order: alphabetical top-level, then alphabetical children
-// Edit this array to override top-level order; anything not listed falls alphabetically after
-const LOCATION_ORDER = [];
+const KC={Keep:{bg:'rgba(68,255,136,.1)',color:'#44ff88',border:'rgba(68,255,136,.25)'},Maybe:{bg:'rgba(255,230,100,.1)',color:'#ffe664',border:'rgba(255,230,100,.25)'},Sell:{bg:'rgba(255,154,60,.1)',color:'#ff9a3c',border:'rgba(255,154,60,.25)'},Donate:{bg:'rgba(160,200,255,.1)',color:'#a0c8ff',border:'rgba(160,200,255,.25)'},Trash:{bg:'rgba(255,68,68,.1)',color:'#ff4444',border:'rgba(255,68,68,.25)'}};
+const FC={Daily:{bg:'rgba(68,255,136,.1)',color:'#44ff88',border:'rgba(68,255,136,.25)'},Weekly:{bg:'rgba(100,180,255,.1)',color:'#64b4ff',border:'rgba(100,180,255,.25)'},Monthly:{bg:'rgba(255,230,100,.1)',color:'#ffe664',border:'rgba(255,230,100,.25)'},Rarely:{bg:'rgba(255,154,60,.1)',color:'#ff9a3c',border:'rgba(255,154,60,.25)'},Never:{bg:'rgba(255,68,68,.1)',color:'#ff4444',border:'rgba(255,68,68,.25)'}};
+const CC={Essential:{bg:'rgba(68,255,136,.1)',color:'#44ff88',border:'rgba(68,255,136,.25)'},Important:{bg:'rgba(100,180,255,.1)',color:'#64b4ff',border:'rgba(100,180,255,.25)'},'Nice to Have':{bg:'rgba(255,230,100,.1)',color:'#ffe664',border:'rgba(255,230,100,.25)'},Redundant:{bg:'rgba(255,68,68,.1)',color:'#ff4444',border:'rgba(255,68,68,.25)'}};
+const RC={Irreplaceable:{bg:'rgba(255,68,68,.1)',color:'#ff4444',border:'rgba(255,68,68,.25)'},'Hard/Expensive':{bg:'rgba(255,154,60,.1)',color:'#ff9a3c',border:'rgba(255,154,60,.25)'},Moderate:{bg:'rgba(255,230,100,.1)',color:'#ffe664',border:'rgba(255,230,100,.25)'},'Easy/Cheap':{bg:'rgba(68,255,136,.1)',color:'#44ff88',border:'rgba(68,255,136,.25)'}};
+const CONDC={New:{color:'#44ff88',border:'rgba(68,255,136,.25)',bg:'rgba(68,255,136,.07)'},Good:{color:'#64b4ff',border:'rgba(100,180,255,.25)',bg:'rgba(100,180,255,.07)'},Fair:{color:'#ffb450',border:'rgba(255,180,80,.25)',bg:'rgba(255,180,80,.07)'},Poor:{color:'#ff5050',border:'rgba(255,80,80,.25)',bg:'rgba(255,80,80,.07)'}};
+const FILLC={Full:{color:'#4d8f6a',border:'rgba(90,158,122,.3)',bg:'rgba(90,158,122,.08)'},Most:{color:'#b07a84',border:'rgba(183,110,121,.25)',bg:'rgba(183,110,121,.08)'},Half:{color:'#9e7a32',border:'rgba(184,146,74,.25)',bg:'rgba(184,146,74,.08)'},Low:{color:'#a06040',border:'rgba(160,96,64,.3)',bg:'rgba(160,96,64,.08)'},Empty:{color:'#8f4848',border:'rgba(158,90,90,.25)',bg:'rgba(158,90,90,.08)'}};
+const CATS=['Electronics','Cables & Charging','Camera/Photo Gear','Military','Firearms & Ammo','Clothing','Footwear','Accessories','Tools & Hardware','Office Supplies','Bags & Carry','Personal Care & Grooming','Health & Supplements','Cleaning & Home','Furniture','Identity Documents','Legal Documents','Vehicle Documents','Military Documents','Financial Documents','Books & Notebooks','Gym & Fitness','Automotive','Memorabilia & Keepsakes','Misc'];
+const DOCS=['','Certificate','Title','Receipt','Permit','Application','ID','License','Insurance','Registration','Contract','Letter','Notes/Handouts','Financial','Book','Other'];
+const CMAPS={frequency:FC,criticality:CC,replaceability:RC,keep:KC,condition:CONDC,fillLevel:FILLC};
 
-let inventory    = [];
-let queue        = [];  // full sorted queue
-let batchStart   = 0;
-let currentFilter = 'all';
-let currentItemId = null;
-let _saveTimer   = null;
-
-// ─── INIT ──────────────────────────────────────────────────────────────────
-async function init() {
-  const items = await sbLoadAll();
-  inventory = items;
-  buildQueue();
-  updateStats();
-
-  // If opened with ?item=ID, jump to that item
-  const params = new URLSearchParams(location.search);
-  const focusId = params.get('item');
-  if (focusId) {
-    const id = parseInt(focusId);
-    const idx = queue.findIndex(i => i.id === id);
-    if (idx >= 0) {
-      batchStart = Math.floor(idx / BATCH_SIZE) * BATCH_SIZE;
-      renderQueue();
-      selectItem(id);
-      return;
-    }
-  }
-
-  renderQueue();
-  if (queue.length > 0) selectItem(queue[batchStart].id);
+// ── SUPABASE ──────────────────────────────────────────────────────────────
+async function sbLoad(){
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?select=*&order=id.asc`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Prefer':'return=representation'}});
+  if(!r.ok)throw new Error('Load failed '+r.status);
+  return(await r.json()).map(rowToItem);
 }
 
-// ─── SUPABASE ──────────────────────────────────────────────────────────────
-async function sbLoadAll() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?select=*&order=id.asc`, {
-    headers: {
-      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Prefer': 'return=representation'
+async function sbSave(item){
+  setSavePill('saving');
+  const row=toRow(item);
+  const post=async(body)=>fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([body])});
+  let res=await post(row);
+  if(!res.ok){
+    const err=await res.text();
+    if(err.includes('audit_freq')||err.includes('last_audited')){
+      const{audit_freq,last_audited,...safe}=row;
+      res=await post(safe);
+      if(res.ok){setSavePill('saved');toast('⚠ Add audit_freq+last_audited cols in Supabase');return true;}
     }
-  });
-  if (!res.ok) throw new Error('Load failed: ' + res.status);
-  const rows = await res.json();
-  return rows.map(rowToItem);
-}
-
-async function sbUpsert(item) {
-  const row = itemToRow(item);
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'resolution=merge-duplicates,return=minimal'
-    },
-    body: JSON.stringify([row])
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    // If the error mentions audit_freq or last_audited, strip them and retry
-    if (errText.includes('audit_freq') || errText.includes('last_audited')) {
-      const { audit_freq, last_audited, ...safeRow } = row;
-      const res2 = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates,return=minimal'
-        },
-        body: JSON.stringify([safeRow])
-      });
-      if (!res2.ok) console.error('Supabase save failed:', await res2.text());
-      else toast('⚠ Saved without audit fields — add audit_freq & last_audited columns in Supabase');
-      return res2.ok;
-    }
-    console.error('Supabase save error:', errText);
+    console.error('Save error:',err);
+    setSavePill('error');
     return false;
   }
+  setSavePill('saved');
   return true;
 }
 
-function itemToRow(item) {
-  return {
-    id: item.id,
-    name: item.name || '',
-    sn: item.sn || '',
-    category: item.category || '',
-    location: (item.locationPath || []).join(' > '),
-    doc_type: item.docType || '',
-    digital_copy: item.digitalCopy ? true : false,
-    fill_level: item.fillLevel || '',
-    qty: item.qty || '1',
-    frequency: item.frequency || '',
-    criticality: item.criticality || '',
-    replaceability: item.replaceability || '',
-    condition: item.condition || '',
-    keep: item.keep || '',
-    year_purchased: item.yearPurchased || '',
-    last_used: item.lastUsed || '',
-    est_value: item.estValue || '',
-    notes: item.notes || '',
-    misplaced: item.misplaced ? true : false,
-    last_modified: new Date().toISOString(),
-    keywords: item.keywords || '',
-    change_log: item.changeLog ? JSON.stringify(item.changeLog) : '[]',
-    created_at: item.createdAt || null,
-    in_use: item.inUse ? true : false,
-    locked_item: item.lockedItem ? true : false,
-    locked_notes: item.lockedNotes ? true : false,
-    mil_sub: item.milSub || null,
-    doc_url: item.docUrl || null,
-    audit_freq: item.auditFreq || null,
-    last_audited: item.lastAudited || null,
-  };
+function toRow(i){return{id:i.id,name:i.name||'',sn:i.sn||'',category:i.category||'',location:(i.locationPath||[]).join(' > '),doc_type:i.docType||'',digital_copy:!!i.digitalCopy,fill_level:i.fillLevel||'',qty:i.qty||'1',frequency:i.frequency||'',criticality:i.criticality||'',replaceability:i.replaceability||'',condition:i.condition||'',keep:i.keep||'',year_purchased:i.yearPurchased||'',last_used:i.lastUsed||'',est_value:i.estValue||'',notes:i.notes||'',misplaced:!!i.misplaced,last_modified:new Date().toISOString(),keywords:i.keywords||'',change_log:i.changeLog?JSON.stringify(i.changeLog):'[]',created_at:i.createdAt||null,in_use:!!i.inUse,locked_item:!!i.lockedItem,locked_notes:!!i.lockedNotes,mil_sub:i.milSub||null,doc_url:i.docUrl||null,audit_freq:i.auditFreq||null,last_audited:i.lastAudited||null};}
+
+function rowToItem(r){return{id:r.id,name:r.name,sn:r.sn,category:r.category,locationPath:r.location?r.location.split(' > ').filter(Boolean):[],docType:r.doc_type,digitalCopy:!!r.digital_copy,fillLevel:r.fill_level,qty:r.qty,frequency:r.frequency,criticality:r.criticality,replaceability:r.replaceability,condition:r.condition,keep:r.keep,yearPurchased:r.year_purchased,lastUsed:r.last_used,estValue:r.est_value,notes:r.notes,misplaced:!!r.misplaced,keywords:r.keywords||'',changeLog:r.change_log?(typeof r.change_log==='string'?JSON.parse(r.change_log):r.change_log):[],createdAt:r.created_at||null,lastModified:r.last_modified||null,inUse:!!r.in_use,lockedItem:!!r.locked_item,lockedNotes:!!r.locked_notes,milSub:r.mil_sub||null,docUrl:r.doc_url||null,auditFreq:r.audit_freq||null,lastAudited:r.last_audited||null};}
+
+// ── SAVE PILL ─────────────────────────────────────────────────────────────
+let _spTimer;
+function setSavePill(state){
+  const p=document.getElementById('save-pill'),l=document.getElementById('save-lbl');
+  if(!p)return;
+  p.className='save-pill '+state;
+  l.textContent={saving:'saving…',saved:'saved',error:'error!'}[state]||'—';
+  if(state==='saved'){clearTimeout(_spTimer);_spTimer=setTimeout(()=>{p.className='save-pill';l.textContent='—';},2500);}
 }
 
-function rowToItem(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    sn: row.sn,
-    category: row.category,
-    locationPath: row.location ? row.location.split(' > ').filter(Boolean) : [],
-    docType: row.doc_type,
-    digitalCopy: row.digital_copy,
-    fillLevel: row.fill_level,
-    qty: row.qty,
-    frequency: row.frequency,
-    criticality: row.criticality,
-    replaceability: row.replaceability,
-    condition: row.condition,
-    keep: row.keep,
-    yearPurchased: row.year_purchased,
-    lastUsed: row.last_used,
-    estValue: row.est_value,
-    notes: row.notes,
-    misplaced: row.misplaced,
-    keywords: row.keywords || '',
-    changeLog: row.change_log ? (typeof row.change_log === 'string' ? JSON.parse(row.change_log) : row.change_log) : [],
-    createdAt: row.created_at || null,
-    lastModified: row.last_modified || null,
-    inUse: row.in_use ? true : false,
-    lockedItem: row.locked_item ? true : false,
-    lockedNotes: row.locked_notes ? true : false,
-    milSub: row.mil_sub || null,
-    docUrl: row.doc_url || null,
-    auditFreq: row.audit_freq || null,
-    lastAudited: row.last_audited || null,
-  };
+// ── QUEUE ─────────────────────────────────────────────────────────────────
+function status(item){
+  if(!item.auditFreq)return'unreviewed';
+  const m=missing(item);
+  if(m.length)return'incomplete';
+  if(item.auditFreq!=='Never'&&item.lastAudited){const due=new Date(item.lastAudited).getTime()+FREQ_DAYS[item.auditFreq]*86400000;if(Date.now()>due)return'overdue';}
+  return'clean';
 }
 
-// ─── QUEUE BUILDING ────────────────────────────────────────────────────────
-function itemStatus(item) {
-  if (!item.auditFreq) return 'unreviewed';
-  const missing = getMissingFields(item);
-  if (missing.length > 0) return 'incomplete';
-  // check overdue
-  if (item.auditFreq !== 'Never' && item.lastAudited) {
-    const days = FREQ_DAYS[item.auditFreq];
-    const due  = new Date(item.lastAudited).getTime() + days * 86400000;
-    if (Date.now() > due) return 'overdue';
-  }
-  return 'clean';
+function missing(item){
+  const m=[];
+  if(!item.category)m.push('Category');
+  if(!item.criticality)m.push('Criticality');
+  if(!item.frequency)m.push('Frequency');
+  if(!item.condition)m.push('Condition');
+  if(!item.keep)m.push('Keep');
+  if(!item.replaceability)m.push('Replaceability');
+  if(!item.estValue&&(item.criticality==='Essential'||item.criticality==='Important'))m.push('Est. Value');
+  return m;
 }
 
-function getMissingFields(item) {
-  const missing = [];
-  if (!item.category)       missing.push('Category');
-  if (!item.criticality)    missing.push('Criticality');
-  if (!item.frequency)      missing.push('Frequency');
-  if (!item.condition)      missing.push('Condition');
-  if (!item.keep)           missing.push('Keep');
-  if (!item.replaceability) missing.push('Replaceability');
-  // estValue only flagged if criticality is Essential or Important
-  if (!item.estValue && (item.criticality === 'Essential' || item.criticality === 'Important')) missing.push('Est. Value');
-  return missing;
+function lsk(item){
+  const p=item.locationPath||[];
+  if(!p.length)return'zzz';
+  const i=LOCATION_ORDER.indexOf(p[0]);
+  return(i>=0?String(i).padStart(4,'0'):'zz_'+p[0].toLowerCase())+'\0'+p.slice(1).map(s=>s.toLowerCase()).join('\0');
 }
 
-function locSortKey(item) {
-  const path = item.locationPath || [];
-  if (!path.length) return 'zzz_no_location';
-  const top = path[0] || '';
-  const orderIdx = LOCATION_ORDER.indexOf(top);
-  const topKey = orderIdx >= 0 ? String(orderIdx).padStart(4,'0') : 'zz_' + top.toLowerCase();
-  const rest = path.slice(1).map(s => s.toLowerCase()).join('\0');
-  return topKey + '\0' + rest;
+function buildQueue(){
+  const pri={overdue:0,incomplete:1,unreviewed:2,clean:3};
+  queue=[...inventory].sort((a,b)=>{const sa=pri[status(a)],sb=pri[status(b)];if(sa!==sb)return sa-sb;const la=lsk(a),lb=lsk(b);if(la!==lb)return la<lb?-1:1;return(a.name||'').localeCompare(b.name||'');});
 }
 
-function buildQueue() {
-  // Sort: overdue first, then by status priority, then by location+name
-  const statusPriority = { overdue: 0, incomplete: 1, unreviewed: 2, clean: 3 };
-  queue = [...inventory].sort((a, b) => {
-    const sa = statusPriority[itemStatus(a)];
-    const sb = statusPriority[itemStatus(b)];
-    if (sa !== sb) return sa - sb;
-    const la = locSortKey(a);
-    const lb = locSortKey(b);
-    if (la !== lb) return la < lb ? -1 : 1;
-    return (a.name || '').localeCompare(b.name || '');
-  });
-}
+function fq(){return currentFilter==='all'?queue:queue.filter(i=>status(i)===currentFilter);}
 
-function filteredQueue() {
-  if (currentFilter === 'all') return queue;
-  if (currentFilter === 'overdue') return queue.filter(i => itemStatus(i) === 'overdue');
-  return queue.filter(i => itemStatus(i) === currentFilter);
-}
-
-// ─── RENDER QUEUE ──────────────────────────────────────────────────────────
-function renderQueue() {
-  const fq = filteredQueue();
-  const batch = fq.slice(batchStart, batchStart + BATCH_SIZE);
-  const list = document.getElementById('queue-list');
-
-  list.innerHTML = batch.map(item => {
-    const status = itemStatus(item);
-    const path = (item.locationPath || []).join(' › ');
-    const freq = item.auditFreq;
-    const freqShort = { Quarterly:'Q', 'Bi-Annual':'B/A', Annual:'A', Never:'—' };
-    const freqCls   = { Quarterly:'freq-q', 'Bi-Annual':'freq-ba', Annual:'freq-a', Never:'freq-never' };
-    const freqBadge = freq
-      ? `<span class="freq-pip ${freqCls[freq]||''}">${freqShort[freq]||freq}</span>`
-      : '';
-    const dotCls = status === 'overdue' ? 'incomplete' : status; // overdue shows amber dot
-    const isDone = status === 'clean';
-    return `<div class="queue-item${item.id===currentItemId?' active':''}${isDone?' done':''}"
-        onclick="selectItem(${item.id})">
-      <div class="qi-status-dot ${dotCls}"></div>
-      <div class="qi-info">
-        <div class="qi-name">${esc(item.name||'—')}</div>
-        <div class="qi-sub">${esc(path||'No location')}</div>
-      </div>
-      <div class="qi-freq">${freqBadge}</div>
-    </div>`;
-  }).join('');
-
-  // batch nav
-  const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1;
-  const totalBatches = Math.ceil(fq.length / BATCH_SIZE);
-  document.getElementById('batch-num').textContent = batchNum;
-  document.getElementById('batch-label').textContent = `${batchStart+1}–${Math.min(batchStart+BATCH_SIZE,fq.length)} of ${fq.length}`;
-  document.getElementById('prev-batch-btn').disabled = batchStart === 0;
-  document.getElementById('next-batch-btn').disabled = batchStart + BATCH_SIZE >= fq.length;
-
+function renderQueue(){
+  const q=fq(),batch=q.slice(batchStart,batchStart+BATCH_SIZE);
+  const fs={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};
+  const fc={Quarterly:'fq','Bi-Annual':'fba',Annual:'fa',Never:'fn'};
+  let html='';
+  if(currentFilter==='all'){
+    const pend=batch.filter(i=>status(i)!=='clean'),clean=batch.filter(i=>status(i)==='clean');
+    html=pend.map(i=>qiHtml(i,fs,fc)).join('');
+    if(clean.length)html+=`<div class="qi-sec">✓ Reviewed (${clean.length})</div>`+clean.map(i=>qiHtml(i,fs,fc)).join('');
+  }else{html=batch.map(i=>qiHtml(i,fs,fc)).join('');}
+  document.getElementById('queue-list').innerHTML=html;
+  const tot=q.length;
+  document.getElementById('batch-lbl').textContent=`${batchStart+1}–${Math.min(batchStart+BATCH_SIZE,tot)} of ${tot}`;
+  document.getElementById('batch-num').textContent=Math.floor(batchStart/BATCH_SIZE)+1;
+  document.getElementById('prev-btn').disabled=batchStart===0;
+  document.getElementById('next-btn').disabled=batchStart+BATCH_SIZE>=tot;
   updateStats();
 }
 
-function updateStats() {
-  const total    = inventory.length;
-  const audited  = inventory.filter(i => !!i.auditFreq).length;
-  const pct      = total ? Math.round(audited/total*100) : 0;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('prog-done').textContent = audited + ' audited';
-  document.getElementById('prog-total').textContent = 'of ' + total;
-
-  const unreviewed = inventory.filter(i => itemStatus(i)==='unreviewed').length;
-  const incomplete = inventory.filter(i => itemStatus(i)==='incomplete').length;
-  const overdue    = inventory.filter(i => itemStatus(i)==='overdue').length;
-  const clean      = inventory.filter(i => itemStatus(i)==='clean').length;
-
-  document.getElementById('stat-chips').innerHTML = `
-    <div class="stat-chip"><div class="stat-chip-dot" style="background:var(--text-dim)"></div>${unreviewed} unreviewed</div>
-    <div class="stat-chip"><div class="stat-chip-dot" style="background:var(--amber)"></div>${incomplete} incomplete</div>
-    <div class="stat-chip"><div class="stat-chip-dot" style="background:var(--red)"></div>${overdue} overdue</div>
-    <div class="stat-chip"><div class="stat-chip-dot" style="background:var(--green)"></div>${clean} clean</div>
-  `;
+function qiHtml(item,fs,fc){
+  const st=status(item),path=(item.locationPath||[]).join(' › '),freq=item.auditFreq;
+  const badge=freq?`<span class="fpip ${fc[freq]||''}">${fs[freq]||freq}</span>`:'';
+  return`<div class="qi${item.id===currentItemId?' active':''}${st==='clean'?' done':''}" onclick="selectItem(${item.id})"><div class="qi-dot ${st==='overdue'?'overdue':st}"></div><div class="qi-info"><div class="qi-name">${esc(item.name||'—')}</div><div class="qi-loc">${esc(path||'No location')}</div></div><div>${badge}</div></div>`;
 }
 
-function setQueueFilter(f, btn) {
-  currentFilter = f;
-  batchStart = 0;
-  document.querySelectorAll('.qf-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderQueue();
+function updateStats(){
+  const tot=inventory.length,aud=inventory.filter(i=>!!i.auditFreq).length;
+  document.getElementById('prog-fill').style.width=(tot?Math.round(aud/tot*100):0)+'%';
+  document.getElementById('prog-label').textContent=`${aud} / ${tot}`;
+  const c={unreviewed:0,incomplete:0,overdue:0,clean:0};
+  inventory.forEach(i=>c[status(i)]++);
+  document.getElementById('stat-chips').innerHTML=
+    `<div class="sc"><div class="sc-dot" style="background:var(--text-dim)"></div>${c.unreviewed}</div>`+
+    `<div class="sc"><div class="sc-dot" style="background:var(--amber)"></div>${c.incomplete}</div>`+
+    `<div class="sc"><div class="sc-dot" style="background:var(--red)"></div>${c.overdue}</div>`+
+    `<div class="sc"><div class="sc-dot" style="background:var(--green)"></div>${c.clean}</div>`;
 }
 
-function prevBatch() { batchStart = Math.max(0, batchStart - BATCH_SIZE); renderQueue(); }
-function nextBatch() { const fq = filteredQueue(); batchStart = Math.min(batchStart + BATCH_SIZE, Math.floor((fq.length-1)/BATCH_SIZE)*BATCH_SIZE); renderQueue(); }
+function setQF(f,btn){currentFilter=f;batchStart=0;document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderQueue();}
+function prevBatch(){batchStart=Math.max(0,batchStart-BATCH_SIZE);renderQueue();}
+function nextBatch(){const q=fq();batchStart=Math.min(batchStart+BATCH_SIZE,Math.floor((q.length-1)/BATCH_SIZE)*BATCH_SIZE);renderQueue();}
 
-// ─── ITEM EDITOR ───────────────────────────────────────────────────────────
-function selectItem(id) {
-  currentItemId = id;
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
+// ── EDITOR ───────────────────────────────────────────────────────────────
+function selectItem(id){
+  currentItemId=id;
+  const item=inventory.find(i=>i.id===id);
+  if(!item)return;
   renderEditor(item);
-  renderQueue(); // refresh active state
-  document.getElementById('edit-empty').style.display = 'none';
-  document.getElementById('edit-form').style.display  = 'block';
-  document.getElementById('edit-panel').scrollTop = 0;
+  renderQueue();
+  document.getElementById('edit-empty').style.display='none';
+  document.getElementById('edit-form').style.display='flex';
+  document.getElementById('form-body').scrollTop=0;
+  document.getElementById('done-btn').onclick=()=>markDone(id);
+  document.getElementById('skip-btn').onclick=()=>skipItem(id);
+  document.getElementById('enrich-btn').onclick=()=>runEnrich(id);
 }
 
-const CATEGORIES = ['Electronics','Cables & Charging','Camera/Photo Gear','Military','Firearms & Ammo','Clothing','Footwear','Accessories','Tools & Hardware','Office Supplies','Bags & Carry','Personal Care & Grooming','Health & Supplements','Cleaning & Home','Furniture','Identity Documents','Legal Documents','Vehicle Documents','Military Documents','Financial Documents','Books & Notebooks','Gym & Fitness','Automotive','Memorabilia & Keepsakes','Misc'];
-const DOC_TYPES  = ['','Certificate','Title','Receipt','Permit','Application','ID','License','Insurance','Registration','Contract','Letter','Notes/Handouts','Financial','Book','Other'];
+function renderEditor(item){
+  const st=status(item),miss=missing(item),locVal=(item.locationPath||[]).join(' > ');
+  document.getElementById('item-num').textContent='#'+item.id;
+  document.getElementById('item-name-disp').textContent=item.name||'Unnamed';
+  document.getElementById('item-loc-disp').textContent=(item.locationPath||[]).join(' › ')||'No location';
+  renderStatusBand(item);
 
-function fieldLabel(field) {
-  const map = { category:'Category', condition:'Condition', keep:'Keep', frequency:'Frequency', criticality:'Criticality', replaceability:'Replaceability', estValue:'Est. Value', fillLevel:'Fill Level', name:'Name', location:'Location' };
-  return map[field] || field;
-}
+  const fcls=v=>{if(item.auditFreq!==v)return'';return{Quarterly:'selected-q','Bi-Annual':'selected-ba',Annual:'selected-a',Never:'selected-never'}[v]||'';};
 
-function scrollToField(label) {
-  const fieldMap = { 'Category':'f-category','Condition':'f-condition','Keep':'f-keep','Frequency':'f-frequency','Criticality':'f-criticality','Replaceability':'f-replaceability','Est. Value':'f-estValue','Name':'f-name' };
-  const el = document.getElementById(fieldMap[label]);
-  if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); }
-}
-
-const KEEP_COLORS = {'Keep':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'},'Maybe':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Sell':{bg:'rgba(255,154,60,0.1)',color:'#ff9a3c',border:'rgba(255,154,60,0.25)'},'Donate':{bg:'rgba(160,200,255,0.1)',color:'#a0c8ff',border:'rgba(160,200,255,0.25)'},'Trash':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'}};
-const FREQ_COLORS = {'Daily':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'},'Weekly':{bg:'rgba(100,180,255,0.1)',color:'#64b4ff',border:'rgba(100,180,255,0.25)'},'Monthly':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Rarely':{bg:'rgba(255,154,60,0.1)',color:'#ff9a3c',border:'rgba(255,154,60,0.25)'},'Never':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'}};
-const CRIT_COLORS = {'Essential':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'},'Important':{bg:'rgba(100,180,255,0.1)',color:'#64b4ff',border:'rgba(100,180,255,0.25)'},'Nice to Have':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Redundant':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'}};
-const REPL_COLORS = {'Irreplaceable':{bg:'rgba(255,68,68,0.1)',color:'#ff4444',border:'rgba(255,68,68,0.25)'},'Hard/Expensive':{bg:'rgba(255,154,60,0.1)',color:'#ff9a3c',border:'rgba(255,154,60,0.25)'},'Moderate':{bg:'rgba(255,230,100,0.1)',color:'#ffe664',border:'rgba(255,230,100,0.25)'},'Easy/Cheap':{bg:'rgba(68,255,136,0.1)',color:'#44ff88',border:'rgba(68,255,136,0.25)'}};
-const COND_COLORS = {'New':{color:'#44ff88',border:'rgba(68,255,136,0.25)',bg:'rgba(68,255,136,0.07)'},'Good':{color:'#64b4ff',border:'rgba(100,180,255,0.25)',bg:'rgba(100,180,255,0.07)'},'Fair':{color:'#ffb450',border:'rgba(255,180,80,0.25)',bg:'rgba(255,180,80,0.07)'},'Poor':{color:'#ff5050',border:'rgba(255,80,80,0.25)',bg:'rgba(255,80,80,0.07)'}};
-const FILL_COLORS = {'Full':{color:'var(--green)',border:'rgba(90,158,122,0.3)',bg:'rgba(90,158,122,0.08)'},'Most':{color:'var(--rose)',border:'rgba(183,110,121,0.25)',bg:'rgba(183,110,121,0.08)'},'Half':{color:'var(--amber)',border:'rgba(184,146,74,0.25)',bg:'rgba(184,146,74,0.08)'},'Low':{color:'#a06040',border:'rgba(160,96,64,0.3)',bg:'rgba(160,96,64,0.08)'},'Empty':{color:'var(--red)',border:'rgba(158,90,90,0.25)',bg:'rgba(158,90,90,0.08)'}};
-
-function applySelectColor(el, colorMap) {
-  const c = colorMap[el.value];
-  if (c) {
-    el.style.color       = c.color;
-    el.style.borderColor = c.border;
-    el.style.background  = c.bg;
-  } else {
-    el.style.color = el.style.borderColor = el.style.background = '';
+  function cs(field,opts,cmap){
+    const val=item[field]||'',fl=miss.includes(flbl(field));
+    const c=!fl&&cmap?cmap[val]:null;
+    const style=c?`color:${c.color};border-color:${c.border};background:${c.bg}`:'';
+    const mn=cmap?Object.keys(CMAPS).find(k=>CMAPS[k]===cmap)||'null':'null';
+    return`<select class="fs${fl?' flagged':''}" id="f-${field}" style="${style}" onchange="lu(${item.id},'${field}',this.value,${mn})"><option value="">--</option>${opts.map(o=>`<option${val===o?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
   }
-}
-
-function colorSelect(field, options, colorMap, item, missing) {
-  const val     = item[field] || '';
-  const flagged = missing.includes(fieldLabel(field));
-  const c       = !flagged && colorMap[val];
-  const style   = c ? `color:${c.color};border-color:${c.border};background:${c.bg}` : '';
-  const flagCls = flagged ? ' flagged' : '';
-  return `<select class="field-select${flagCls}" id="f-${field}" style="${style}"
-    onchange="liveUpdate(${item.id},'${field}',this.value);applySelectColor(this,${colorMap===KEEP_COLORS?'KEEP_COLORS':colorMap===FREQ_COLORS?'FREQ_COLORS':colorMap===CRIT_COLORS?'CRIT_COLORS':colorMap===REPL_COLORS?'REPL_COLORS':colorMap===COND_COLORS?'COND_COLORS':'FILL_COLORS'})">
-    <option value="">--</option>
-    ${options.map(o=>`<option${val===o?' selected':''}>${esc(o)}</option>`).join('')}
-  </select>`;
-}
-
-function renderEditor(item) {
-  const status  = itemStatus(item);
-  const missing = getMissingFields(item);
-  const path    = (item.locationPath||[]).join(' › ');
-
-  const bannerMsg = {
-    unreviewed: '⬡ Not yet audited — please review all fields and assign a frequency',
-    incomplete:  '⚠ Missing fields detected — fill in flagged fields below',
-    overdue:     '⚑ Audit overdue — please re-review this item',
-    clean:       '✓ Audit up to date'
-  };
-
-  const fq = filteredQueue();
-  const qIdx = fq.findIndex(i => i.id === item.id);
-  const qNum = qIdx >= 0 ? qIdx + 1 : '?';
-  const freqCurrent = item.auditFreq || '';
-
-  function freqOptCls(val) {
-    if (freqCurrent !== val) return '';
-    const map = { Quarterly:'selected-q', 'Bi-Annual':'selected-ba', Annual:'selected-a', Never:'selected-never' };
-    return map[val] || '';
+  function inp(field,ph=''){
+    const val=item[field]||'',fl=miss.includes(flbl(field));
+    return`<input class="fi${fl?' flagged':val?' filled':''}" id="f-${field}" type="text" value="${esc(val)}" placeholder="${ph}" oninput="lu(${item.id},'${field}',this.value,null)">`;
   }
 
-  function isMissing(f) { return missing.includes(fieldLabel(f)); }
+  const allPaths=[...new Set(inventory.flatMap(i=>{const p=i.locationPath||[];return Array.from({length:p.length},(_,k)=>p.slice(0,k+1).join(' > '));}))].sort();
 
-  function sel(field, options, extraCls='') {
-    const val = item[field] || '';
-    const flagged = isMissing(field);
-    const filled  = !!val && !flagged;
-    const cls = flagged ? 'flagged' : (filled ? 'filled' : '');
-    return `<select class="field-select ${cls} ${extraCls}" id="f-${field}" onchange="liveUpdate(${item.id},'${field}',this.value)">
-      <option value="">--</option>
-      ${options.map(o => `<option${val===o?' selected':''}>${esc(o)}</option>`).join('')}
-    </select>`;
-  }
+  document.getElementById('form-body').innerHTML=`
+    <datalist id="loc-dl">${allPaths.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
 
-  function inp(field, placeholder='', type='text') {
-    const val = item[field] || '';
-    const flagged = isMissing(field);
-    const filled  = !!val && !flagged;
-    const cls = flagged ? 'flagged' : (filled ? 'filled' : '');
-    return `<input class="field-input ${cls}" id="f-${field}" type="${type}" value="${esc(val)}" placeholder="${placeholder}" oninput="liveUpdate(${item.id},'${field}',this.value)">`;
-  }
-
-  function chk(field, label) {
-    const val = !!item[field];
-    return `<label class="field-checkbox">
-      <input type="checkbox" id="f-${field}" ${val?'checked':''} onchange="liveUpdate(${item.id},'${field}',this.checked)">
-      <span>${label}</span>
-    </label>`;
-  }
-
-  // Location autocomplete options
-  const allPaths = [...new Set(inventory.flatMap(i => {
-    const p = i.locationPath||[];
-    return Array.from({length:p.length},(_,k)=>p.slice(0,k+1).join(' > '));
-  }))].sort();
-
-  const locVal = (item.locationPath||[]).join(' > ');
-
-  document.getElementById('edit-form').innerHTML = `
-    <div class="item-header">
-      <div class="item-number">Item #${item.id} · Queue position ${qNum}</div>
-      <div class="item-name-display" id="item-name-display">${esc(item.name||'Unnamed')}</div>
-      <div class="item-loc-display">${path ? path.split(' › ').map(s=>`<span class="loc-seg">${esc(s)}</span>`).join('<span class="loc-arrow">›</span>') : '<span style="color:var(--text-dim)">No location set</span>'}</div>
+    <div class="sec">Audit Frequency *</div>
+    <div class="freq-row">
+      <button class="freq-opt ${fcls('Quarterly')}"  onclick="setFreq(${item.id},'Quarterly',this)">Quarterly<br><span style="font-size:7px;opacity:.5">90d</span></button>
+      <button class="freq-opt ${fcls('Bi-Annual')}"  onclick="setFreq(${item.id},'Bi-Annual',this)">Bi-Annual<br><span style="font-size:7px;opacity:.5">180d</span></button>
+      <button class="freq-opt ${fcls('Annual')}"     onclick="setFreq(${item.id},'Annual',this)">Annual<br><span style="font-size:7px;opacity:.5">365d</span></button>
+      <button class="freq-opt ${fcls('Never')}"      onclick="setFreq(${item.id},'Never',this)">Never<br><span style="font-size:7px;opacity:.5">once</span></button>
     </div>
+    <div class="freq-hint" id="freq-hint">← assign frequency before marking done</div>
 
-    <div class="audit-banner ${status}">
-      <div class="audit-banner-dot"></div>
-      ${bannerMsg[status]||''}
+    <div class="sec">Identity</div>
+    <div class="gfull"><div class="gf"><div class="fl req${miss.includes('Name')?' flag':''}">Name</div><input class="fi${!item.name?' flagged':' filled'}" id="f-name" type="text" value="${esc(item.name||'')}" placeholder="Item name" oninput="luName(${item.id},this.value)"></div></div>
+    <div class="gfull"><div class="gf"><div class="fl">Location</div><input class="fi${locVal?' filled':''}" id="f-location" type="text" value="${esc(locVal)}" placeholder="Room > Shelf > Drawer" oninput="luLoc(${item.id},this.value)" list="loc-dl" autocomplete="off"></div></div>
+    <div class="g4">
+      <div class="gf"><div class="fl">Qty</div>${inp('qty','1')}</div>
+      <div class="gf"><div class="fl">Est. $</div>${inp('estValue','—')}</div>
+      <div class="gf"><div class="fl">Year</div>${inp('yearPurchased','YYYY')}</div>
+      <div class="gf"><div class="fl">Last Used</div>${inp('lastUsed','MM/YY')}</div>
     </div>
-
-    <div id="diff-panel" style="display:none"></div>
-
-    ${missing.length ? `<div class="missing-fields">
-      <div class="missing-label">Missing fields</div>
-      <div class="missing-tags">${missing.map(f=>`<span class="missing-tag" onclick="scrollToField('${f}')">${f}</span>`).join('')}</div>
-    </div>` : ''}
-
-    <!-- AUDIT FREQUENCY -->
-    <div class="field-section">
-      <div class="field-section-title">Audit Frequency <span style="color:var(--rose)">*</span></div>
-      <div class="freq-selector">
-        <button class="freq-opt ${freqOptCls('Quarterly')}"  onclick="setFreq(${item.id},'Quarterly',this)">Quarterly<br><span style="font-size:8px;opacity:0.6">every 90d</span></button>
-        <button class="freq-opt ${freqOptCls('Bi-Annual')}"  onclick="setFreq(${item.id},'Bi-Annual',this)">Bi-Annual<br><span style="font-size:8px;opacity:0.6">every 180d</span></button>
-        <button class="freq-opt ${freqOptCls('Annual')}"     onclick="setFreq(${item.id},'Annual',this)">Annual<br><span style="font-size:8px;opacity:0.6">every 365d</span></button>
-        <button class="freq-opt ${freqOptCls('Never')}"      onclick="setFreq(${item.id},'Never',this)">Never<br><span style="font-size:8px;opacity:0.6">one-time</span></button>
-      </div>
-      <div class="freq-required-hint" id="freq-hint">← Required before marking done</div>
-    </div>
-
-    <!-- IDENTITY -->
-    <div class="field-section">
-      <div class="field-section-title">Identity</div>
-      <div class="field-grid">
-        <div class="field-group field-full">
-          <div class="field-label required${isMissing('name')?' flagged':''}">Name</div>
-          <input class="field-input${isMissing('name')?' flagged':item.name?' filled':''}" id="f-name" type="text" value="${esc(item.name||'')}" placeholder="Item name" oninput="liveUpdateName(${item.id},this.value)">
-        </div>
-        <div class="field-group field-full" style="position:relative">
-          <div class="field-label">Location</div>
-          <input class="field-input${locVal?' filled':''}" id="f-location" type="text" value="${esc(locVal)}" placeholder="Room > Shelf > Drawer" oninput="liveUpdateLoc(${item.id},this.value)" autocomplete="off" list="loc-datalist">
-          <datalist id="loc-datalist">${allPaths.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
-        </div>
-      </div>
-      <div class="field-grid" style="margin-top:10px">
-        <div class="field-group">
-          <div class="field-label">Qty</div>
-          ${inp('qty','1','text')}
-        </div>
-        <div class="field-group">
-          <div class="field-label">Serial / ID</div>
-          ${inp('sn','')}
-        </div>
-        <div class="field-group">
-          <div class="field-label">Est. Value $</div>
-          ${inp('estValue','e.g. 25')}
-        </div>
-        <div class="field-group" style="justify-content:flex-end;padding-top:18px">
-          ${chk('inUse','Currently In Use')}
-          ${chk('digitalCopy','Has Digital Copy')}
-        </div>
+    <div class="g4" style="margin-bottom:6px">
+      <div class="gf"><div class="fl">Serial</div>${inp('sn','')}</div>
+      <div class="gf"><div class="fl">Doc Type</div>${cs('docType',DOCS,null)}</div>
+      <div class="gf" style="grid-column:span 2;padding-top:14px">
+        <label class="chk-l"><input type="checkbox" id="f-inUse" ${item.inUse?'checked':''} onchange="lu(${item.id},'inUse',this.checked,null)"> In Use</label>
+        <label class="chk-l" style="margin-top:3px"><input type="checkbox" id="f-digitalCopy" ${item.digitalCopy?'checked':''} onchange="lu(${item.id},'digitalCopy',this.checked,null)"> Digital Copy</label>
       </div>
     </div>
 
-    <!-- CLASSIFICATION -->
-    <div class="field-section">
-      <div class="field-section-title">Classification</div>
-      <div class="field-grid">
-        <div class="field-group">
-          <div class="field-label required${isMissing('category')?' flagged':''}">Category</div>
-          ${sel('category', CATEGORIES)}
-        </div>
-        <div class="field-group">
-          <div class="field-label required${isMissing('condition')?' flagged':''}">Condition</div>
-          ${colorSelect('condition',['New','Good','Fair','Poor'],COND_COLORS,item,missing)}
-        </div>
-        <div class="field-group">
-          <div class="field-label required${isMissing('keep')?' flagged':''}">Keep</div>
-          ${colorSelect('keep',['Keep','Maybe','Sell','Donate','Trash'],KEEP_COLORS,item,missing)}
-        </div>
-        <div class="field-group">
-          <div class="field-label">Fill Level</div>
-          ${colorSelect('fillLevel',['Full','Most','Half','Low','Empty'],FILL_COLORS,item,missing)}
-        </div>
-      </div>
+    <div class="sec">Classification</div>
+    <div class="g2">
+      <div class="gf"><div class="fl req${miss.includes('Category')?' flag':''}">Category</div>${cs('category',CATS,null)}</div>
+      <div class="gf"><div class="fl req${miss.includes('Condition')?' flag':''}">Condition</div>${cs('condition',['New','Good','Fair','Poor'],CONDC)}</div>
+    </div>
+    <div class="g3">
+      <div class="gf"><div class="fl req${miss.includes('Keep')?' flag':''}">Keep</div>${cs('keep',['Keep','Maybe','Sell','Donate','Trash'],KC)}</div>
+      <div class="gf"><div class="fl req${miss.includes('Frequency')?' flag':''}">Frequency</div>${cs('frequency',['Daily','Weekly','Monthly','Rarely','Never'],FC)}</div>
+      <div class="gf"><div class="fl">Fill Level</div>${cs('fillLevel',['Full','Most','Half','Low','Empty'],FILLC)}</div>
     </div>
 
-    <!-- USAGE & IMPORTANCE -->
-    <div class="field-section">
-      <div class="field-section-title">Usage & Importance</div>
-      <div class="field-grid">
-        <div class="field-group">
-          <div class="field-label required${isMissing('frequency')?' flagged':''}">Frequency</div>
-          ${colorSelect('frequency',['Daily','Weekly','Monthly','Rarely','Never'],FREQ_COLORS,item,missing)}
-        </div>
-        <div class="field-group">
-          <div class="field-label required${isMissing('criticality')?' flagged':''}">Criticality</div>
-          ${colorSelect('criticality',['Essential','Important','Nice to Have','Redundant'],CRIT_COLORS,item,missing)}
-        </div>
-        <div class="field-group">
-          <div class="field-label required${isMissing('replaceability')?' flagged':''}">Replaceability</div>
-          ${colorSelect('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'],REPL_COLORS,item,missing)}
-        </div>
-        <div class="field-group">
-          <div class="field-label">Doc Type</div>
-          ${sel('docType', DOC_TYPES)}
-        </div>
-      </div>
+    <div class="sec">Importance</div>
+    <div class="g2">
+      <div class="gf"><div class="fl req${miss.includes('Criticality')?' flag':''}">Criticality</div>${cs('criticality',['Essential','Important','Nice to Have','Redundant'],CC)}</div>
+      <div class="gf"><div class="fl req${miss.includes('Replaceability')?' flag':''}">Replaceability</div>${cs('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'],RC)}</div>
     </div>
 
-    <!-- TIMELINE -->
-    <div class="field-section">
-      <div class="field-section-title">Timeline</div>
-      <div class="field-grid">
-        <div class="field-group">
-          <div class="field-label">Year Purchased</div>
-          ${inp('yearPurchased','YYYY')}
-        </div>
-        <div class="field-group">
-          <div class="field-label">Last Used</div>
-          ${inp('lastUsed','MM/YYYY')}
-        </div>
-      </div>
-    </div>
-
-    <!-- NOTES & KEYWORDS -->
-    <div class="field-section">
-      <div class="field-section-title">Notes & Keywords</div>
-      <textarea class="field-textarea" id="f-notes" oninput="liveUpdate(${item.id},'notes',this.value)">${esc(item.notes||'')}</textarea>
-      <div style="margin-top:8px">
-        <div class="field-label" style="margin-bottom:4px">Keywords <span style="color:var(--text-dim);font-weight:normal;text-transform:none;letter-spacing:0">(comma-separated, auto-filled by enrich)</span></div>
-        <input class="field-input${item.keywords?' filled':''}" id="f-keywords" type="text" value="${esc(item.keywords||'')}" placeholder="e.g. charger, usb-c, portable, anker" oninput="liveUpdate(${item.id},'keywords',this.value)">
-        ${item.keywords ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${item.keywords.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span style="font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:20px;background:var(--s3);border:1px solid var(--border2);color:var(--text-mid)">${esc(k)}</span>`).join('')}</div>` : ''}
-      </div>
-    </div>
-
-    <!-- AUDIT INFO -->
-    ${item.lastAudited ? `<div class="field-section">
-      <div class="field-section-title">Audit History</div>
-      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid)">Last audited: ${new Date(item.lastAudited).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-    </div>` : ''}
-
-    <!-- ACTION BAR -->
-    <div class="action-bar">
-      <div class="action-bar-left">
-        <button class="skip-btn" onclick="skipItem(${item.id})">Skip →</button>
-      </div>
-      <button class="btn btn-enrich btn-sm" id="enrich-btn" onclick="runEnrich(${item.id})">✦ L5 Enrich + Keywords</button>
-      <button class="btn btn-green" onclick="markDone(${item.id})">✓ Mark Audited</button>
-    </div>
+    <div class="sec">Notes & Keywords</div>
+    <div class="gfull"><textarea class="ft" id="f-notes" oninput="lu(${item.id},'notes',this.value,null)">${esc(item.notes||'')}</textarea></div>
+    <div class="gfull"><input class="fi${item.keywords?' filled':''}" id="f-keywords" type="text" value="${esc(item.keywords||'')}" placeholder="keywords, comma-separated" oninput="lu(${item.id},'keywords',this.value,null)"></div>
+    ${item.keywords?`<div class="kw-tags">${item.keywords.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span class="kw-tag">${esc(k)}</span>`).join('')}</div>`:''}
+    ${item.lastAudited?`<div class="audit-ts">Last audited: ${new Date(item.lastAudited).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`:''}
   `;
 }
 
+function flbl(f){return{category:'Category',condition:'Condition',keep:'Keep',frequency:'Frequency',criticality:'Criticality',replaceability:'Replaceability',estValue:'Est. Value',fillLevel:'Fill Level',name:'Name'}[f]||f;}
 
+function renderStatusBand(item){
+  const st=status(item),miss=missing(item);
+  const msg={unreviewed:'Not yet audited — review fields and assign frequency',incomplete:'Missing fields',overdue:'Audit overdue — re-review',clean:'Up to date'};
+  const sb=document.getElementById('status-band');
+  if(!sb)return;
+  sb.className='status-band '+st;
+  sb.innerHTML=`<div class="status-dot"></div><span>${msg[st]||''}</span>${miss.length?`<div class="missing-chips">${miss.map(f=>`<span class="mc" onclick="jumpTo('${f}')">${f}</span>`).join('')}</div>`:''}`;
+}
 
-// ─── LIVE UPDATE ───────────────────────────────────────────────────────────
-function liveUpdate(id, field, value) {
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
-  item[field] = value;
-  const el = document.getElementById('f-' + field);
-  if (el && el.type !== 'checkbox') {
-    const miss = getMissingFields(item);
-    const isM = miss.includes(fieldLabel(field));
-    if (isM) {
-      el.classList.add('flagged');
-      el.style.color = el.style.borderColor = el.style.background = '';
-    } else {
+function jumpTo(label){
+  const m={Category:'f-category',Condition:'f-condition',Keep:'f-keep',Frequency:'f-frequency',Criticality:'f-criticality',Replaceability:'f-replaceability','Est. Value':'f-estValue',Name:'f-name'};
+  const el=document.getElementById(m[label]);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();}
+}
+
+// ── LIVE UPDATE ───────────────────────────────────────────────────────────
+function lu(id,field,value,cmapKey){
+  const item=inventory.find(i=>i.id===id);
+  if(!item)return;
+  item[field]=value;
+  const el=document.getElementById('f-'+field);
+  if(el&&el.type!=='checkbox'){
+    const miss=missing(item),isM=miss.includes(flbl(field));
+    if(isM){el.classList.add('flagged');el.style.color=el.style.borderColor=el.style.background='';}
+    else{
       el.classList.remove('flagged');
-      // re-apply color map if applicable
-      const maps = { frequency: FREQ_COLORS, criticality: CRIT_COLORS, replaceability: REPL_COLORS, keep: KEEP_COLORS, condition: COND_COLORS, fillLevel: FILL_COLORS };
-      if (maps[field] && el.tagName === 'SELECT') applySelectColor(el, maps[field]);
-      else { el.style.color = el.style.borderColor = el.style.background = ''; if (value) el.classList.add('filled'); else el.classList.remove('filled'); }
+      const cmap=cmapKey?CMAPS[cmapKey]:null;
+      if(cmap&&el.tagName==='SELECT'){const c=cmap[value];if(c){el.style.color=c.color;el.style.borderColor=c.border;el.style.background=c.bg;}else{el.style.color=el.style.borderColor=el.style.background='';}}
+      else{el.style.color=el.style.borderColor=el.style.background='';el.classList.toggle('filled',!!value);}
     }
+    renderStatusBand(item);
   }
-  scheduleSave(item);
+  sched(item);
 }
 
-function liveUpdateName(id, value) {
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
-  item.name = value;
-  const display = document.getElementById('item-name-display');
-  if (display) display.textContent = value || 'Unnamed';
-  scheduleSave(item);
+function luName(id,v){const item=inventory.find(i=>i.id===id);if(!item)return;item.name=v;const d=document.getElementById('item-name-disp');if(d)d.textContent=v||'Unnamed';sched(item);}
+function luLoc(id,v){const item=inventory.find(i=>i.id===id);if(!item)return;item.locationPath=v?v.split(' > ').map(s=>s.trim()).filter(Boolean):[];sched(item);}
+
+function setFreq(id,freq,btn){
+  const item=inventory.find(i=>i.id===id);
+  if(!item)return;
+  item.auditFreq=freq;
+  document.querySelectorAll('.freq-opt').forEach(b=>b.className='freq-opt');
+  btn.classList.add({Quarterly:'selected-q','Bi-Annual':'selected-ba',Annual:'selected-a',Never:'selected-never'}[freq]||'');
+  const h=document.getElementById('freq-hint');if(h)h.classList.remove('show');
+  const r=document.getElementById('freq-req');if(r)r.classList.remove('show');
+  renderStatusBand(item);
+  sched(item);
 }
 
-function liveUpdateLoc(id, value) {
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
-  item.locationPath = value ? value.split(' > ').map(s=>s.trim()).filter(Boolean) : [];
-  scheduleSave(item);
-}
+function sched(item){clearTimeout(_saveTimer);_saveTimer=setTimeout(()=>sbSave(item).then(ok=>{if(!ok)toast('⚠ Save failed');}),800);}
 
-function setFreq(id, freq, btn) {
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
-  item.auditFreq = freq;
-  // update button styling
-  document.querySelectorAll('.freq-opt').forEach(b => {
-    b.className = 'freq-opt';
-  });
-  const clsMap = { Quarterly:'selected-q', 'Bi-Annual':'selected-ba', Annual:'selected-a', Never:'selected-never' };
-  btn.classList.add(clsMap[freq] || '');
-  document.getElementById('freq-hint').classList.remove('visible');
-  scheduleSave(item);
-}
-
-function scheduleSave(item) {
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => saveItem(item), 800);
-}
-
-async function saveItem(item) {
-  const ok = await sbUpsert(item);
-  if (!ok) toast('⚠ Save error');
-}
-
-// ─── MARK DONE ─────────────────────────────────────────────────────────────
-async function markDone(id) {
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
-
-  if (!item.auditFreq) {
-    document.getElementById('freq-hint').classList.add('visible');
-    document.querySelector('.freq-selector').scrollIntoView({behavior:'smooth',block:'center'});
-    toast('Please assign an audit frequency first');
-    return;
+// ── MARK DONE ────────────────────────────────────────────────────────────
+async function markDone(id){
+  const item=inventory.find(i=>i.id===id);if(!item)return;
+  if(!item.auditFreq){
+    const h=document.getElementById('freq-hint');if(h)h.classList.add('show');
+    const r=document.getElementById('freq-req');if(r)r.classList.add('show');
+    document.querySelector('.freq-row')?.scrollIntoView({behavior:'smooth',block:'center'});
+    toast('Assign an audit frequency first');return;
   }
-
-  // Flush any pending save first
   clearTimeout(_saveTimer);
-  item.lastAudited = new Date().toISOString();
-  const ok = await sbUpsert(item);
-  if (!ok) { toast('⚠ Save error'); return; }
-
+  item.lastAudited=new Date().toISOString();
+  const ok=await sbSave(item);
+  if(!ok){toast('⚠ Save failed');return;}
   toast('✓ Audited');
-  buildQueue();
-  renderQueue();
-
-  // Advance to next unaudited item in current batch
-  const fq = filteredQueue();
-  const batchItems = fq.slice(batchStart, batchStart + BATCH_SIZE);
-  const next = batchItems.find(i => i.id !== id && itemStatus(i) !== 'clean');
-  if (next) {
+  buildQueue();renderQueue();
+  const q=fq(),next=q.find(i=>i.id!==id&&status(i)!=='clean');
+  if(next){
+    const nb=Math.floor(q.indexOf(next)/BATCH_SIZE)*BATCH_SIZE;
+    if(nb!==batchStart){batchStart=nb;renderQueue();}
     selectItem(next.id);
-  } else {
-    // check if there's more in the queue
-    const nextOverall = fq.find(i => itemStatus(i) !== 'clean');
-    if (nextOverall) {
-      const nextBatchStart = Math.floor(fq.indexOf(nextOverall) / BATCH_SIZE) * BATCH_SIZE;
-      batchStart = nextBatchStart;
-      renderQueue();
-      selectItem(nextOverall.id);
-    } else {
-      toast('🎉 All items in queue are clean!');
-      document.getElementById('edit-empty').style.display = 'flex';
-      document.getElementById('edit-empty').innerHTML = '<div class="edit-empty-icon">✓</div><div class="edit-empty-text">All items audited</div>';
-      document.getElementById('edit-form').style.display = 'none';
-    }
+  }else{
+    currentItemId=null;
+    document.getElementById('edit-form').style.display='none';
+    document.getElementById('edit-empty').style.display='flex';
+    document.getElementById('edit-empty').innerHTML='<div style="font-size:26px;opacity:.15">✓</div><div>All items audited</div>';
+    toast('🎉 All done!');renderQueue();
   }
 }
 
-function skipItem(id) {
-  const fq = filteredQueue();
-  const idx = fq.findIndex(i => i.id === id);
-  const next = fq[idx + 1] || fq[idx - 1];
-  if (next) selectItem(next.id);
+function skipItem(id){const q=fq(),idx=q.findIndex(i=>i.id===id),next=q[idx+1]||q[idx-1];if(next)selectItem(next.id);}
+
+// ── ENRICH L5 ────────────────────────────────────────────────────────────
+async function runEnrich(id){
+  const item=inventory.find(i=>i.id===id);if(!item)return;
+  const btn=document.getElementById('enrich-btn');
+  if(btn){btn.disabled=true;btn.textContent='✦ …';}
+  const DF=['name','category','frequency','criticality','replaceability','keep','estValue','notes','keywords'];
+  const before={};DF.forEach(f=>{before[f]=item[f]||'';});
+  const catC={};inventory.forEach(i=>{catC[i.category]=(catC[i.category]||0)+1;});
+  const topCats=Object.entries(catC).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+  try{
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`,{method:'POST',headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({name:item.name,topCats,category:item.category,enrichMode:true,itemContext:{frequency:item.frequency||'',criticality:item.criticality||'',replaceability:item.replaceability||'',condition:item.condition||'',keep:item.keep||'',location:(item.locationPath||[]).join(' > '),yearPurchased:item.yearPurchased||'',estValue:item.estValue||'',qty:item.qty||'1'}})});
+    if(!res.ok)throw new Error(await res.text());
+    const s=await res.json();
+    if(s.frequency)     item.frequency=s.frequency;
+    if(s.criticality)   item.criticality=s.criticality;
+    if(s.replaceability)item.replaceability=s.replaceability;
+    if(s.keep)          item.keep=s.keep;
+    if(s.keywords?.trim())item.keywords=s.keywords.trim();
+    if(s.cleanedName?.trim())item.name=s.cleanedName.trim();
+    if(s.category)      item.category=s.category;
+    if(s.estimatedValue)item.estValue=s.estimatedValue;
+    if(s.notes?.trim()) item.notes=s.notes.trim();
+    await sbSave(item);
+    const diffs=DF.filter(f=>(item[f]||'')!==before[f]);
+    const LBL={name:'Name',category:'Cat',frequency:'Freq',criticality:'Crit',replaceability:'Repl',keep:'Keep',estValue:'Value',notes:'Notes',keywords:'KW'};
+    const db=document.getElementById('diff-band');
+    if(db&&diffs.length){
+      db.className='diff-band show';
+      db.innerHTML=`<div class="diff-label">✦ ${diffs.length} updated</div><div class="diff-items">${diffs.map(f=>`<div class="di"><span class="di-f">${LBL[f]||f}:</span><span class="di-old">${esc(before[f])}</span><span style="color:var(--text-dim)">→</span><span class="di-new">${esc(item[f]||'')}</span></div>`).join('')}</div><button class="diff-x" onclick="document.getElementById('diff-band').className='diff-band'">✕</button>`;
+    } else if(db){db.className='diff-band';}
+    renderEditor(item);renderQueue();
+    toast(diffs.length?`✓ ${diffs.length} fields updated`:'✓ No changes');
+  }catch(err){toast(`✗ ${err.message.slice(0,60)}`);}
+  finally{const b=document.getElementById('enrich-btn');if(b){b.disabled=false;b.textContent='✦ L5 + KW';}}
 }
 
-// ─── ENRICH L5 ─────────────────────────────────────────────────────────────
-function buildItemContext(item) {
-  return {
-    frequency:     item.frequency     || '',
-    criticality:   item.criticality   || '',
-    replaceability:item.replaceability|| '',
-    condition:     item.condition     || '',
-    keep:          item.keep          || '',
-    location:      (item.locationPath||[]).join(' > '),
-    yearPurchased: item.yearPurchased  || '',
-    estValue:      item.estValue       || '',
-    qty:           item.qty            || '1',
-  };
-}
+// ── UTIL ──────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+let _tTimer;
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(_tTimer);_tTimer=setTimeout(()=>e.classList.remove('show'),2400);}
 
-function applyEnrichNotes(item, newNotes) {
-  if (!newNotes || !newNotes.trim()) return;
-  item.notes = newNotes.trim();
-}
-
-async function runEnrich(id) {
-  const item = inventory.find(i => i.id === id);
-  if (!item) return;
-
-  const btn = document.getElementById('enrich-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '✦ Enriching…'; }
-
-  // Snapshot before for diff
-  const DIFF_FIELDS = ['name','category','frequency','criticality','replaceability','keep','estValue','notes','keywords'];
-  const before = {};
-  DIFF_FIELDS.forEach(f => { before[f] = item[f] || ''; });
-
-  const catCounts = {};
-  inventory.forEach(i => { catCounts[i.category] = (catCounts[i.category]||0)+1; });
-  const topCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: item.name, topCats, category: item.category, enrichMode: true, itemContext: buildItemContext(item) }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const s = await res.json();
-
-    // L5 — full overwrite
-    if (s.frequency)      item.frequency      = s.frequency;
-    if (s.criticality)    item.criticality    = s.criticality;
-    if (s.replaceability) item.replaceability = s.replaceability;
-    if (s.keep)           item.keep           = s.keep;
-    if (s.keywords && s.keywords.trim()) item.keywords = s.keywords.trim();
-    if (s.cleanedName && s.cleanedName.trim()) item.name = s.cleanedName.trim();
-    if (s.category)       item.category       = s.category;
-    if (s.estimatedValue) item.estValue       = s.estimatedValue;
-    if (s.notes && s.notes.trim()) applyEnrichNotes(item, s.notes);
-
-    // Build diff
-    const diffs = DIFF_FIELDS.filter(f => (item[f]||'') !== before[f]);
-    const FIELD_LABELS = { name:'Name', category:'Category', frequency:'Frequency', criticality:'Criticality', replaceability:'Replaceability', keep:'Keep', estValue:'Est. Value', notes:'Notes', keywords:'Keywords' };
-
-    await saveItem(item);
-    renderEditor(item);
+// ── BOOT ──────────────────────────────────────────────────────────────────
+(async()=>{
+  try{
+    inventory=await sbLoad();
+    buildQueue();updateStats();
+    const p=new URLSearchParams(location.search),fid=p.get('item');
+    if(fid){const id=parseInt(fid),idx=queue.findIndex(i=>i.id===id);if(idx>=0)batchStart=Math.floor(idx/BATCH_SIZE)*BATCH_SIZE;}
     renderQueue();
-
-    // Show diff panel
-    if (diffs.length) {
-      const panel = document.getElementById('diff-panel');
-      if (panel) {
-        panel.style.display = 'block';
-        panel.innerHTML = `<div class="diff-panel">
-          <div class="diff-panel-header">
-            ✦ Enrich changed ${diffs.length} field${diffs.length>1?'s':''}
-            <button class="diff-panel-close" onclick="document.getElementById('diff-panel').style.display='none'">✕</button>
-          </div>
-          ${diffs.map(f => `<div class="diff-row">
-            <div class="diff-field">${FIELD_LABELS[f]||f}</div>
-            <div class="diff-old">${esc(before[f])}</div>
-            <div class="diff-new">${esc(item[f]||'')}</div>
-          </div>`).join('')}
-        </div>`;
-      }
-      toast(`✓ L5 done — ${diffs.length} field${diffs.length>1?'s':''} updated`);
-    } else {
-      toast('✓ L5 done — no changes');
-    }
-
-  } catch(err) {
-    toast(`✗ Enrich failed: ${err.message}`);
-  } finally {
-    const b = document.getElementById('enrich-btn');
-    if (b) { b.disabled = false; b.textContent = '✦ L5 Enrich + Keywords'; }
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('app').style.display='grid';
+    if(fid){selectItem(parseInt(fid));}
+    else if(queue.length){selectItem(queue[batchStart].id);}
+  }catch(err){
+    document.getElementById('loading-screen').innerHTML=`<div class="loading"><div style="font-family:var(--font-mono);font-size:11px;color:var(--red)">Failed: ${err.message}</div></div>`;
   }
-}
-
-// ─── UTIL ──────────────────────────────────────────────────────────────────
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-let _toastTimer;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
-}
-
-// ─── BOOT ──────────────────────────────────────────────────────────────────
-init().then(() => {
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'grid';
-}).catch(err => {
-  document.getElementById('loading-screen').innerHTML = `<div style="font-family:var(--font-mono);font-size:11px;color:var(--red)">Failed to load: ${err.message}</div>`;
-});
+})();
 </script>
 </body>
 </html>
