@@ -675,19 +675,6 @@ td[data-col="notes"], th[data-col="notes"] { min-width: 100px; max-width: 180px;
 td[data-col="category"], th[data-col="category"] { min-width: 90px; white-space: nowrap; }
 td[data-col="frequency"], td[data-col="criticality"], td[data-col="replaceability"], td[data-col="keep"] { white-space: nowrap; min-width: 70px; }
 td[data-col="score"], th[data-col="score"] { min-width: 54px; white-space: nowrap; }
-
-/* ── AUDIT BADGE ── */
-.audit-badge {
-  display: inline-block; padding: 2px 7px; border-radius: 20px;
-  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
-  letter-spacing: 0.05em; text-decoration: none; cursor: pointer;
-  border: 1px solid; transition: opacity 0.15s; white-space: nowrap;
-}
-.audit-badge:hover { opacity: 0.75; }
-.audit-none    { color: var(--text-dim);  border-color: var(--border2);           background: transparent; }
-.audit-ok      { color: var(--green);     border-color: rgba(77,143,106,0.35);    background: rgba(77,143,106,0.08); }
-.audit-soon    { color: var(--amber);     border-color: rgba(158,122,50,0.35);    background: rgba(158,122,50,0.08); }
-.audit-overdue { color: var(--red);       border-color: rgba(143,72,72,0.35);     background: rgba(143,72,72,0.08); }
 td[data-col="est_value"], th[data-col="est_value"] { min-width: 54px; white-space: nowrap; }
 td[data-col="condition"], th[data-col="condition"] { min-width: 60px; white-space: nowrap; }
 td[data-col="year"], th[data-col="year"] { min-width: 64px; white-space: nowrap; }
@@ -1706,6 +1693,7 @@ td:hover .loc-copy-btn { display: flex; }
       <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export</button>
       <label class="btn btn-ghost btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
       <a href="dashboard.html" class="btn btn-ghost btn-sm" style="text-decoration:none">Dashboard →</a>
+      <a href="audit.html" class="btn btn-ghost btn-sm" style="text-decoration:none">Audit ✦</a>
       <a href="locate.html" class="btn btn-ghost btn-sm" style="text-decoration:none">Locate →</a>
       <a href="upload.html" class="btn btn-ghost btn-sm" style="text-decoration:none">Upload →</a>
       <button class="btn btn-ghost btn-sm" onclick="toggleChat()" id="chat-toggle-btn" title="Inventory Assistant">✦ Ask</button>
@@ -2074,7 +2062,7 @@ CSV FORMAT:
             <th class="sortable" data-key="replaceability" data-col="replaceability">Replaceability</th>
             <th class="sortable" data-key="condition" data-col="condition">Condition</th>
             <th class="sortable" data-key="keep" data-col="keep">Keep</th>
-            <th class="sortable" data-key="yearPurchased" data-col="year">Acquired</th>
+            <th class="sortable" data-key="yearPurchased" data-col="year">Year</th>
             <th class="sortable" data-key="lastUsed" data-col="lastused">Last Used</th>
             <th class="sortable" data-key="estValue" data-col="estvalue">Est. $</th>
             <th class="sortable" data-key="docType" data-col="doctype">Doc Type</th>
@@ -2082,7 +2070,6 @@ CSV FORMAT:
             <th style="text-align:center" class="sortable" data-key="fillLevel" data-col="fill">Fill</th>
             <th data-col="notes">Notes</th>
             <th class="sortable" data-key="_score" style="text-align:center" data-col="score">Score</th>
-            <th style="text-align:center" data-col="audit">Audit</th>
             <th style="text-align:center" data-col="misplaced">⚑</th>
             <th data-col="actions"></th>
           </tr>
@@ -2091,54 +2078,6 @@ CSV FORMAT:
       </table>
     </div>
 
-    <!-- GUIDES (collapsed, at bottom) -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
-      <div class="panel" style="margin-bottom:0">
-        <div class="panel-header" onclick="togglePanel('voice-body','voice-toggle')">
-          <div class="panel-title"><div class="panel-dot"></div>Voice Guide</div>
-          <span class="panel-toggle" id="voice-toggle">+</span>
-        </div>
-        <div class="panel-body" id="voice-body">
-          <div class="voice-guide">
-            <div style="margin-bottom:8px;font-size:9px;color:var(--text-dim)">Each item on one line, fields separated by commas. Say "right angle bracket" for location levels.</div>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px;font-size:10px;line-height:2;margin-bottom:8px;">
-              <span style="color:var(--rose)">[type spec]</span>, <span style="color:var(--steel)">[location path]</span>, <span style="color:var(--text-mid)">[qty]</span>, <span style="color:var(--green)">[condition]</span>, <span style="color:var(--text)">[freq, crit, repl, keep, year]</span>
-            </div>
-            <div style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-size:9px;line-height:2;color:var(--text-dim)">
-              <div><b style="color:var(--text-mid)">FREQ</b>  daily / weekly / monthly / rarely / never</div>
-              <div><b style="color:var(--text-mid)">CRIT</b>  essential / important / nice to have / redundant</div>
-              <div><b style="color:var(--text-mid)">REPL</b>  irreplaceable / hard expensive / moderate / easy cheap</div>
-              <div><b style="color:var(--text-mid)">KEEP</b>  keep / maybe / sell / donate / trash</div>
-            </div>
-            <div style="display:flex;gap:5px;margin-top:8px;">
-              <button class="btn btn-ghost btn-sm" onclick="copyCheatCard()">Copy Cheat Card</button>
-              <button class="btn btn-ghost btn-sm" onclick="copyVoiceTemplate()">Template</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="panel" style="margin-bottom:0">
-        <div class="panel-header" onclick="togglePanel('guide-body','guide-toggle')">
-          <div class="panel-title"><div class="panel-dot"></div>User Guide</div>
-          <span class="panel-toggle" id="guide-toggle">+</span>
-        </div>
-        <div class="panel-body" id="guide-body">
-          <div class="guide-grid">
-            <div class="guide-section">
-              <div class="guide-section-title">Location System</div>
-              <div class="guide-item"><div class="guide-item-label">Path hierarchy</div><div class="guide-item-desc">Locations use > separator. No depth limit. Click tree to filter.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Manage Locations</div><div class="guide-item-desc">Header button: Rename, Move Under, Wrap in Parent. All paths update.</div></div>
-            </div>
-            <div class="guide-section">
-              <div class="guide-section-title">Editing</div>
-              <div class="guide-item"><div class="guide-item-label">Click-to-edit</div><div class="guide-item-desc">Click any cell. Tab / Shift+Tab moves. Shortcut keys open dropdowns.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Bulk ops</div><div class="guide-item-desc">Check rows → bar appears. Set location, category, scoring fields in bulk.</div></div>
-              <div class="guide-item"><div class="guide-item-label">Undo / Redo</div><div class="guide-item-desc">Ctrl+Z / Ctrl+Y. 50 steps.</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
 </div>
 
@@ -2935,8 +2874,6 @@ function itemToRow(item) {
     locked_notes: item.lockedNotes ? true : false,
     mil_sub: item.milSub || null,
     doc_url: item.docUrl || null,
-    audit_freq: item.auditFreq || null,
-    last_audited: item.lastAudited || null,
   };
 }
 
@@ -2970,8 +2907,6 @@ function rowToItem(row) {
     lockedNotes: row.locked_notes ? true : false,
     milSub: row.mil_sub || null,
     docUrl: row.doc_url || null,
-    auditFreq: row.audit_freq || null,
-    lastAudited: row.last_audited || null,
   });
 }
 
@@ -3890,7 +3825,8 @@ function buildRow(item,dupMap){
       ? `<div style="display:flex;align-items:center;gap:6px" title="${(item.locationPath||[]).join(' > ')||'No home location set'}" onmouseenter="showHomeLocation(${item.id},event)" onmouseleave="scheduleHidePopover()">
           <span style="width:7px;height:7px;border-radius:50%;background:#4d8f6a;box-shadow:0 0 6px rgba(77,143,106,0.8);flex-shrink:0;animation:inUsePulse 2s ease infinite"></span>
           <span style="font-size:11px;color:#4d8f6a;font-weight:500">In Use</span>
-          ${(item.locationPath||[]).length?`<button class="loc-copy-btn" onclick="event.stopPropagation();copyLocPath('${esc((item.locationPath||[]).join(' > '))}')" title="Copy path">⎘</button>`:''}
+          ${(item.locationPath||[]).length?`<button class="loc-copy-btn" onclick="event.stopPropagation();copyLocPath('${esc((item.locationPath||[]).join(' > '))}')" title="Copy path">⎘</button><button class="loc-copy-btn" onclick="event.stopPropagation();inlineEditLoc(${item.id},this)" title="Edit location" style="margin-left:2px">✎</button>`:
+`<button class="loc-copy-btn" onclick="event.stopPropagation();inlineEditLoc(${item.id},this)" title="Type new location" style="opacity:.5">+ loc</button>`}
         </div>`
       : `<div style="display:flex;align-items:center;gap:4px;"><div style="font-size:11px;flex:1">${renderPath(item.locationPath||[])}</div>${(item.locationPath||[]).length?`<button class="loc-copy-btn" onclick="event.stopPropagation();copyLocPath('${esc((item.locationPath||[]).join(' > '))}')" title="Copy path">⎘</button>`:''}</div>`
     ,'min-width:130px')}
@@ -3928,7 +3864,6 @@ function buildRow(item,dupMap){
       return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)||'<span style="color:var(--text-dim);font-size:10px">--</span>'}</span>${kwText}`;
     })()}</td>
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
-    <td data-col="audit" style="text-align:center">${(()=>{const af=item.auditFreq;const la=item.lastAudited;const freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};if(!af){return`<a href="audit.html?item=${item.id}" target="_blank" class="audit-badge audit-none">AUDIT</a>`;}const days=freqDays[af];const due=la?new Date(la).getTime()+days*86400000:0;const now=Date.now();const overdue=due&&now>due;const soon=due&&!overdue&&(due-now)<30*86400000;const cls=overdue?'audit-overdue':soon?'audit-soon':'audit-ok';const short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};return`<a href="audit.html?item=${item.id}" target="_blank" class="audit-badge ${cls}">${short[af]||af}</a>`;})()}</td>
     <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn cam-btn" onclick="openDocUpload(${item.id},event)" title="Upload document photo">📷</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
   return tr;
@@ -6011,7 +5946,6 @@ const COL_DEFS=[
   {col:'fill',label:'Fill'},
   {col:'notes',label:'Notes'},
   {col:'score',label:'Score',hideable:false},
-  {col:'audit',label:'Audit'},
   {col:'misplaced',label:'Misplaced'},
   {col:'actions',label:'Actions',hideable:false},
 ];
@@ -6026,7 +5960,7 @@ function saveColPrefs(){
 }
 
 // Default px widths per col — used when no saved width exists
-const COL_DEFAULTS={name:160,loc:150,qty:55,category:110,frequency:70,criticality:90,replaceability:100,condition:80,keep:70,year:60,lastused:75,estvalue:65,doctype:85,digital:65,fill:55,notes:120,score:70,audit:65,misplaced:70,actions:55};
+const COL_DEFAULTS={name:160,loc:150,qty:55,category:110,frequency:70,criticality:90,replaceability:100,condition:80,keep:70,year:60,lastused:75,estvalue:65,doctype:85,digital:65,fill:55,notes:120,score:70,misplaced:70,actions:55};
 
 function applyColVisibility(){
   COL_DEFS.forEach(({col})=>{
@@ -6649,6 +6583,30 @@ function copyVoiceTemplate(){
 }
 
 function copyLocPath(path){ navigator.clipboard.writeText(path).then(()=>toast('📋 Copied: '+path)); }
+
+function inlineEditLoc(itemId, btn){
+  const item=inventory.find(i=>i.id===itemId);
+  if(!item)return;
+  const cell=btn.closest('td');
+  if(!cell)return;
+  const cur=(item.locationPath||[]).join(' > ');
+  const inp=document.createElement('input');
+  inp.type='text';inp.value=cur;
+  inp.placeholder='Room > Shelf > Drawer';
+  inp.style.cssText='width:100%;background:var(--s2);border:1px solid var(--rose);border-radius:4px;padding:4px 8px;font-size:12px;color:var(--text);outline:none;';
+  const orig=cell.innerHTML;
+  cell.innerHTML='';cell.appendChild(inp);inp.focus();inp.select();
+  const commit=()=>{
+    const newPath=inp.value.trim().split('>').map(s=>s.trim()).filter(Boolean);
+    if(newPath.join('::')!==(item.locationPath||[]).join('::')){
+      snapshot();item.locationPath=newPath;
+      debouncedSave();renderTable();
+      toast('📍 Location updated');
+    } else { cell.innerHTML=orig; }
+  };
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit();}if(e.key==='Escape'){e.preventDefault();cell.innerHTML=orig;}});
+}
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
