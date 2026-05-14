@@ -2074,7 +2074,7 @@ CSV FORMAT:
             <th class="sortable" data-key="replaceability" data-col="replaceability">Replaceability</th>
             <th class="sortable" data-key="condition" data-col="condition">Condition</th>
             <th class="sortable" data-key="keep" data-col="keep">Keep</th>
-            <th class="sortable" data-key="yearPurchased" data-col="year">Year</th>
+            <th class="sortable" data-key="yearPurchased" data-col="year">Acquired</th>
             <th class="sortable" data-key="lastUsed" data-col="lastused">Last Used</th>
             <th class="sortable" data-key="estValue" data-col="estvalue">Est. $</th>
             <th class="sortable" data-key="docType" data-col="doctype">Doc Type</th>
@@ -3928,8 +3928,8 @@ function buildRow(item,dupMap){
       return`<span class="notes-plain" data-full-note="${esc(clean)}">${esc(clean)||'<span style="color:var(--text-dim);font-size:10px">--</span>'}</span>${kwText}`;
     })()}</td>
     <td data-col="score"><div class="score-badge"><span class="score-num" style="color:${sc}">${score}</span><div class="score-bar-mini"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><div style="margin-top:3px">${pips}</div></div></td>
-    <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="audit" style="text-align:center">${(()=>{const af=item.auditFreq;const la=item.lastAudited;const freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};if(!af){return`<a href="audit.html?item=${item.id}" target="_blank" class="audit-badge audit-none">AUDIT</a>`;}const days=freqDays[af];const due=la?new Date(la).getTime()+days*86400000:0;const now=Date.now();const overdue=due&&now>due;const soon=due&&!overdue&&(due-now)<30*86400000;const cls=overdue?'audit-overdue':soon?'audit-soon':'audit-ok';const short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};return`<a href="audit.html?item=${item.id}" target="_blank" class="audit-badge ${cls}">${short[af]||af}</a>`;})()}</td>
+    <td data-col="misplaced"><button class="misplace-toggle ${item.misplaced?'flagged':''}" onclick="toggleMisplaced(${item.id})">${item.misplaced?'[!]':'[ ]'}</button></td>
     <td data-col="actions"><div class="row-actions"><button class="row-btn insp-btn" onclick="openInspector(${item.id},event)" title="Inspect">ⓘ</button><button class="row-btn enrich-btn" onclick="openEnrichLevel(${item.id},event)" title="Enrich">✦</button><button class="row-btn cam-btn" onclick="openDocUpload(${item.id},event)" title="Upload document photo">📷</button><button class="row-btn delete" onclick="deleteItem(${item.id})" title="Delete">x</button></div></td>`;
   return tr;
 }
