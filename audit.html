@@ -54,6 +54,8 @@ header {
 .btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--radius); font-family: var(--font-sans); font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid; transition: all 0.13s; white-space: nowrap; }
 .btn-ghost { background: transparent; color: var(--text-mid); border-color: var(--border2); }
 .btn-ghost:hover { border-color: var(--text-mid); color: var(--text); }
+.btn-enrich { color: var(--rose) !important; border-color: rgba(176,122,132,0.35) !important; background: rgba(176,122,132,0.07) !important; }
+.btn-enrich:hover { background: rgba(176,122,132,0.14) !important; border-color: var(--rose) !important; }
 .btn-primary { background: var(--rose); color: #fff; border-color: var(--rose); }
 .btn-primary:hover { background: #c97882; border-color: #c97882; }
 .btn-green { background: transparent; color: var(--green); border-color: rgba(77,143,106,0.35); }
@@ -342,6 +344,7 @@ async function sbLoadAll() {
 }
 
 async function sbUpsert(item) {
+  const row = itemToRow(item);
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`, {
     method: 'POST',
     headers: {
@@ -349,9 +352,30 @@ async function sbUpsert(item) {
       'Content-Type': 'application/json',
       'Prefer': 'resolution=merge-duplicates,return=minimal'
     },
-    body: JSON.stringify([itemToRow(item)])
+    body: JSON.stringify([row])
   });
-  return res.ok;
+  if (!res.ok) {
+    const errText = await res.text();
+    // If the error mentions audit_freq or last_audited, strip them and retry
+    if (errText.includes('audit_freq') || errText.includes('last_audited')) {
+      const { audit_freq, last_audited, ...safeRow } = row;
+      const res2 = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify([safeRow])
+      });
+      if (!res2.ok) console.error('Supabase save failed:', await res2.text());
+      else toast('⚠ Saved without audit fields — add audit_freq & last_audited columns in Supabase');
+      return res2.ok;
+    }
+    console.error('Supabase save error:', errText);
+    return false;
+  }
+  return true;
 }
 
 function itemToRow(item) {
@@ -779,6 +803,7 @@ function renderEditor(item) {
       <div class="action-bar-left">
         <button class="skip-btn" onclick="skipItem(${item.id})">Skip →</button>
       </div>
+      <button class="btn btn-enrich btn-sm" id="enrich-btn" onclick="runEnrich(${item.id})">✦ Enrich L5</button>
       <button class="btn btn-green" onclick="markDone(${item.id})">✓ Mark Audited</button>
     </div>
   `;
@@ -892,6 +917,70 @@ function skipItem(id) {
   const idx = fq.findIndex(i => i.id === id);
   const next = fq[idx + 1] || fq[idx - 1];
   if (next) selectItem(next.id);
+}
+
+// ─── ENRICH L5 ─────────────────────────────────────────────────────────────
+function buildItemContext(item) {
+  return {
+    frequency:     item.frequency     || '',
+    criticality:   item.criticality   || '',
+    replaceability:item.replaceability|| '',
+    condition:     item.condition     || '',
+    keep:          item.keep          || '',
+    location:      (item.locationPath||[]).join(' > '),
+    yearPurchased: item.yearPurchased  || '',
+    estValue:      item.estValue       || '',
+    qty:           item.qty            || '1',
+  };
+}
+
+function applyEnrichNotes(item, newNotes) {
+  if (!newNotes || !newNotes.trim()) return;
+  item.notes = newNotes.trim();
+}
+
+async function runEnrich(id) {
+  const item = inventory.find(i => i.id === id);
+  if (!item) return;
+
+  const btn = document.getElementById('enrich-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '✦ Enriching…'; }
+
+  const catCounts = {};
+  inventory.forEach(i => { catCounts[i.category] = (catCounts[i.category]||0)+1; });
+  const topCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c])=>c).join(', ');
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/suggest-item`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: item.name, topCats, category: item.category, enrichMode: true, itemContext: buildItemContext(item) }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const s = await res.json();
+
+    // L5 — full overwrite
+    if (s.frequency)      item.frequency      = s.frequency;
+    if (s.criticality)    item.criticality    = s.criticality;
+    if (s.replaceability) item.replaceability = s.replaceability;
+    if (s.keep)           item.keep           = s.keep;
+    if (s.keywords && s.keywords.trim()) item.keywords = s.keywords.trim();
+    if (s.cleanedName && s.cleanedName.trim()) item.name = s.cleanedName.trim();
+    if (s.category)       item.category       = s.category;
+    if (s.estimatedValue) item.estValue       = s.estimatedValue;
+    if (s.notes && s.notes.trim()) applyEnrichNotes(item, s.notes);
+
+    await saveItem(item);
+    toast(`✓ Enrich L5 done — "${item.name}"`);
+    // Re-render the editor with updated values
+    renderEditor(item);
+    renderQueue();
+  } catch(err) {
+    toast(`✗ Enrich failed: ${err.message}`);
+  } finally {
+    const b = document.getElementById('enrich-btn');
+    if (b) { b.disabled = false; b.textContent = '✦ Enrich L5'; }
+  }
 }
 
 // ─── UTIL ──────────────────────────────────────────────────────────────────
