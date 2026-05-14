@@ -1193,8 +1193,8 @@ body.mob-mode .shell{display:none;}
 /* ── SINGLE-ROW CARD ──────────────────────────────────────────────────────── */
 /* Fixed column layout: [CAT 80px] [NAME flex] [COND 70px] [QTY 36px] [FILL 54px] [AUDIT 32px] */
 /* Fixed column layout: [CAT] [NAME flex] [COND] [QTY] [FILL] [AUDIT] */
-.mc-row{display:grid;grid-template-columns:minmax(70px,90px) 1fr minmax(64px,80px) minmax(36px,44px) minmax(54px,66px) 40px;align-items:center;gap:10px;width:100%;min-width:0;}
-.mc-cat{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:4px 7px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.3;}
+.mc-row{display:grid;grid-template-columns:minmax(90px,110px) 1fr minmax(64px,80px) minmax(36px,44px) minmax(54px,66px) 40px;align-items:center;gap:8px;width:100%;min-width:0;}
+.mc-cat{font-family:var(--font-mono);font-size:8.5px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;padding:4px 6px;border-radius:5px;white-space:normal;word-break:break-word;text-align:center;line-height:1.25;}
 .mc-name{font-size:16px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .mc-sec{font-weight:300;font-style:italic;color:var(--text-mid);font-size:14px;}
 .mc-cond{font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 8px;border-radius:20px;border:1px solid;text-align:center;white-space:nowrap;}
@@ -1210,7 +1210,7 @@ body.mob-mode .shell{display:none;}
 .mob-card{padding:13px 24px;border-bottom:1px solid var(--border);cursor:pointer;border-left:4px solid transparent;-webkit-tap-highlight-color:transparent;transition:filter 0.12s;}
 .mob-card:active{filter:brightness(1.25);}
 @media(min-width:768px){
-  .mc-row{grid-template-columns:minmax(80px,100px) 1fr minmax(70px,88px) minmax(40px,50px) minmax(60px,72px) 44px;gap:12px;}
+  .mc-row{grid-template-columns:minmax(100px,120px) 1fr minmax(70px,88px) minmax(40px,50px) minmax(60px,72px) 44px;gap:12px;}
   .mc-name{font-size:17px;}
   .mc-cond{font-size:12px;}
   .mob-card{padding:15px 32px;}
@@ -1269,10 +1269,10 @@ body.mob-mode .shell{display:none;}
 
 
 /* ── CARD COLUMN HEADERS ──────────────────────────────────────────────────── */
-.mc-col-hdr{display:grid;grid-template-columns:80px 1fr 70px 36px 58px 36px;gap:8px;padding:6px 24px;border-bottom:1px solid var(--border);background:var(--s1);}
+.mc-col-hdr{display:grid;grid-template-columns:minmax(90px,110px) 1fr minmax(64px,80px) minmax(36px,44px) minmax(54px,66px) 40px;gap:8px;padding:6px 24px;border-bottom:1px solid var(--border);background:var(--s1);}
 .mc-col-hdr span{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);text-align:center;}
 .mc-col-hdr span:nth-child(2){text-align:left;}
-@media(min-width:768px){.mc-col-hdr{grid-template-columns:90px 1fr 76px 40px 62px 40px;gap:10px;padding:8px 32px;}}
+@media(min-width:768px){.mc-col-hdr{grid-template-columns:minmax(100px,120px) 1fr minmax(70px,88px) minmax(40px,50px) minmax(60px,72px) 44px;gap:12px;padding:8px 32px;}}
 
 /* ── FIND TREE (read-only navigation) ────────────────────────────────────── */
 .find-tree-wrap{padding:8px 0 80px;}
@@ -2019,7 +2019,7 @@ function siblingsHTML(path){
     }
   });
   if(!siblings.size)return'';
-  const chips=[...siblings].sort().map(sib=>{
+  const chips=[...siblings].sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});}).map(sib=>{
     const sibPath=[...parentPath,sib];
     const pid=regPath(sibPath);
     return`<span class="sibling-chip" onclick="nav('${pid}')">${esc(sib)}</span>`;
@@ -2071,7 +2071,7 @@ function renderTree(){
 
   // Normal tree render
   function rNode(children,parentPath,container,depth){
-    Object.entries(children).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([name,node])=>{
+    Object.entries(children).sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'})).forEach(([name,node])=>{
       const path=[...parentPath,name];
       const pk=path.join('::');
       const hasChildren=Object.keys(node.children).length>0;
@@ -2242,7 +2242,7 @@ function renderStage(){
     const p=item.locationPath||[];
     if(p.length>path.length){const seg=p[path.length];if(!childMap[seg])childMap[seg]=0;childMap[seg]++;}
   });
-  const children=Object.entries(childMap).sort((a,b)=>a[0].localeCompare(b[0]));
+  const children=Object.entries(childMap).sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'}));
   const title=path.length?path[path.length-1]:'All Items';
   const depth=path.length;
   const titleColor=path.length?depthColor(depth-1,1):'var(--text)';
@@ -2509,7 +2509,7 @@ async function load(){
     }
     inventory=all;setSyncStatus('ok');renderSidebar();renderStage();restoreSbCollapse();
     if(document.body.classList.contains('mob-mode')){mobRenderBrowseAt([]);}
-    setTimeout(function(){if(typeof updateSupplyBadge==='function')updateSupplyBadge();if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();if(typeof renderFindTree==='function')renderFindTree();},100);
+    setTimeout(function(){if(typeof updateSupplyBadge==='function')updateSupplyBadge();if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();if(typeof renderFindTree==='function')renderFindTree();if(typeof renderAddTree==='function')renderAddTree();},100);
   }catch(err){
     setSyncStatus('error');
     document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
@@ -2632,7 +2632,7 @@ function mobRenderFind(q){
   var notes='';
   if(kwMatches>0)notes+='<span class="mob-search-note">+'+kwMatches+' via keywords</span>';
   if(locMatches>0)notes+='<span class="mob-search-note">+'+locMatches+' by location</span>';
-  var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+notes+'</div><div class="mc-col-hdr"><span>Category</span><span>Name</span><span>Cond</span><span>Qty</span><span>Fill</span><span></span></div>';
+  var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+notes+'</div><div class="mc-col-hdr"><span>Category</span><span>Name / Location</span><span>Cond</span><span>Qty</span><span>Fill</span><span>⊕</span></div>';
   res.forEach(function(item){html+=mobCard(item,true);});
   el.innerHTML=html;
 }
@@ -2644,7 +2644,7 @@ function mobCard(item, fromSearch){
   // Browse: whole row opens inspector. Search: row navigates to location in browse
   var clickFn=fromSearch?'mobNavToItem(\''+pid+'\')':'openLocInspector('+item.id+',this)';
   // Category short label (first word)
-  var catShort=esc((item.category||'Misc').split(' & ')[0].split('/')[0]);
+  var catShort=esc(item.category||'Misc');
   // Condition - fixed column, color coded
   var condColor={New:'#44ff88',Good:'#64b4ff',Fair:'#ffb450',Poor:'#ff5050'};
   var condBg={New:'rgba(68,255,136,.1)',Good:'rgba(100,180,255,.1)',Fair:'rgba(255,180,80,.1)',Poor:'rgba(255,80,80,.1)'};
@@ -2656,7 +2656,7 @@ function mobCard(item, fromSearch){
   // Fill badge
   var fillH=item.fillLevel?'<button class="fill-cycle-btn '+(FILL_CLASS[item.fillLevel]||'unset')+' mc-fill" data-item-id="'+item.id+'" onclick="event.stopPropagation();tapFillCycle(this,'+item.id+')">'+esc(item.fillLevel)+'</button>':'<span class="mc-fill"></span>';
   // Audit badge
-  var auditH=(function(){var af=item.auditFreq;if(!af)return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge loc-audit-none mc-audit" onclick="event.stopPropagation()">·</a>';var short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};var freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};var days=freqDays[af];var la=item.lastAudited;var due=la?new Date(la).getTime()+days*86400000:0;var now=Date.now();var overdue=due&&now>due;var soon=due&&!overdue&&(due-now)<30*86400000;var cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge '+cls+' mc-audit" onclick="event.stopPropagation()">'+short[af]+'</a>';})();
+  var auditH=(function(){var af=item.auditFreq;if(!af)return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge loc-audit-none mc-audit" onclick="event.stopPropagation()" style="font-size:9px;padding:3px 6px">AUDIT</a>';var short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};var freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};var days=freqDays[af];var la=item.lastAudited;var due=la?new Date(la).getTime()+days*86400000:0;var now=Date.now();var overdue=due&&now>due;var soon=due&&!overdue&&(due-now)<30*86400000;var cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge '+cls+' mc-audit" onclick="event.stopPropagation()">'+short[af]+'</a>';})();
   // Row bg = subtle category color tint
   var rowBg='background:linear-gradient(to right,'+cs.bg+'bb 0%,'+cs.bg+'55 60%,'+cs.bg+'22 100%)';
   // Search: loc path + inspector button; Browse: just the row
@@ -2673,14 +2673,23 @@ function mobCard(item, fromSearch){
     }
     searchInspH='<button style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:rgba(176,122,132,0.12);border:1px solid rgba(176,122,132,0.3);color:var(--rose);font-size:14px;cursor:pointer;margin-left:8px" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect">ⓘ</button>';
   }
+  // For search: name cell wraps name + loc path, inspector replaces audit column
+  var nameCell;
+  if(fromSearch && searchLocH){
+    nameCell='<div style="min-width:0;overflow:hidden">'
+      +'<div class="mc-name">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</div>'
+      +searchLocH
+      +'</div>';
+  } else {
+    nameCell='<span class="mc-name">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</span>';
+  }
+  // Search: inspector in the last column (replaces audit badge)
+  var lastCol = fromSearch ? searchInspH : auditH;
   return '<div class="mob-card" style="border-left-color:'+cs.text+';'+rowBg+'" onclick="'+clickFn+'">'
     +'<div class="mc-row">'
     +'<span class="mc-cat" style="background:'+cs.bg+';color:'+cs.text+'">'+catShort+'</span>'
-    +'<div style="min-width:0;overflow:hidden">'
-    +'<span class="mc-name">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</span>'
-    +searchLocH
-    +'</div>'
-    +condH+qtyH+fillH+auditH+searchInspH
+    +nameCell
+    +condH+qtyH+fillH+lastCol
     +'</div>'
     +'</div>';
 }
@@ -2751,7 +2760,7 @@ function mobRenderBrowseAt(path){
   var tree=buildTree();var el=document.getElementById('mob-browse-inner');
   var node=tree;
   path.forEach(function(seg){if(node.children[seg])node=node.children[seg];});
-  var children=Object.entries(node.children).sort(function(a,b){return a[0].localeCompare(b[0]);});
+  var children=Object.entries(node.children).sort(function(a,b){return a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'});});
   var allItems=inventory.filter(function(i){return(_pinUnlocked||!i.lockedItem)&&pathStartsWith(i.locationPath||[],path);});
   var directItems=allItems.filter(function(i){return(i.locationPath||[]).length===path.length;}).sort(function(a,b){return a.name.localeCompare(b.name);});
   var title=path.length?path[path.length-1]:'All Locations';
@@ -2788,14 +2797,26 @@ function mobRenderBrowseAt(path){
   var boxH='';
   if(children.length){
     var cc=mDC(depth);
-    var sortedCh=children.slice().sort(function(a,b){return b[1].total-a[1].total;});
-    if(!path.length)sortedCh=sortedCh.filter(function(e){return e[0]!=='Unassigned'||e[1].total>=5;});
+    // Root: sort by item count desc (most items first = most important room)
+    // Sub-levels: robust A-Z using locale-aware comparison with numeric handling
+    var sortedCh;
+    if(!path.length){
+      sortedCh=children.slice()
+        .sort(function(a,b){return b[1].total-a[1].total;})
+        .filter(function(e){return e[0]!=='Unassigned'||e[1].total>=5;});
+    } else {
+      sortedCh=children.slice().sort(function(a,b){
+        var na=a[0],nb=b[0];
+        // Natural sort: handles "Shelf 2" vs "Shelf 10" correctly
+        return na.localeCompare(nb,undefined,{numeric:true,sensitivity:'base'});
+      });
+    }
     boxH='<div class="mob-boxes">'+sortedCh.map(function(entry){
       var name=entry[0];var cn=entry[1];
       var pid=mReg(path.concat([name]));
       var childPath=path.concat([name]);
       // Show sub-locations first, then items
-      var subLocs=Object.keys(cn.children||{}).sort();
+      var subLocs=Object.keys(cn.children||{}).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});});
       var directHere=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&(i.locationPath||[]).length===childPath.length&&pathStartsWith(i.locationPath||[],childPath);});
       var prevLines=[];
       subLocs.forEach(function(sl){prevLines.push('› '+esc(sl));});
@@ -2812,7 +2833,7 @@ function mobRenderBrowseAt(path){
     }).join('')+'</div>';
   }
   var itemsH='';
-  if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div><div class="mc-col-hdr"><span>Category</span><span>Name</span><span>Cond</span><span>Qty</span><span>Fill</span><span></span></div>'+directItems.map(function(i){return mobCard(i);}).join('');}
+  if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div><div class="mc-col-hdr"><span>Category</span><span>Name</span><span>Cond</span><span>Qty</span><span>Fill</span><span>Audit</span></div>'+directItems.map(function(i){return mobCard(i);}).join('');}
   var backPid=path.length?mReg(path.slice(0,-1)):'';
   var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>':'';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
@@ -2835,7 +2856,7 @@ function mobCloseDrawer(){document.getElementById('mob-drawer-ov').classList.rem
 
 function mobBuildTree(ch,path,depth){
   var html='';
-  Object.entries(ch).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(entry){
+  Object.entries(ch).sort(function(a,b){return a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'});}).forEach(function(entry){
     var name=entry[0];var node=entry[1];
     var p=path.concat([name]);var pk=p.join('::');
     var hasCh=Object.keys(node.children).length>0;var isExp=_mobDrExp.has(pk);
@@ -2932,7 +2953,7 @@ function mobLPRender(){
 }
 function mobLPBuildTree(ch,path,depth){
   var html='';
-  Object.entries(ch).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(entry){
+  Object.entries(ch).sort(function(a,b){return a[0].localeCompare(b[0],undefined,{numeric:true,sensitivity:'base'});}).forEach(function(entry){
     var name=entry[0];var node=entry[1];var p=path.concat([name]);var pk=p.join('::');
     var hasCh=Object.keys(node.children).length>0;var isExp=_maddLpExp.has(pk);
     var isSel=_maddLpSel&&_maddLpSel.join('::')=== pk;
