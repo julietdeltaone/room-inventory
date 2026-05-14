@@ -18,155 +18,155 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:12px;-webkit-font-smoothing:antialiased;}
-::-webkit-scrollbar{width:3px;height:3px;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:14px;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-header{height:42px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;gap:10px;}
-.logo{font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.22em;color:var(--rose);text-transform:uppercase;white-space:nowrap;}
-.header-mid{flex:1;display:flex;align-items:center;gap:10px;}
-.header-right{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;gap:14px;}
+.logo{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.22em;color:var(--rose);text-transform:uppercase;white-space:nowrap;}
+.header-mid{flex:1;display:flex;align-items:center;gap:12px;}
+.header-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 
-.save-pill{display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:2px 7px;border-radius:20px;border:1px solid var(--border);background:var(--s2);transition:all .3s;}
+.save-pill{display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--s2);transition:all .3s;}
 .save-pill.saving{color:var(--amber);border-color:rgba(158,122,50,.4);}
 .save-pill.saved{color:var(--green);border-color:rgba(77,143,106,.4);}
 .save-pill.error{color:var(--red);border-color:rgba(143,72,72,.4);}
-.save-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
-.prog-wrap{display:flex;align-items:center;gap:6px;}
-.prog-track{width:80px;height:3px;background:var(--border);border-radius:2px;}
+.save-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.prog-wrap{display:flex;align-items:center;gap:8px;}
+.prog-track{width:100px;height:4px;background:var(--border);border-radius:2px;}
 .prog-fill{height:100%;background:var(--rose);border-radius:2px;transition:width .4s;}
-.prog-label{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);white-space:nowrap;}
-.stat-chips{display:flex;gap:6px;}
-.sc{font-family:var(--font-mono);font-size:9px;display:flex;align-items:center;gap:3px;color:var(--text-dim);}
-.sc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.prog-label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.stat-chips{display:flex;gap:8px;}
+.sc{font-family:var(--font-mono);font-size:10px;display:flex;align-items:center;gap:4px;color:var(--text-dim);}
+.sc-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 
-.btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius);font-family:var(--font-sans);font-size:11px;font-weight:500;cursor:pointer;border:1px solid;transition:all .12s;white-space:nowrap;text-decoration:none;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius);font-family:var(--font-sans);font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all .12s;white-space:nowrap;text-decoration:none;}
 .btn-ghost{background:transparent;color:var(--text-mid);border-color:var(--border2);}
 .btn-ghost:hover{border-color:var(--text-mid);color:var(--text);}
-.btn-green{background:transparent;color:var(--green);border-color:rgba(77,143,106,.4);}
+.btn-green{background:transparent;color:var(--green);border-color:rgba(77,143,106,.4);font-size:13px;padding:7px 18px;}
 .btn-green:hover{background:rgba(77,143,106,.12);}
 .btn-enrich{color:var(--rose)!important;border-color:rgba(176,122,132,.35)!important;background:rgba(176,122,132,.07)!important;}
 .btn-enrich:hover{background:rgba(176,122,132,.15)!important;}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
 
-.app{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 42px);}
+.app{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 50px);}
 
 /* QUEUE */
 .queue-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.queue-head{padding:9px 12px 7px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.queue-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
-.qf-row{display:flex;gap:3px;flex-wrap:wrap;}
-.qf-btn{font-family:var(--font-mono);font-size:8px;padding:2px 6px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .12s;}
+.queue-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.queue-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
+.qf-row{display:flex;gap:4px;flex-wrap:wrap;}
+.qf-btn{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .12s;}
 .qf-btn.active{border-color:var(--rose);color:var(--rose);background:var(--rose-dim);}
 .qf-btn.qf-green.active{border-color:rgba(77,143,106,.4);color:var(--green);background:rgba(77,143,106,.08);}
 .queue-list{flex:1;overflow-y:auto;}
-.qi{padding:6px 11px;cursor:pointer;border-left:3px solid transparent;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;transition:background .1s;}
+.qi{padding:9px 14px;cursor:pointer;border-left:3px solid transparent;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;transition:background .1s;}
 .qi:hover{background:var(--s2);}
 .qi.active{background:var(--s2);border-left-color:var(--rose);}
 .qi.done{opacity:.45;}
-.qi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.qi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .qi-dot.unreviewed{background:var(--text-dim);}
 .qi-dot.incomplete{background:var(--amber);}
 .qi-dot.overdue{background:var(--red);}
 .qi-dot.clean{background:var(--green);}
 .qi-info{flex:1;min-width:0;}
-.qi-name{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.qi-loc{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fpip{display:inline-block;padding:1px 5px;border-radius:20px;font-family:var(--font-mono);font-size:7px;font-weight:500;border:1px solid;}
+.qi-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qi-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fpip{display:inline-block;padding:1px 6px;border-radius:20px;font-family:var(--font-mono);font-size:8px;font-weight:500;border:1px solid;}
 .fpip.fq{color:var(--audit-q);border-color:rgba(110,143,168,.4);background:rgba(110,143,168,.06);}
 .fpip.fba{color:var(--audit-ba);border-color:rgba(158,122,50,.4);background:rgba(158,122,50,.06);}
 .fpip.fa{color:var(--audit-a);border-color:rgba(122,110,168,.4);background:rgba(122,110,168,.06);}
 .fpip.fn{color:var(--audit-never);border-color:var(--border);}
-.qi-sec{padding:4px 11px;background:var(--s1);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);}
-.queue-foot{padding:6px 12px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:5px;align-items:center;}
-.batch-lbl{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);flex:1;text-align:center;}
+.qi-sec{padding:5px 14px;background:var(--s1);border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);}
+.queue-foot{padding:8px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;align-items:center;}
+.batch-lbl{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);flex:1;text-align:center;}
 
 /* EDIT PANEL */
 .edit-panel{display:flex;flex-direction:column;overflow:hidden;}
-.edit-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px;color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;}
+.edit-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;}
 
-/* ITEM HEADER */
-.item-hbar{padding:7px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:9px;}
-.item-num{font-family:var(--font-mono);font-size:8px;color:var(--text-dim);white-space:nowrap;flex-shrink:0;}
+/* ITEM HEADER — prominent, uses space */
+.item-hbar{padding:14px 24px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:14px;}
+.item-num{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:nowrap;flex-shrink:0;padding-top:4px;}
 .item-title{flex:1;min-width:0;}
-.item-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.item-loc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:1px;}
+.item-name{font-size:20px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+.item-loc{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
 
 /* STATUS + DIFF BANDS */
-.status-band{padding:4px 14px;flex-shrink:0;font-family:var(--font-mono);font-size:9px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.status-band{padding:6px 24px;flex-shrink:0;font-family:var(--font-mono);font-size:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .status-band.unreviewed{background:rgba(86,86,96,.08);color:var(--text-dim);}
 .status-band.incomplete{background:rgba(158,122,50,.07);color:var(--amber);}
 .status-band.overdue{background:rgba(143,72,72,.07);color:var(--red);}
 .status-band.clean{background:rgba(77,143,106,.07);color:var(--green);}
-.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
-.missing-chips{display:flex;gap:3px;flex-wrap:wrap;}
-.mc{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:20px;background:rgba(158,122,50,.1);border:1px solid rgba(158,122,50,.3);color:var(--amber);cursor:pointer;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.missing-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.mc{font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(158,122,50,.1);border:1px solid rgba(158,122,50,.3);color:var(--amber);cursor:pointer;}
 .mc:hover{background:rgba(158,122,50,.2);}
-.diff-band{padding:3px 14px;flex-shrink:0;background:rgba(110,143,168,.05);border-bottom:1px solid rgba(110,143,168,.12);display:none;align-items:center;gap:6px;flex-wrap:wrap;}
+.diff-band{padding:4px 24px;flex-shrink:0;background:rgba(110,143,168,.05);border-bottom:1px solid rgba(110,143,168,.12);display:none;align-items:center;gap:8px;flex-wrap:wrap;}
 .diff-band.show{display:flex;}
-.diff-label{font-family:var(--font-mono);font-size:8px;color:var(--steel);white-space:nowrap;}
-.diff-items{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
-.di{font-family:var(--font-mono);font-size:8px;display:flex;align-items:center;gap:2px;}
+.diff-label{font-family:var(--font-mono);font-size:9px;color:var(--steel);white-space:nowrap;}
+.diff-items{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.di{font-family:var(--font-mono);font-size:9px;display:flex;align-items:center;gap:3px;}
 .di-f{color:var(--text-dim);}
-.di-old{color:var(--red);text-decoration:line-through;opacity:.7;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.di-new{color:var(--green);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.diff-x{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:10px;margin-left:auto;flex-shrink:0;}
+.di-old{color:var(--red);text-decoration:line-through;opacity:.7;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.di-new{color:var(--green);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.diff-x{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:12px;margin-left:auto;flex-shrink:0;}
 
-/* FORM */
-.form-body{flex:1;overflow-y:auto;padding:8px 14px 4px;}
+/* FORM — two-column layout to use horizontal space */
+.form-body{flex:1;overflow-y:auto;padding:16px 24px 8px;display:grid;grid-template-columns:1fr 1fr;gap:0 32px;align-content:start;}
+.form-body .span2{grid-column:1/-1;}
 
-/* AUDIT FREQ */
-.freq-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:7px;}
-.freq-opt{padding:5px 2px;border-radius:var(--radius);border:1px solid var(--border2);font-family:var(--font-mono);font-size:9px;cursor:pointer;background:transparent;color:var(--text-dim);transition:all .12s;text-align:center;line-height:1.3;}
+/* AUDIT FREQ — spans full width, prominent */
+.freq-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+.freq-opt{padding:10px 4px;border-radius:var(--radius);border:1px solid var(--border2);font-family:var(--font-mono);font-size:11px;cursor:pointer;background:transparent;color:var(--text-dim);transition:all .12s;text-align:center;line-height:1.4;}
 .freq-opt:hover{border-color:var(--text-mid);color:var(--text);}
 .freq-opt.selected-q{border-color:var(--audit-q);color:var(--audit-q);background:rgba(110,143,168,.1);}
 .freq-opt.selected-ba{border-color:var(--audit-ba);color:var(--audit-ba);background:rgba(158,122,50,.1);}
 .freq-opt.selected-a{border-color:var(--audit-a);color:var(--audit-a);background:rgba(122,110,168,.1);}
 .freq-opt.selected-never{border-color:var(--border2);color:var(--text-mid);background:var(--s2);}
-.freq-hint{font-family:var(--font-mono);font-size:8px;color:var(--rose);margin:-4px 0 5px;display:none;}
+.freq-hint{font-family:var(--font-mono);font-size:9px;color:var(--rose);margin:2px 0 6px;display:none;}
 .freq-hint.show{display:block;}
 
-.sec{font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin:7px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--border);}
+.sec{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin:10px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.sec.span2{grid-column:1/-1;}
 
-/* COMPACT GRID */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px;}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;}
-.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:5px;}
-.gf{display:flex;flex-direction:column;gap:2px;}
-.gfull{margin-bottom:5px;}
-.fl{font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);}
+/* FIELD GRIDS within each column */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.gf{display:flex;flex-direction:column;gap:4px;}
+.gfull{margin-bottom:8px;}
+.fl{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);}
 .fl.req::after{content:' *';color:var(--rose);}
 .fl.flag{color:var(--amber);}
 
-.fi,.fs,.ft{background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:4px 7px;color:var(--text);font-family:var(--font-sans);font-size:11px;outline:none;transition:border-color .15s,background .15s,color .15s;width:100%;-webkit-appearance:none;appearance:none;}
-.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23565660'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;padding-right:20px;}
+.fi,.fs,.ft{background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px;color:var(--text);font-family:var(--font-sans);font-size:13px;outline:none;transition:border-color .15s,background .15s,color .15s;width:100%;-webkit-appearance:none;appearance:none;}
+.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 6 4.5-6z' fill='%23565660'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:24px;}
 .fi:focus,.fs:focus,.ft:focus{border-color:var(--rose);}
 .fi.flagged,.fs.flagged{border-color:rgba(158,122,50,.5)!important;background:rgba(158,122,50,.05)!important;color:var(--text)!important;}
 .fi.filled{border-color:rgba(77,143,106,.35);}
 .fs option{background:var(--s2);color:var(--text);}
-.ft{resize:vertical;min-height:48px;font-family:var(--font-mono);font-size:10px;line-height:1.5;}
+.ft{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:11px;line-height:1.6;}
 
-.chk-row{display:flex;gap:10px;margin-bottom:5px;}
-.chk-l{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;color:var(--text-mid);}
-.chk-l input{width:11px;height:11px;accent-color:var(--rose);cursor:pointer;}
+.chk-l{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-mid);margin-bottom:6px;}
+.chk-l input{width:13px;height:13px;accent-color:var(--rose);cursor:pointer;}
 .chk-l:hover{color:var(--text);}
-.kw-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;margin-bottom:5px;}
-.kw-tag{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:20px;background:var(--s3);border:1px solid var(--border2);color:var(--text-dim);}
-.audit-ts{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:8px;padding-bottom:6px;}
+.kw-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;margin-bottom:8px;}
+.kw-tag{font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:20px;background:var(--s3);border:1px solid var(--border2);color:var(--text-dim);}
+.audit-ts{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:10px;padding-bottom:8px;}
 
 /* ACTION BAR */
-.action-bar{padding:7px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px;align-items:center;background:var(--bg);}
-.skip-btn{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;padding:2px 0;}
+.action-bar{padding:10px 24px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px;align-items:center;background:var(--bg);}
+.skip-btn{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;padding:3px 0;}
 .skip-btn:hover{color:var(--text-mid);}
-.freq-req-inline{font-family:var(--font-mono);font-size:8px;color:var(--rose);display:none;}
+.freq-req-inline{font-family:var(--font-mono);font-size:9px;color:var(--rose);display:none;}
 .freq-req-inline.show{display:inline;}
 
-.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 13px;font-family:var(--font-mono);font-size:10px;color:var(--text);opacity:0;transition:opacity .2s,transform .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--border2);border-radius:var(--radius);padding:7px 16px;font-family:var(--font-mono);font-size:11px;color:var(--text);opacity:0;transition:opacity .2s,transform .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;}
-.ldots{display:flex;gap:4px;}
-.ldots span{width:4px;height:4px;border-radius:50%;background:var(--rose);animation:ld 1.2s infinite;}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;}
+.ldots{display:flex;gap:5px;}
+.ldots span{width:5px;height:5px;border-radius:50%;background:var(--rose);animation:ld 1.2s infinite;}
 .ldots span:nth-child(2){animation-delay:.2s;}
 .ldots span:nth-child(3){animation-delay:.4s;}
 @keyframes ld{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
@@ -198,11 +198,11 @@ header{height:42px;display:flex;align-items:center;padding:0 14px;border-bottom:
     <div class="queue-head">
       <div class="queue-title">Queue — Batch <span id="batch-num">1</span></div>
       <div class="qf-row">
-        <button class="qf-btn active"    onclick="setQF('all',this)">All</button>
-        <button class="qf-btn"           onclick="setQF('unreviewed',this)">Unreviewed</button>
-        <button class="qf-btn"           onclick="setQF('incomplete',this)">Incomplete</button>
-        <button class="qf-btn"           onclick="setQF('overdue',this)">Overdue</button>
-        <button class="qf-btn qf-green"  onclick="setQF('clean',this)">✓ Reviewed</button>
+        <button class="qf-btn active"    data-filter="all"        onclick="setQF('all',this)">All</button>
+        <button class="qf-btn"           data-filter="unreviewed" onclick="setQF('unreviewed',this)">Unreviewed</button>
+        <button class="qf-btn"           data-filter="incomplete" onclick="setQF('incomplete',this)">Incomplete</button>
+        <button class="qf-btn"           data-filter="overdue"    onclick="setQF('overdue',this)">Overdue</button>
+        <button class="qf-btn qf-green"  data-filter="clean"      onclick="setQF('clean',this)">✓ Reviewed</button>
       </div>
     </div>
     <div class="queue-list" id="queue-list"></div>
@@ -222,7 +222,6 @@ header{height:42px;display:flex;align-items:center;padding:0 14px;border-bottom:
           <div class="item-name" id="item-name-disp"></div>
           <div class="item-loc" id="item-loc-disp"></div>
         </div>
-        <button class="btn btn-enrich" style="font-size:10px;flex-shrink:0" id="enrich-btn">✦ L5 + KW</button>
       </div>
       <div class="status-band unreviewed" id="status-band"></div>
       <div class="diff-band" id="diff-band"></div>
@@ -230,6 +229,7 @@ header{height:42px;display:flex;align-items:center;padding:0 14px;border-bottom:
       <div class="action-bar">
         <div style="flex:1"><button class="skip-btn" id="skip-btn">Skip →</button></div>
         <span class="freq-req-inline" id="freq-req">freq required ↑</span>
+        <button class="btn btn-enrich" id="enrich-btn">✦ L5 + Keywords</button>
         <button class="btn btn-green" id="done-btn">✓ Mark Audited</button>
       </div>
     </div>
@@ -371,9 +371,13 @@ function updateStats(){
     `<div class="sc"><div class="sc-dot" style="background:var(--green)"></div>${c.clean}</div>`;
 }
 
-function setQF(f,btn){currentFilter=f;batchStart=0;document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderQueue();}
-function prevBatch(){batchStart=Math.max(0,batchStart-BATCH_SIZE);renderQueue();}
-function nextBatch(){const q=fq();batchStart=Math.min(batchStart+BATCH_SIZE,Math.floor((q.length-1)/BATCH_SIZE)*BATCH_SIZE);renderQueue();}
+function saveSession(){
+  try{localStorage.setItem('audit-session',JSON.stringify({filter:currentFilter,batchStart,itemId:currentItemId}));}catch(e){}
+}
+
+function setQF(f,btn){currentFilter=f;batchStart=0;document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderQueue();saveSession();}
+function prevBatch(){batchStart=Math.max(0,batchStart-BATCH_SIZE);renderQueue();saveSession();}
+function nextBatch(){const q=fq();batchStart=Math.min(batchStart+BATCH_SIZE,Math.floor((q.length-1)/BATCH_SIZE)*BATCH_SIZE);renderQueue();saveSession();}
 
 // ── EDITOR ───────────────────────────────────────────────────────────────
 function selectItem(id){
@@ -388,6 +392,7 @@ function selectItem(id){
   document.getElementById('done-btn').onclick=()=>markDone(id);
   document.getElementById('skip-btn').onclick=()=>skipItem(id);
   document.getElementById('enrich-btn').onclick=()=>runEnrich(id);
+  saveSession();
 }
 
 function renderEditor(item){
@@ -416,55 +421,67 @@ function renderEditor(item){
   document.getElementById('form-body').innerHTML=`
     <datalist id="loc-dl">${allPaths.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
 
-    <div class="sec">Audit Frequency *</div>
-    <div class="freq-row">
-      <button class="freq-opt ${fcls('Quarterly')}"  onclick="setFreq(${item.id},'Quarterly',this)">Quarterly<br><span style="font-size:7px;opacity:.5">90d</span></button>
-      <button class="freq-opt ${fcls('Bi-Annual')}"  onclick="setFreq(${item.id},'Bi-Annual',this)">Bi-Annual<br><span style="font-size:7px;opacity:.5">180d</span></button>
-      <button class="freq-opt ${fcls('Annual')}"     onclick="setFreq(${item.id},'Annual',this)">Annual<br><span style="font-size:7px;opacity:.5">365d</span></button>
-      <button class="freq-opt ${fcls('Never')}"      onclick="setFreq(${item.id},'Never',this)">Never<br><span style="font-size:7px;opacity:.5">once</span></button>
+    <div class="span2">
+      <div class="sec span2">Audit Frequency *</div>
+      <div class="freq-row">
+        <button class="freq-opt ${fcls('Quarterly')}"  onclick="setFreq(${item.id},'Quarterly',this)">Quarterly<br><span style="font-size:9px;opacity:.5">every 90d</span></button>
+        <button class="freq-opt ${fcls('Bi-Annual')}"  onclick="setFreq(${item.id},'Bi-Annual',this)">Bi-Annual<br><span style="font-size:9px;opacity:.5">every 180d</span></button>
+        <button class="freq-opt ${fcls('Annual')}"     onclick="setFreq(${item.id},'Annual',this)">Annual<br><span style="font-size:9px;opacity:.5">every 365d</span></button>
+        <button class="freq-opt ${fcls('Never')}"      onclick="setFreq(${item.id},'Never',this)">Never<br><span style="font-size:9px;opacity:.5">one-time</span></button>
+      </div>
+      <div class="freq-hint" id="freq-hint">← assign frequency before marking done</div>
     </div>
-    <div class="freq-hint" id="freq-hint">← assign frequency before marking done</div>
 
-    <div class="sec">Identity</div>
-    <div class="gfull"><div class="gf"><div class="fl req${miss.includes('Name')?' flag':''}">Name</div><input class="fi${!item.name?' flagged':' filled'}" id="f-name" type="text" value="${esc(item.name||'')}" placeholder="Item name" oninput="luName(${item.id},this.value)"></div></div>
-    <div class="gfull"><div class="gf"><div class="fl">Location</div><input class="fi${locVal?' filled':''}" id="f-location" type="text" value="${esc(locVal)}" placeholder="Room > Shelf > Drawer" oninput="luLoc(${item.id},this.value)" list="loc-dl" autocomplete="off"></div></div>
-    <div class="g4">
-      <div class="gf"><div class="fl">Qty</div>${inp('qty','1')}</div>
-      <div class="gf"><div class="fl">Est. $</div>${inp('estValue','—')}</div>
-      <div class="gf"><div class="fl">Year</div>${inp('yearPurchased','YYYY')}</div>
-      <div class="gf"><div class="fl">Last Used</div>${inp('lastUsed','MM/YY')}</div>
-    </div>
-    <div class="g4" style="margin-bottom:6px">
-      <div class="gf"><div class="fl">Serial</div>${inp('sn','')}</div>
-      <div class="gf"><div class="fl">Doc Type</div>${cs('docType',DOCS,null)}</div>
-      <div class="gf" style="grid-column:span 2;padding-top:14px">
-        <label class="chk-l"><input type="checkbox" id="f-inUse" ${item.inUse?'checked':''} onchange="lu(${item.id},'inUse',this.checked,null)"> In Use</label>
-        <label class="chk-l" style="margin-top:3px"><input type="checkbox" id="f-digitalCopy" ${item.digitalCopy?'checked':''} onchange="lu(${item.id},'digitalCopy',this.checked,null)"> Digital Copy</label>
+    <div>
+      <div class="sec">Identity</div>
+      <div class="gfull"><div class="gf"><div class="fl req${miss.includes('Name')?' flag':''}">Name</div><input class="fi${!item.name?' flagged':' filled'}" id="f-name" type="text" value="${esc(item.name||'')}" placeholder="Item name" oninput="luName(${item.id},this.value)"></div></div>
+      <div class="gfull"><div class="gf"><div class="fl">Location</div><input class="fi${locVal?' filled':''}" id="f-location" type="text" value="${esc(locVal)}" placeholder="Room > Shelf > Drawer" oninput="luLoc(${item.id},this.value)" list="loc-dl" autocomplete="off"></div></div>
+      <div class="g2">
+        <div class="gf"><div class="fl">Qty</div>${inp('qty','1')}</div>
+        <div class="gf"><div class="fl">Est. $</div>${inp('estValue','—')}</div>
+      </div>
+      <div class="g2">
+        <div class="gf"><div class="fl">Year Purchased</div>${inp('yearPurchased','YYYY')}</div>
+        <div class="gf"><div class="fl">Last Used</div>${inp('lastUsed','MM/YYYY')}</div>
+      </div>
+      <div class="g2">
+        <div class="gf"><div class="fl">Serial / ID</div>${inp('sn','')}</div>
+        <div class="gf"><div class="fl">Doc Type</div>${cs('docType',DOCS,null)}</div>
+      </div>
+      <div style="margin-top:4px">
+        <label class="chk-l"><input type="checkbox" id="f-inUse" ${item.inUse?'checked':''} onchange="lu(${item.id},'inUse',this.checked,null)"> Currently In Use</label>
+        <label class="chk-l"><input type="checkbox" id="f-digitalCopy" ${item.digitalCopy?'checked':''} onchange="lu(${item.id},'digitalCopy',this.checked,null)"> Has Digital Copy</label>
       </div>
     </div>
 
-    <div class="sec">Classification</div>
-    <div class="g2">
-      <div class="gf"><div class="fl req${miss.includes('Category')?' flag':''}">Category</div>${cs('category',CATS,null)}</div>
-      <div class="gf"><div class="fl req${miss.includes('Condition')?' flag':''}">Condition</div>${cs('condition',['New','Good','Fair','Poor'],CONDC)}</div>
-    </div>
-    <div class="g3">
-      <div class="gf"><div class="fl req${miss.includes('Keep')?' flag':''}">Keep</div>${cs('keep',['Keep','Maybe','Sell','Donate','Trash'],KC)}</div>
-      <div class="gf"><div class="fl req${miss.includes('Frequency')?' flag':''}">Frequency</div>${cs('frequency',['Daily','Weekly','Monthly','Rarely','Never'],FC)}</div>
-      <div class="gf"><div class="fl">Fill Level</div>${cs('fillLevel',['Full','Most','Half','Low','Empty'],FILLC)}</div>
+    <div>
+      <div class="sec">Classification</div>
+      <div class="gfull"><div class="gf"><div class="fl req${miss.includes('Category')?' flag':''}">Category</div>${cs('category',CATS,null)}</div></div>
+      <div class="g2">
+        <div class="gf"><div class="fl req${miss.includes('Condition')?' flag':''}">Condition</div>${cs('condition',['New','Good','Fair','Poor'],CONDC)}</div>
+        <div class="gf"><div class="fl req${miss.includes('Keep')?' flag':''}">Keep</div>${cs('keep',['Keep','Maybe','Sell','Donate','Trash'],KC)}</div>
+      </div>
+      <div class="g2">
+        <div class="gf"><div class="fl req${miss.includes('Frequency')?' flag':''}">Frequency</div>${cs('frequency',['Daily','Weekly','Monthly','Rarely','Never'],FC)}</div>
+        <div class="gf"><div class="fl">Fill Level</div>${cs('fillLevel',['Full','Most','Half','Low','Empty'],FILLC)}</div>
+      </div>
+
+      <div class="sec">Importance</div>
+      <div class="gfull"><div class="gf"><div class="fl req${miss.includes('Criticality')?' flag':''}">Criticality</div>${cs('criticality',['Essential','Important','Nice to Have','Redundant'],CC)}</div></div>
+      <div class="gfull"><div class="gf"><div class="fl req${miss.includes('Replaceability')?' flag':''}">Replaceability</div>${cs('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'],RC)}</div></div>
     </div>
 
-    <div class="sec">Importance</div>
-    <div class="g2">
-      <div class="gf"><div class="fl req${miss.includes('Criticality')?' flag':''}">Criticality</div>${cs('criticality',['Essential','Important','Nice to Have','Redundant'],CC)}</div>
-      <div class="gf"><div class="fl req${miss.includes('Replaceability')?' flag':''}">Replaceability</div>${cs('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'],RC)}</div>
+    <div class="span2">
+      <div class="sec">Notes & Keywords</div>
+      <div class="g2">
+        <div class="gfull"><textarea class="ft" id="f-notes" style="min-height:80px" oninput="lu(${item.id},'notes',this.value,null)">${esc(item.notes||'')}</textarea></div>
+        <div>
+          <div class="gf"><div class="fl">Keywords</div><input class="fi${item.keywords?' filled':''}" id="f-keywords" type="text" value="${esc(item.keywords||'')}" placeholder="comma-separated" oninput="lu(${item.id},'keywords',this.value,null)"></div>
+          ${item.keywords?`<div class="kw-tags">${item.keywords.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span class="kw-tag">${esc(k)}</span>`).join('')}</div>`:''}
+          ${item.lastAudited?`<div class="audit-ts">Last audited: ${new Date(item.lastAudited).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`:''}
+        </div>
+      </div>
     </div>
-
-    <div class="sec">Notes & Keywords</div>
-    <div class="gfull"><textarea class="ft" id="f-notes" oninput="lu(${item.id},'notes',this.value,null)">${esc(item.notes||'')}</textarea></div>
-    <div class="gfull"><input class="fi${item.keywords?' filled':''}" id="f-keywords" type="text" value="${esc(item.keywords||'')}" placeholder="keywords, comma-separated" oninput="lu(${item.id},'keywords',this.value,null)"></div>
-    ${item.keywords?`<div class="kw-tags">${item.keywords.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span class="kw-tag">${esc(k)}</span>`).join('')}</div>`:''}
-    ${item.lastAudited?`<div class="audit-ts">Last audited: ${new Date(item.lastAudited).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`:''}
   `;
 }
 
@@ -599,13 +616,36 @@ function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e
   try{
     inventory=await sbLoad();
     buildQueue();updateStats();
+
+    // Restore session from localStorage
+    const saved = JSON.parse(localStorage.getItem('audit-session')||'{}');
     const p=new URLSearchParams(location.search),fid=p.get('item');
-    if(fid){const id=parseInt(fid),idx=queue.findIndex(i=>i.id===id);if(idx>=0)batchStart=Math.floor(idx/BATCH_SIZE)*BATCH_SIZE;}
+
+    if(fid){
+      // Deep link from badge — jump to that item
+      const id=parseInt(fid),idx=queue.findIndex(i=>i.id===id);
+      if(idx>=0)batchStart=Math.floor(idx/BATCH_SIZE)*BATCH_SIZE;
+    } else {
+      // Restore last filter and batch position
+      if(saved.filter) currentFilter=saved.filter;
+      if(saved.batchStart) batchStart=Math.min(saved.batchStart, Math.max(0, fq().length-1));
+    }
+
     renderQueue();
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('app').style.display='grid';
-    if(fid){selectItem(parseInt(fid));}
-    else if(queue.length){selectItem(queue[batchStart].id);}
+
+    // Restore active filter button
+    document.querySelectorAll('.qf-btn').forEach(b=>{
+      b.classList.toggle('active', b.getAttribute('data-filter')===currentFilter);
+    });
+
+    const restoreId = fid ? parseInt(fid) : saved.itemId;
+    if(restoreId && inventory.find(i=>i.id===restoreId)){
+      selectItem(restoreId);
+    } else if(fq().length){
+      selectItem(fq()[batchStart]?.id || fq()[0].id);
+    }
   }catch(err){
     document.getElementById('loading-screen').innerHTML=`<div class="loading"><div style="font-family:var(--font-mono);font-size:11px;color:var(--red)">Failed: ${err.message}</div></div>`;
   }
