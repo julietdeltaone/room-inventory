@@ -204,6 +204,21 @@ header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:
         <button class="qf-btn"           data-filter="overdue"    onclick="setQF('overdue',this)">Overdue</button>
         <button class="qf-btn qf-green"  data-filter="clean"      onclick="setQF('clean',this)">✓ Reviewed</button>
       </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:5px">Missing field</div>
+        <div class="qf-row" id="gap-filters">
+          <button class="qf-btn gap-btn" data-gap=""         onclick="setGap('',this)">None</button>
+          <button class="qf-btn gap-btn" data-gap="name"     onclick="setGap('name',this)">Name</button>
+          <button class="qf-btn gap-btn" data-gap="category" onclick="setGap('category',this)">Category</button>
+          <button class="qf-btn gap-btn" data-gap="notes"    onclick="setGap('notes',this)">Notes</button>
+          <button class="qf-btn gap-btn" data-gap="keywords" onclick="setGap('keywords',this)">Keywords</button>
+          <button class="qf-btn gap-btn" data-gap="year"     onclick="setGap('year',this)">Year</button>
+          <button class="qf-btn gap-btn" data-gap="lastUsed" onclick="setGap('lastUsed',this)">Last Used</button>
+          <button class="qf-btn gap-btn" data-gap="estValue" onclick="setGap('estValue',this)">Est. $</button>
+          <button class="qf-btn gap-btn" data-gap="condition" onclick="setGap('condition',this)">Condition</button>
+        </div>
+      </div>
+      <div id="gap-count" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:5px;display:none"></div>
     </div>
     <div class="queue-list" id="queue-list"></div>
     <div class="queue-foot">
@@ -245,7 +260,19 @@ const BATCH_SIZE=10;
 const FREQ_DAYS={Quarterly:90,'Bi-Annual':180,Annual:365};
 const LOCATION_ORDER=[];
 
-let inventory=[],queue=[],batchStart=0,currentFilter='all',currentItemId=null,_saveTimer=null;
+let inventory=[],queue=[],batchStart=0,currentFilter='all',currentGap='',currentItemId=null,_saveTimer=null;
+
+// Gap filter field definitions
+const GAP_CHECK = {
+  name:     i => !i.name || i.name.trim()==='',
+  category: i => !i.category,
+  notes:    i => !i.notes || i.notes.trim()==='',
+  keywords: i => !i.keywords || i.keywords.trim()==='',
+  year:     i => !i.yearPurchased,
+  lastUsed: i => !i.lastUsed,
+  estValue: i => !i.estValue,
+  condition:i => !i.condition,
+};
 
 const KC={Keep:{bg:'rgba(68,255,136,.1)',color:'#44ff88',border:'rgba(68,255,136,.25)'},Maybe:{bg:'rgba(255,230,100,.1)',color:'#ffe664',border:'rgba(255,230,100,.25)'},Sell:{bg:'rgba(255,154,60,.1)',color:'#ff9a3c',border:'rgba(255,154,60,.25)'},Donate:{bg:'rgba(160,200,255,.1)',color:'#a0c8ff',border:'rgba(160,200,255,.25)'},Trash:{bg:'rgba(255,68,68,.1)',color:'#ff4444',border:'rgba(255,68,68,.25)'}};
 const FC={Daily:{bg:'rgba(68,255,136,.1)',color:'#44ff88',border:'rgba(68,255,136,.25)'},Weekly:{bg:'rgba(100,180,255,.1)',color:'#64b4ff',border:'rgba(100,180,255,.25)'},Monthly:{bg:'rgba(255,230,100,.1)',color:'#ffe664',border:'rgba(255,230,100,.25)'},Rarely:{bg:'rgba(255,154,60,.1)',color:'#ff9a3c',border:'rgba(255,154,60,.25)'},Never:{bg:'rgba(255,68,68,.1)',color:'#ff4444',border:'rgba(255,68,68,.25)'}};
@@ -331,7 +358,11 @@ function buildQueue(){
   queue=[...inventory].sort((a,b)=>{const sa=pri[status(a)],sb=pri[status(b)];if(sa!==sb)return sa-sb;const la=lsk(a),lb=lsk(b);if(la!==lb)return la<lb?-1:1;return(a.name||'').localeCompare(b.name||'');});
 }
 
-function fq(){return currentFilter==='all'?queue:queue.filter(i=>status(i)===currentFilter);}
+function fq(){
+  let q = currentFilter==='all' ? queue : queue.filter(i=>status(i)===currentFilter);
+  if (currentGap && GAP_CHECK[currentGap]) q = q.filter(GAP_CHECK[currentGap]);
+  return q;
+}
 
 function renderQueue(){
   const q=fq(),batch=q.slice(batchStart,batchStart+BATCH_SIZE);
@@ -372,12 +403,30 @@ function updateStats(){
 }
 
 function saveSession(){
-  try{localStorage.setItem('audit-session',JSON.stringify({filter:currentFilter,batchStart,itemId:currentItemId}));}catch(e){}
+  try{localStorage.setItem('audit-session',JSON.stringify({filter:currentFilter,gap:currentGap,batchStart,itemId:currentItemId}));}catch(e){}
 }
 
-function setQF(f,btn){currentFilter=f;batchStart=0;document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderQueue();saveSession();}
+function setQF(f,btn){currentFilter=f;batchStart=0;document.querySelectorAll('.qf-btn:not(.gap-btn)').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderQueue();saveSession();}
 function prevBatch(){batchStart=Math.max(0,batchStart-BATCH_SIZE);renderQueue();saveSession();}
 function nextBatch(){const q=fq();batchStart=Math.min(batchStart+BATCH_SIZE,Math.floor((q.length-1)/BATCH_SIZE)*BATCH_SIZE);renderQueue();saveSession();}
+
+function setGap(gap, btn) {
+  currentGap = gap;
+  batchStart = 0;
+  document.querySelectorAll('.gap-btn').forEach(b=>b.classList.remove('active'));
+  if (gap) btn.classList.add('active');
+  renderQueue();
+  saveSession();
+  // Show count
+  const gc = document.getElementById('gap-count');
+  if (gap && GAP_CHECK[gap]) {
+    const n = inventory.filter(GAP_CHECK[gap]).length;
+    gc.style.display = 'block';
+    gc.textContent = `${n} item${n!==1?'s':''} missing ${gap==='year'?'year acquired':gap==='lastUsed'?'last used':gap==='estValue'?'est. cost':gap}`;
+  } else {
+    gc.style.display = 'none';
+  }
+}
 
 // ── EDITOR ───────────────────────────────────────────────────────────────
 function selectItem(id){
@@ -441,7 +490,7 @@ function renderEditor(item){
         <div class="gf"><div class="fl">Est. $</div>${inp('estValue','—')}</div>
       </div>
       <div class="g2">
-        <div class="gf"><div class="fl">Year Purchased</div>${inp('yearPurchased','YYYY')}</div>
+        <div class="gf"><div class="fl">Year Acquired</div>${inp('yearPurchased','YYYY')}</div>
         <div class="gf"><div class="fl">Last Used</div>${inp('lastUsed','MM/YYYY')}</div>
       </div>
       <div class="g2">
@@ -626,8 +675,9 @@ function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e
       const id=parseInt(fid),idx=queue.findIndex(i=>i.id===id);
       if(idx>=0)batchStart=Math.floor(idx/BATCH_SIZE)*BATCH_SIZE;
     } else {
-      // Restore last filter and batch position
+      // Restore last filter, gap, and batch position
       if(saved.filter) currentFilter=saved.filter;
+      if(saved.gap)    currentGap=saved.gap;
       if(saved.batchStart) batchStart=Math.min(saved.batchStart, Math.max(0, fq().length-1));
     }
 
@@ -636,9 +686,14 @@ function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e
     document.getElementById('app').style.display='grid';
 
     // Restore active filter button
-    document.querySelectorAll('.qf-btn').forEach(b=>{
+    document.querySelectorAll('.qf-btn:not(.gap-btn)').forEach(b=>{
       b.classList.toggle('active', b.getAttribute('data-filter')===currentFilter);
     });
+    // Restore gap filter
+    if(currentGap){
+      const gb=document.querySelector(`.gap-btn[data-gap="${currentGap}"]`);
+      if(gb){gb.classList.add('active');setGap(currentGap,gb);}
+    }
 
     const restoreId = fid ? parseInt(fid) : saved.itemId;
     if(restoreId && inventory.find(i=>i.id===restoreId)){
