@@ -1191,28 +1191,27 @@ body.mob-mode .shell{display:none;}
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── SINGLE-ROW CARD ──────────────────────────────────────────────────────── */
-.mc-row{display:flex;align-items:center;gap:10px;min-width:0;width:100%;}
-.mc-cat{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
-.mc-name{flex:1;font-size:17px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-.mc-sec{font-weight:300;font-style:italic;color:var(--text-mid);font-size:15px;}
-.mc-pills{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:auto;}
-
-/* Bigger inspect button */
-.loc-insp-btn{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:32px;height:32px;border-radius:50%;flex-shrink:0;
-  background:rgba(255,255,255,0.06);border:1px solid var(--border2);
-  color:var(--text-dim);font-size:15px;font-weight:600;
-  cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;
-  font-family:var(--font-mono);line-height:1;
+/* Fixed column layout: [CAT 80px] [NAME flex] [COND 70px] [QTY 36px] [FILL 54px] [AUDIT 32px] */
+.mc-row{display:grid;grid-template-columns:80px 1fr 70px 36px 58px 36px;align-items:center;gap:8px;width:100%;min-width:0;}
+.mc-cat{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;padding:3px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
+.mc-name{font-size:16px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.mc-sec{font-weight:300;font-style:italic;color:var(--text-mid);font-size:14px;}
+.mc-cond{font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:20px;border:1px solid;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mc-qty{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:center;white-space:nowrap;}
+.mc-fill{display:block;text-align:center;}
+.mc-audit{display:block;text-align:center;}
+/* hide old insp button - whole row taps now */
+.loc-insp-btn{display:none!important;}
+/* Card */
+.mob-card{padding:13px 24px;border-bottom:1px solid var(--border);cursor:pointer;border-left:4px solid transparent;-webkit-tap-highlight-color:transparent;transition:filter 0.1s;}
+.mob-card:nth-child(odd){/* tint set inline via row bg */}
+.mob-card:nth-child(even){/* tint set inline via row bg */}
+.mob-card:active{filter:brightness(1.3);}
+@media(min-width:768px){
+  .mc-row{grid-template-columns:90px 1fr 76px 40px 62px 40px;gap:10px;}
+  .mc-name{font-size:17px;}
+  .mob-card{padding:15px 32px;}
 }
-.loc-insp-btn:active{background:var(--s2);border-color:var(--rose);color:var(--rose);}
-
-/* Card padding tighter since single-row */
-.mob-card{padding:14px 24px;border-bottom:1px solid var(--border);cursor:pointer;border-left:4px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.1s;}
-.mob-card:nth-child(odd){background:rgba(255,255,255,0.015);}
-.mob-card:nth-child(even){background:transparent;}
-.mob-card:active{background:var(--s2)!important;}
 
 /* ── BIGGER DETAIL SHEET ──────────────────────────────────────────────────── */
 .mob-detail-sheet{
@@ -1239,7 +1238,7 @@ body.mob-mode .shell{display:none;}
 .mob-dbtn:active{background:var(--s3);}
 
 /* ── ADD ITEM — 2-col layout ──────────────────────────────────────────────── */
-.add-2col{display:grid;grid-template-columns:1fr 340px;gap:0;height:100%;overflow:hidden;}
+.add-2col{display:grid;grid-template-columns:1fr 1fr;gap:0;height:100%;overflow:hidden;}
 .add-form-col{padding:28px 28px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;border-right:1px solid var(--border);}
 .add-tree-col{display:flex;flex-direction:column;overflow:hidden;}
 .add-tree-hdr{padding:20px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -1265,8 +1264,15 @@ body.mob-mode .shell{display:none;}
 .add-tree-selected-bar{padding:8px 16px;background:rgba(176,122,132,0.08);border-bottom:1px solid rgba(176,122,132,0.2);font-size:13px;color:var(--rose);display:none;font-family:var(--font-mono);}
 .add-tree-selected-bar.visible{display:block;}
 
+
+/* ── CARD COLUMN HEADERS ──────────────────────────────────────────────────── */
+.mc-col-hdr{display:grid;grid-template-columns:80px 1fr 70px 36px 58px 36px;gap:8px;padding:6px 24px;border-bottom:1px solid var(--border);background:var(--s1);}
+.mc-col-hdr span{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);text-align:center;}
+.mc-col-hdr span:nth-child(2){text-align:left;}
+@media(min-width:768px){.mc-col-hdr{grid-template-columns:90px 1fr 76px 40px 62px 40px;gap:10px;padding:8px 32px;}}
+
 /* ── FIND TREE (read-only navigation) ────────────────────────────────────── */
-.find-tree-wrap{padding:16px 0 60px;}
+.find-tree-wrap{padding:8px 0 80px;}
 .find-tree-hdr{padding:8px 24px 12px;display:flex;align-items:center;justify-content:space-between;}
 .find-tree-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
 .find-tree-row{display:flex;align-items:center;gap:10px;padding:13px 24px;cursor:pointer;border-left:3px solid transparent;transition:background 0.1s;-webkit-tap-highlight-color:transparent;}
@@ -1290,7 +1296,7 @@ body.mob-mode .shell{display:none;}
   .mob-detail-body{padding:20px 32px;gap:12px;}
   .mob-detail-actions{padding:10px 32px 20px;}
   .mob-dfields{grid-template-columns:repeat(4,1fr);}
-  .add-2col{grid-template-columns:1fr 380px;}
+  .add-2col{grid-template-columns:2fr 3fr;}
   .add-form-col{padding:36px 36px 28px;}
   .find-tree-row{padding:14px 32px;}
   .find-tree-name{font-size:17px;}
@@ -1406,7 +1412,7 @@ body.mob-mode .shell{display:none;}
     <div class="t-search-wrap">
       <input class="t-search" id="mob-search" id2="ipad-search" type="search" placeholder="Search anything…" autocomplete="off" autocorrect="off" spellcheck="false"
         oninput="ipadOnSearch(this.value);mobRenderFind(this.value)"
-        onfocus="renderSrchHist()"
+        onfocus="if(typeof renderSrchHist==='function')renderSrchHist()"
         onblur="setTimeout(function(){var p=document.getElementById('search-hist-panel');if(p)p.innerHTML='';},200)"
         onkeydown="if(event.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim())">
     </div>
@@ -1415,7 +1421,7 @@ body.mob-mode .shell{display:none;}
     </div>
   </div>
   <div class="mob-content">
-    <div class="mob-page" id="mob-page-find">
+    <div class="mob-page" id="mob-page-find" style="overflow-y:auto;-webkit-overflow-scrolling:touch">
       <div id="search-hist-panel"></div>
       <div id="mob-find-results"><div class="mob-empty"><div class="mob-empty-icon">◎</div>Loading…</div></div>
     </div>
@@ -2461,7 +2467,7 @@ async function load(){
     }
     inventory=all;setSyncStatus('ok');renderSidebar();renderStage();restoreSbCollapse();
     if(document.body.classList.contains('mob-mode')){mobRenderBrowseAt([]);}
-    setTimeout(function(){updateSupplyBadge();renderAttnStrip();renderDailyStrip();renderFindTree();},100);
+    setTimeout(function(){if(typeof updateSupplyBadge==='function')updateSupplyBadge();if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();if(typeof renderFindTree==='function')renderFindTree();},100);
   }catch(err){
     setSyncStatus('error');
     document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
@@ -2536,14 +2542,16 @@ var _mobBrowsePath=[]; // tracks current browse location
 
 // ── MOBILE TABS ────────────────────────────────────────────────────────────
 function tSwitchTab(tab){
-  // Update t-tab active states
   document.querySelectorAll('.t-tab').forEach(function(t){t.classList.remove('active');});
   var tb=document.getElementById('mob-tab-'+tab);if(tb)tb.classList.add('active');
-  // Delegate to mobSwitchTab for page switching
   mobSwitchTab(tab);
-  // Extra actions per tab
   if(tab==='supply'&&inventory.length)mobRenderSupply();
   if(tab==='browse')mobRenderBrowseAt(_mobBrowsePath||[]);
+  if(tab==='add'){setTimeout(function(){if(typeof renderAddTree==='function'&&inventory.length)renderAddTree();},80);}
+  if(tab==='find'){setTimeout(function(){
+    var s=document.getElementById('mob-search');
+    if(typeof renderFindTree==='function'&&s&&!s.value.trim())renderFindTree();
+  },80);}
 }
 
 function mobSwitchTab(tab){
@@ -2582,33 +2590,56 @@ function mobRenderFind(q){
   var notes='';
   if(kwMatches>0)notes+='<span class="mob-search-note">+'+kwMatches+' via keywords</span>';
   if(locMatches>0)notes+='<span class="mob-search-note">+'+locMatches+' by location</span>';
-  var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+notes+'</div>';
+  var html='<div class="mob-count-bar">'+res.length+' item'+(res.length!==1?'s':'')+notes+'</div><div class="mc-col-hdr"><span>Category</span><span>Name</span><span>Cond</span><span>Qty</span><span>Fill</span><span></span></div>';
   res.forEach(function(item){html+=mobCard(item,true);});
   el.innerHTML=html;
 }
 
 function mobCard(item, fromSearch){
   var cs=catC(item.category);var n=splitName(item.name);
-  var iud=item.inUse?'<span class="mob-inuse-dot"></span>':'';
+  var iud=item.inUse?'<span class="mob-inuse-dot" style="margin-left:6px"></span>':'';
   var pid=mReg([item.id]);
-  var clickFn=fromSearch?'mobNavToItem(\''+pid+'\')':'mobOpenDetail('+pid+')';
-  var condColor={New:'rgba(68,255,136,.12)',Good:'rgba(100,180,255,.12)',Fair:'rgba(255,180,80,.12)',Poor:'rgba(255,80,80,.12)'};
-  var condText={New:'#44ff88',Good:'#64b4ff',Fair:'#ffb450',Poor:'#ff5050'};
-  var condH=item.condition?'<span style="font-family:var(--font-mono);font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid;background:'+(condColor[item.condition]||'rgba(255,255,255,.06)')+';color:'+(condText[item.condition]||'var(--text-dim)')+';border-color:'+(condText[item.condition]||'var(--border2)')+'55;white-space:nowrap">'+esc(item.condition)+'</span>':'';
-  var qtyH=item.qty&&item.qty!=='1'?'<span style="font-family:var(--font-mono);font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid var(--border2);color:var(--text-mid);background:var(--s2);white-space:nowrap">×'+esc(item.qty)+'</span>':'';
-  var fillColors={Full:'#3d8f5a',Most:'#7a9e44',Half:'#9e7a22',Low:'#8f3a20',Empty:'#8f3838'};
-  var fillH=item.fillLevel?'<button class="fill-cycle-btn '+(FILL_CLASS[item.fillLevel]||'unset')+'" data-item-id="'+item.id+'" onclick="event.stopPropagation();tapFillCycle(this,'+item.id+')">'+esc(item.fillLevel)+'</button>':'';
-  var auditH=(function(){var af=item.auditFreq;if(!af)return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge loc-audit-none" onclick="event.stopPropagation()">AUDIT</a>';var short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};var freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};var days=freqDays[af];var la=item.lastAudited;var due=la?new Date(la).getTime()+days*86400000:0;var now=Date.now();var overdue=due&&now>due;var soon=due&&!overdue&&(due-now)<30*86400000;var cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge '+cls+'" onclick="event.stopPropagation()">'+short[af]+'</a>';})();
-  return '<div class="mob-card" style="border-left-color:'+cs.text+'" onclick="'+clickFn+'">'
+  // Whole row opens inspector
+  var clickFn='openLocInspector('+item.id+',this)';
+  if(fromSearch){
+    // From search: navigate to item location first, then open inspector
+    clickFn='mobNavAndInspect(\''+pid+'\')';
+  }
+  // Category short label (first word)
+  var catShort=esc((item.category||'Misc').split(' & ')[0].split('/')[0]);
+  // Condition - fixed column, color coded
+  var condColor={New:'#44ff88',Good:'#64b4ff',Fair:'#ffb450',Poor:'#ff5050'};
+  var condBg={New:'rgba(68,255,136,.1)',Good:'rgba(100,180,255,.1)',Fair:'rgba(255,180,80,.1)',Poor:'rgba(255,80,80,.1)'};
+  var cColor=condColor[item.condition]||'var(--text-dim)';
+  var cBg=condBg[item.condition]||'rgba(255,255,255,.05)';
+  var condH='<span class="mc-cond" style="background:'+cBg+';color:'+cColor+';border-color:'+cColor+'55">'+(item.condition||'—')+'</span>';
+  // Qty - fixed column
+  var qtyH='<span class="mc-qty">'+(item.qty&&item.qty!=='1'?'×'+esc(item.qty):'')+'</span>';
+  // Fill badge
+  var fillH=item.fillLevel?'<button class="fill-cycle-btn '+(FILL_CLASS[item.fillLevel]||'unset')+' mc-fill" data-item-id="'+item.id+'" onclick="event.stopPropagation();tapFillCycle(this,'+item.id+')">'+esc(item.fillLevel)+'</button>':'<span class="mc-fill"></span>';
+  // Audit badge
+  var auditH=(function(){var af=item.auditFreq;if(!af)return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge loc-audit-none mc-audit" onclick="event.stopPropagation()">·</a>';var short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};var freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};var days=freqDays[af];var la=item.lastAudited;var due=la?new Date(la).getTime()+days*86400000:0;var now=Date.now();var overdue=due&&now>due;var soon=due&&!overdue&&(due-now)<30*86400000;var cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge '+cls+' mc-audit" onclick="event.stopPropagation()">'+short[af]+'</a>';})();
+  // Row bg = subtle category color tint
+  var rowBg='background:linear-gradient(to right,'+cs.bg+'cc 0%,'+cs.bg+'44 40%,transparent 100%)';
+  return '<div class="mob-card" style="border-left-color:'+cs.text+';'+rowBg+'" onclick="'+clickFn+'">'
     +'<div class="mc-row">'
-    +'<span class="mc-cat" style="background:'+cs.bg+';color:'+cs.text+'">'+esc((item.category||'Misc').split(' ')[0].replace('&','&amp;'))+'</span>'
+    +'<span class="mc-cat" style="background:'+cs.bg+';color:'+cs.text+'">'+catShort+'</span>'
     +'<span class="mc-name">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</span>'
-    +'<div class="mc-pills">'+condH+qtyH+fillH+auditH
-    +'<button class="loc-insp-btn" onclick="event.stopPropagation();openLocInspector('+item.id+',this)" title="Inspect">ⓘ</button>'
-    +'</div>'
+    +condH+qtyH+fillH+auditH
     +'</div>'
     +'</div>';
 }
+
+function mobNavAndInspect(pid){
+  var arr=_mp[pid];if(!arr)return;var id=arr[0];
+  var item=inventory.find(function(i){return i.id===id;});if(!item)return;
+  var loc=item.locationPath||[];
+  mobRenderBrowseAt(loc.slice());
+  tSwitchTab('browse');
+  var ms=document.getElementById('mob-search');if(ms)ms.value='';
+  setTimeout(function(){openLocInspector(id,null);},350);
+}
+
 function mobNavToItem(pid){
   var arr=_mp[pid];if(!arr)return;var id=arr[0];
   var item=inventory.find(function(i){return i.id===id;});if(!item)return;
@@ -2697,7 +2728,7 @@ function mobRenderBrowseAt(path){
   // Show/hide CTA + strips at home
   var _addCta=document.getElementById('add-cta-card');
   if(_addCta)_addCta.style.display=(!path.length&&isIPad())?'flex':'none';
-  if(!path.length){setTimeout(function(){renderAttnStrip();renderDailyStrip();},30);}
+  if(!path.length){setTimeout(function(){if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();},30);}
   else{var _as=document.getElementById('attn-strip');if(_as)_as.style.display='none';var _ds=document.getElementById('daily-strip');if(_ds)_ds.style.display='none';}
   var boxH='';
   if(children.length){
@@ -2726,7 +2757,7 @@ function mobRenderBrowseAt(path){
     }).join('')+'</div>';
   }
   var itemsH='';
-  if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div>'+directItems.map(function(i){return mobCard(i);}).join('');}
+  if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div><div class="mc-col-hdr"><span>Category</span><span>Name</span><span>Cond</span><span>Qty</span><span>Fill</span><span></span></div>'+directItems.map(function(i){return mobCard(i);}).join('');}
   var backPid=path.length?mReg(path.slice(0,-1)):'';
   var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>':'';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
@@ -3882,9 +3913,9 @@ function markUsedToday(itemId,btn){
 (function(){
   var ms=document.getElementById('mob-search');
   if(!ms)return;
-  ms.addEventListener('focus',function(){if(!this.value.trim())renderSrchHist();});
+  ms.addEventListener('focus',function(){if(!this.value.trim()&&typeof renderSrchHist==='function')renderSrchHist();});
   ms.addEventListener('blur',function(){setTimeout(function(){var p=document.getElementById('search-hist-panel');if(p)p.innerHTML='';},200);});
-  ms.addEventListener('input',function(){if(this.value.trim())document.getElementById('search-hist-panel').innerHTML='';else renderSrchHist();});
+  ms.addEventListener('input',function(){if(this.value.trim())document.getElementById('search-hist-panel').innerHTML='';else if(typeof renderSrchHist==='function')renderSrchHist();});
   ms.addEventListener('keydown',function(e){if(e.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim());});
 })();
 
@@ -4205,7 +4236,7 @@ function buildFindTree(ch, path, depth){
         + '<span class="find-tree-leaf-hint">→</span>'
         + '</div>';
     } else {
-      html += '<div class="find-tree-row" style="padding-left:'+(24+indent)+'px" onclick="findTreeToggle(''+kid+'')">'
+      html += '<div class="find-tree-row" style="padding-left:'+(24+indent)+'px" data-kid="'+kid+'" onclick="findTreeToggle(this.dataset.kid)">'
         + '<div class="find-tree-dot" style="background:'+color+'"></div>'
         + '<span class="find-tree-name">'+esc(name)+'</span>'
         + '<span class="find-tree-cnt">'+node.total+'</span>'
@@ -4297,15 +4328,7 @@ function addTreeCollapseAll(){
   renderAddTree();
 }
 
-// Wire renderAddTree when switching to add tab
-(function(){
-  var origTSwitch = window.tSwitchTab;
-  window.tSwitchTab = function(tab){
-    origTSwitch(tab);
-    if(tab === 'add' && inventory.length) renderAddTree();
-    if(tab === 'find' && inventory.length) renderFindTree();
-  };
-})();
+// tree hooks now in tSwitchTab directly
 </script>
 
 <!-- ── LOCATE INSPECTOR OVERLAY ── -->
