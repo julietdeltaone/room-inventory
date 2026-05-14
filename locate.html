@@ -596,15 +596,15 @@ body.mob-mode .shell{display:none;}
 .ipad-sidebar{display:none;}
 /* ── IPAD DASHBOARD LAYOUT (768px+) ── */
 @media(min-width:768px){
-  /* Overall shell: sidebar + main, no bottom tabs */
-  .mob-shell{flex-direction:row;}
+  /* Tablet: full-column layout, t-tabs at bottom */
+  .mob-shell{flex-direction:column;}
   .mob-tabs{display:none;}
+  .mob-stats{display:none;}
 
   /* Left sidebar */
-  .ipad-sidebar{display:flex;flex-direction:column;width:220px;flex-shrink:0;
+  /* sidebar removed */ .ipad-sidebar{display:none;/*width:220px;flex-shrink:0;
     border-right:1px solid var(--border);background:var(--s1);
-    height:100vh;overflow:hidden;
-  }
+    height:100vh;overflow:hidden;*/
   .ipad-sidebar-hdr{
     padding:20px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
   }
@@ -662,12 +662,12 @@ body.mob-mode .shell{display:none;}
   .ipad-foot-sync{display:flex;align-items:center;gap:5px;flex:1;
     font-family:var(--font-mono);font-size:9px;color:var(--text-dim);}
 
-  /* Main content area — mob-shell is already fixed inset:0, so just flex:1 */
-  .mob-content{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+  /* Main content area — full width, column layout */
+  .mob-content{flex:1;overflow-y:auto;overflow-x:hidden;}
 
   /* All pages stack as columns — only active shows */
-  .mob-page{flex:1;overflow-x:hidden;display:none;}
-  .mob-page.active{display:flex;flex-direction:column;overflow-y:auto;}
+  .mob-page{display:none;flex-direction:column;}
+  .mob-page.active{display:flex;flex-direction:column;min-height:0;}
   /* Ask page: no scroll on the page — scroll is inside mob-ask-thread */
   #mob-page-ask{overflow:hidden;}
   #mob-page-ask.active{display:flex;flex-direction:column;overflow:hidden;}
@@ -743,17 +743,7 @@ body.mob-mode .shell{display:none;}
 .ipad-toggle-btn:hover{color:var(--text);}
 /* Sidebar collapsed state */
 @media(min-width:768px){
-  .ipad-sidebar{transition:width 0.25s cubic-bezier(0.16,1,0.3,1);}
-  .ipad-sidebar.ipad-collapsed{width:52px;overflow:hidden;}
-  .ipad-sidebar.ipad-collapsed .ipad-sidebar-logo,
-  .ipad-sidebar.ipad-collapsed .ipad-sidebar-search,
-  .ipad-sidebar.ipad-collapsed .ipad-nav-label,
-  .ipad-sidebar.ipad-collapsed .ipad-nav-count,
-  .ipad-sidebar.ipad-collapsed .ipad-sidebar-nav,
-  .ipad-sidebar.ipad-collapsed .ipad-foot-editor{display:none;}
-  .ipad-sidebar.ipad-collapsed .ipad-nav-item{justify-content:center;padding:14px 0;}
-  .ipad-sidebar.ipad-collapsed .ipad-nav-item span:not(.ipad-nav-icon){display:none;}
-  .ipad-sidebar.ipad-collapsed .ipad-sidebar-hdr{padding:12px 8px;justify-content:center;}
+  /* sidebar removed */
   /* Bigger tap targets + font for iPad */
   .ipad-nav-item{padding:12px 14px;min-height:50px;font-size:15px;border-radius:10px;margin:0 8px 2px;}
   .ipad-nav-icon{font-size:18px;margin-right:10px;}
@@ -946,6 +936,259 @@ body.mob-mode .shell{display:none;}
   .supply-card-dot{width:11px;height:11px;}
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLET-FIRST REDESIGN
+   Goal: full-screen, touch-native, 4-tab bottom nav, no sidebar ever
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── UNIFIED HEADER ───────────────────────────────────────────────────────── */
+.t-hdr{
+  display:flex;align-items:center;gap:12px;
+  padding:0 20px;height:64px;flex-shrink:0;
+  border-bottom:1px solid var(--border);background:var(--bg);
+}
+.t-hdr-left{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.t-logo{font-family:var(--font-mono);font-size:13px;letter-spacing:0.18em;color:var(--text-mid);text-transform:uppercase;font-weight:500;}
+.t-search-wrap{flex:1;position:relative;}
+.t-search{
+  width:100%;background:var(--s2);border:1.5px solid var(--border2);
+  border-radius:12px;padding:11px 18px;
+  color:var(--text);font-family:var(--font-ui);font-size:17px;
+  outline:none;-webkit-appearance:none;transition:border-color 0.15s;
+}
+.t-search:focus{border-color:var(--rose);}
+.t-search::placeholder{color:var(--text-dim);}
+.t-hdr-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.t-editor-link{
+  font-family:var(--font-mono);font-size:11px;color:var(--text-dim);
+  text-decoration:none;letter-spacing:0.08em;padding:8px 14px;
+  border:1px solid var(--border2);border-radius:8px;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;transition:all 0.15s;
+}
+.t-editor-link:hover{color:var(--text);border-color:var(--text-dim);}
+
+/* Hide old mobile header */
+.mob-hdr{display:none!important;}
+/* Hide sidebar always */
+.ipad-sidebar{display:none!important;}
+
+/* ── BOTTOM TAB BAR — the ONLY navigation ─────────────────────────────────── */
+.t-tabs{
+  display:flex;border-top:1px solid var(--border);
+  height:72px;flex-shrink:0;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:var(--bg);
+}
+/* Hide old tab bar */
+.mob-tabs{display:none!important;}
+
+.t-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;background:none;border:none;
+  cursor:pointer;color:var(--text-dim);
+  transition:color 0.15s,background 0.15s;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;border-radius:0;
+  min-width:60px;
+}
+.t-tab:active{background:var(--s2);}
+.t-tab.active{color:var(--rose);}
+.t-tab.active::before{
+  content:'';position:absolute;top:0;left:20%;right:20%;
+  height:2px;background:var(--rose);border-radius:0 0 2px 2px;
+}
+.t-tab-icon{font-size:24px;line-height:1;}
+.t-tab-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;}
+
+/* ── BROWSE HOME — full-width, no wasted space ────────────────────────────── */
+
+/* Stats bar — purely informational, not clickable */
+.ipad-stats-bar{
+  display:flex;gap:0;padding:0;flex-shrink:0;
+  border-bottom:1px solid var(--border);
+}
+.ipad-stat-cell{
+  flex:1;text-align:center;padding:18px 8px;
+  background:var(--bg);border-right:1px solid var(--border);
+  cursor:default!important;
+}
+.ipad-stat-cell:last-child{border-right:none;}
+.ipad-stat-num{font-family:var(--font-mono);font-size:22px;font-weight:500;color:var(--text);letter-spacing:-0.01em;}
+.ipad-stat-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-top:3px;}
+
+/* Location boxes — big, sorted, full-width grid */
+.mob-boxes{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;padding:20px 20px;
+}
+.mob-box{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:18px;padding:22px 20px 18px;
+  cursor:pointer;border-top:4px solid transparent;
+  -webkit-tap-highlight-color:transparent;
+  transition:background 0.12s,transform 0.12s;
+  display:flex;flex-direction:column;min-height:130px;
+  position:relative;
+}
+.mob-box:active{background:var(--s2);transform:scale(0.98);}
+.mob-box-arrow{
+  position:absolute;top:20px;right:18px;
+  font-size:20px;color:var(--text-dim);opacity:0.5;
+}
+.mob-box-name{font-size:24px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:4px;padding-right:32px;}
+.mob-box-count{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.mob-box-preview{display:flex;flex-direction:column;gap:4px;margin-top:2px;}
+.mob-box-prev-item{font-size:13px;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Fill status bar on card */
+.mob-box-fill-bar{
+  display:flex;gap:3px;margin-top:12px;
+}
+.mob-box-fill-seg{height:4px;border-radius:2px;flex:1;background:var(--border);}
+.mob-box-fill-seg.empty{background:#8f3838;}
+.mob-box-fill-seg.low{background:#8f5530;}
+.mob-box-fill-seg.half{background:#9e7a32;}
+.mob-box-fill-seg.most{background:#7a9e44;}
+.mob-box-fill-seg.full{background:#3d8f5a;}
+
+/* Browse header (drill-down) — big back button */
+.mob-browse-hdr{
+  padding:16px 20px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;flex-shrink:0;
+}
+.mob-back{
+  display:flex;align-items:center;gap:8px;
+  background:var(--s2);border:1.5px solid var(--border2);border-radius:12px;
+  color:var(--text-mid);cursor:pointer;font-size:17px;font-weight:600;
+  padding:11px 18px;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;transition:background 0.1s;
+  font-family:var(--font-ui);min-height:48px;
+}
+.mob-back:active{background:var(--s3);}
+.mob-btitle{font-size:26px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mob-bcount{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);flex-shrink:0;}
+
+/* Breadcrumb */
+.mob-bc{display:flex;gap:6px;padding:8px 20px 4px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;}
+.mob-bc::-webkit-scrollbar{display:none;}
+.mob-bc button{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);cursor:pointer;white-space:nowrap;background:none;border:none;padding:4px 0;}
+.mob-bc-sep{font-family:var(--font-mono);font-size:12px;color:var(--border2);}
+
+/* Section label */
+.mob-sec-label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--text-dim);
+  padding:14px 20px 6px;display:flex;align-items:center;gap:10px;
+}
+.mob-sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Item cards — bigger, full-touch */
+.mob-card{
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  cursor:pointer;border-left:4px solid transparent;
+  -webkit-tap-highlight-color:transparent;transition:background 0.1s;
+}
+.mob-card:nth-child(odd){background:rgba(255,255,255,0.015);}
+.mob-card:nth-child(even){background:transparent;}
+.mob-card:active{background:var(--s2)!important;}
+.mob-card-name{font-size:19px;font-weight:600;color:var(--text);line-height:1.25;margin-bottom:6px;}
+.mob-card-sec{font-weight:300;font-style:italic;color:var(--text-mid);margin-left:6px;font-size:17px;}
+.mob-card-loc{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;overflow:hidden;margin-bottom:8px;}
+.mob-lseg{font-size:14px;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;}
+.mob-lseg.leaf{color:var(--text);font-weight:600;flex-shrink:0;}
+.mob-larr{color:var(--border2);font-size:12px;flex-shrink:0;}
+.mob-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.mob-badge{font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:5px;}
+.mob-pill{font-size:13px;color:var(--text-mid);}
+.mob-count-bar{font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;color:var(--text-dim);padding:12px 20px 4px;text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* Find tab — search hero ─────────────────────────────────────────────────── */
+.mob-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 32px;gap:12px;color:var(--text-dim);font-family:var(--font-mono);font-size:13px;text-align:center;}
+.mob-empty-icon{font-size:40px;opacity:0.2;margin-bottom:8px;}
+
+/* Add tab ─────────────────────────────────────────────────────────────────── */
+.mob-add-title{font-size:28px;font-weight:700;color:var(--text);}
+.mob-add-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-top:4px;}
+.mob-field-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);}
+.mob-field-inp,.mob-field-sel,.mob-loc-btn{font-size:18px;padding:15px 16px;border-radius:12px;}
+.mob-submit-btn{font-size:19px;padding:19px;border-radius:14px;}
+.mob-loc-btn{background:var(--s2);border:1.5px solid var(--border2);border-radius:12px;padding:15px 16px;color:var(--text-dim);font-family:var(--font-ui);font-size:18px;width:100%;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:border-color 0.15s;}
+.mob-loc-btn.set{color:var(--text);}
+
+/* Detail sheet ─────────────────────────────────────────────────────────────── */
+.mob-detail-name{font-size:24px;font-weight:700;color:var(--text);line-height:1.2;}
+.mob-detail-sec{font-size:16px;font-weight:300;font-style:italic;color:var(--text-mid);display:block;margin-top:3px;}
+.mob-dloc{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;flex-wrap:wrap;}
+.mob-dlseg{font-size:15px;color:var(--text-mid);}
+.mob-dlseg.leaf{color:var(--rose);font-weight:600;font-size:16px;}
+.mob-dfield{background:var(--s2);border-radius:10px;padding:12px 14px;}
+.mob-dlbl{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
+.mob-dval{font-size:17px;font-weight:600;color:var(--text);}
+.mob-dnotes-txt{font-size:15px;color:var(--text-mid);line-height:1.65;}
+.mob-dbtn{flex:1;padding:15px;border-radius:12px;border:1px solid var(--border2);background:var(--s2);color:var(--text-mid);font-family:var(--font-ui);font-size:16px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:background 0.1s;}
+
+/* Supply tab ─────────────────────────────────────────────────────────────── */
+.mob-supply-title{font-size:26px;font-weight:700;color:var(--text);}
+.mob-supply-item{padding:18px 24px;}
+.fill-seg{width:26px;height:34px;border-radius:6px;}
+.fill-meter{gap:5px;}
+.mob-supply-save-btn{font-size:17px;padding:16px 28px;border-radius:12px;}
+
+/* Loc picker — iPad sized ─────────────────────────────────────────────────── */
+.mob-lp-title{font-size:20px;font-weight:700;}
+.mob-lp-done{font-size:18px;font-weight:700;color:var(--rose);background:none;border:none;cursor:pointer;padding:8px 4px;}
+.mob-lp-name{flex:1;font-size:19px;color:var(--text);}
+.mob-lp-row{padding:18px 20px;min-height:60px;}
+.mob-lp-cnt{font-family:var(--font-mono);font-size:13px;color:var(--text-dim);}
+
+/* Ask tab ─────────────────────────────────────────────────────────────────── */
+.mob-ask-empty-title{font-size:22px;font-weight:700;}
+.mob-ask-empty-sub{font-size:15px;line-height:1.6;}
+.mob-ask-bubble{font-size:16px;line-height:1.7;}
+.mob-ask-input{font-size:17px;padding:12px 18px;}
+
+/* Attention strip ──────────────────────────────────────────────────────────── */
+/* (no JS onclick on stats — attention strip is the action surface) */
+
+/* iPad: 2-col boxes, bigger grid */
+@media(min-width:768px){
+  .mob-boxes{grid-template-columns:repeat(2,1fr);padding:24px;gap:20px;}
+  .mob-box-name{font-size:26px;}
+  .mob-box-prev-item{font-size:14px;}
+  .mob-card{padding:20px 28px;}
+  .mob-card-name{font-size:21px;}
+  .mob-lseg{font-size:15px;}
+  .mob-badge{font-size:11px;padding:4px 10px;}
+  .t-tabs{height:78px;}
+  .t-tab-icon{font-size:26px;}
+  .t-tab-lbl{font-size:11px;}
+  .mob-browse-hdr{padding:20px 28px 14px;}
+  .mob-btitle{font-size:30px;}
+  .mob-back{font-size:18px;padding:13px 22px;}
+  .mob-sec-label{padding:16px 28px 8px;font-size:12px;}
+  .mob-count-bar{padding:14px 28px 6px;font-size:13px;}
+  .mob-add-wrap{max-width:640px;margin:0 auto;padding:32px 28px 60px;}
+  .mob-supply-hdr{padding:28px 32px 14px;}
+  .mob-supply-group-hdr{padding:12px 32px 8px;}
+  .mob-supply-item{padding:20px 32px;}
+  .mob-supply-save-bar{padding:18px 32px;}
+  .mob-ask-wrap{max-width:700px;margin:0 auto;}
+  .mob-detail-name{font-size:26px;}
+  .ipad-stats-bar{display:flex;}
+  .mob-stats{display:none;}
+  /* On iPad, main content = mob-content full width */
+  .mob-shell{flex-direction:column;}
+  .mob-content{flex:1;overflow-y:auto;overflow-x:hidden;}
+}
+@media(min-width:1024px){
+  .mob-boxes{grid-template-columns:repeat(3,1fr);}
+  .t-hdr{padding:0 32px;}
+  .mob-card{padding:20px 32px;}
+  .mob-browse-hdr{padding:24px 32px 16px;}
+  .mob-sec-label{padding:18px 32px 8px;}
+}
+/* ═══════════════════════════════════════════════════════════════════════════ */
 </style>
 </head>
 <body>
@@ -1046,30 +1289,23 @@ body.mob-mode .shell{display:none;}
 
 <!-- MOBILE -->
 <div class="mob-shell" id="mob-shell">
-  <!-- iPad sidebar — hidden on phone, shown on tablet via CSS -->
-  <div class="ipad-sidebar" id="ipad-sidebar">
-    <div class="ipad-sidebar-hdr">
-      <button class="ipad-toggle-btn" onclick="toggleIpadSidebar()">☰</button>
-      <div class="ipad-sidebar-logo">Inventory</div>
-      <input class="ipad-sidebar-search" id="ipad-search" type="search" placeholder="Search…" autocomplete="off" oninput="ipadOnSearch(this.value)">
+  <!-- Unified tablet/phone header — no sidebar -->
+  <div class="t-hdr" id="t-hdr">
+    <div class="t-hdr-left">
+      <div class="t-logo">Inventory</div>
+      <div class="mob-sync loading" id="mob-sync" style="width:7px;height:7px;border-radius:50%"></div>
+      <div class="mob-sync loading" id="ipad-sync-dot" style="display:none"></div>
+      <span id="ipad-sync-label" style="display:none"></span>
     </div>
-    <nav class="ipad-sidebar-nav" id="ipad-nav">
-      <!-- Rendered by JS -->
-    </nav>
-    <div class="ipad-sidebar-foot">
-      <div class="ipad-foot-sync">
-        <div class="mob-sync loading" id="ipad-sync-dot"></div>
-        <span id="ipad-sync-label">loading</span>
-      </div>
-      <a href="index.html" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-decoration:none;letter-spacing:0.08em;">editor →</a>
+    <div class="t-search-wrap">
+      <input class="t-search" id="mob-search" id2="ipad-search" type="search" placeholder="Search anything…" autocomplete="off" autocorrect="off" spellcheck="false"
+        oninput="ipadOnSearch(this.value);mobRenderFind(this.value)"
+        onfocus="renderSrchHist()"
+        onblur="setTimeout(function(){var p=document.getElementById('search-hist-panel');if(p)p.innerHTML='';},200)"
+        onkeydown="if(event.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim())">
     </div>
-  </div>
-  <div class="mob-hdr">
-    <div class="mob-logo">Inv</div>
-    <input class="mob-search-hdr" id="mob-search" type="search" placeholder="Search items…" autocomplete="off" autocorrect="off" spellcheck="false">
-    <div class="mob-hdr-right">
-      <div class="mob-sync loading" id="mob-sync"></div>
-      <button class="mob-hamburger" onclick="mobOpenDrawer()">☰</button>
+    <div class="t-hdr-right">
+      <a href="index.html" class="t-editor-link">Editor ↗</a>
     </div>
   </div>
   <div class="mob-content">
@@ -1080,11 +1316,7 @@ body.mob-mode .shell{display:none;}
     <div class="mob-page active" id="mob-page-browse">
       <div id="attn-strip" style="display:none"></div>
       <div id="daily-strip" style="display:none"></div>
-      <div id="add-cta-card" style="display:none;margin:12px 16px;padding:16px 18px;background:rgba(176,122,132,0.09);border:1px solid rgba(176,122,132,0.28);border-radius:14px;cursor:pointer;align-items:center;gap:14px" onclick="ipadGoTab('add')">
-        <div style="font-size:22px;color:var(--rose)">＋</div>
-        <div style="flex:1"><div style="font-size:16px;font-weight:600;color:var(--rose)">Add Item</div><div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px">Saves to inventory with AI enrichment</div></div>
-        <div style="font-size:20px;color:rgba(176,122,132,0.5)">›</div>
-      </div>
+
       <div id="mob-browse-inner"></div>
     </div>
     <div class="mob-page" id="mob-page-add">
@@ -1161,12 +1393,23 @@ body.mob-mode .shell{display:none;}
       </div>
     </div>
   </div>
-  <div class="mob-tabs">
-    <button class="mob-tab" id="mob-tab-find" onclick="mobSwitchTab('find')"><div class="mob-tab-icon">⌕</div><div class="mob-tab-lbl">Find</div></button>
-    <button class="mob-tab active" id="mob-tab-browse" onclick="mobSwitchTab('browse')"><div class="mob-tab-icon">◎</div><div class="mob-tab-lbl">Browse</div></button>
-    <button class="mob-tab" id="mob-tab-add" onclick="mobSwitchTab('add')"><div class="mob-tab-icon">＋</div><div class="mob-tab-lbl">Add</div></button>
-    <button class="mob-tab" id="mob-tab-ask" onclick="mobSwitchTab('ask')"><div class="mob-tab-icon">✦</div><div class="mob-tab-lbl">Ask</div></button>
-    <button class="mob-tab" id="mob-tab-supply" onclick="mobSwitchTab('supply')" style="position:relative"><div class="mob-tab-icon">⬡</div><div class="mob-tab-lbl">Supply</div><span id="supply-tab-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 18px);background:#8f4848;color:#fff;font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:20px"></span></button>
+  <div class="t-tabs">
+    <button class="t-tab active" id="mob-tab-browse" onclick="tSwitchTab('browse')">
+      <div class="t-tab-icon">◎</div><div class="t-tab-lbl">Browse</div>
+    </button>
+    <button class="t-tab" id="mob-tab-find" onclick="tSwitchTab('find')">
+      <div class="t-tab-icon">⌕</div><div class="t-tab-lbl">Find</div>
+    </button>
+    <button class="t-tab" id="mob-tab-supply" onclick="tSwitchTab('supply')" style="position:relative">
+      <div class="t-tab-icon">⬡</div><div class="t-tab-lbl">Supply</div>
+      <span id="supply-tab-badge" title="Items low or empty" style="display:none;position:absolute;top:8px;right:calc(50% - 22px);background:#8f4848;color:#fff;font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:20px;font-weight:600"></span>
+    </button>
+    <button class="t-tab" id="mob-tab-add" onclick="tSwitchTab('add')">
+      <div class="t-tab-icon" style="color:var(--rose)">＋</div><div class="t-tab-lbl" style="color:var(--rose)">Add</div>
+    </button>
+    <button class="t-tab" id="mob-tab-ask" onclick="tSwitchTab('ask')">
+      <div class="t-tab-icon">✦</div><div class="t-tab-lbl">Ask</div>
+    </button>
   </div>
 </div>
 <!-- DRAWER -->
@@ -1566,7 +1809,7 @@ function statsStripHTML(){
   const dailyHTML=desktopDailyHTML();
   return`${attnHTML}${dailyHTML}<div class="stats-strip">
     <div class="stat-cell"><div class="stat-num">${vis.length}</div><div class="stat-lbl">Items</div></div>
-    <div class="stat-cell" style="cursor:pointer" onclick="setInUseView()" title="View in-use items"><div class="stat-num">${inUseCount}</div><div class="stat-lbl">In Use ›</div></div>
+    <div class="stat-cell"><div class="stat-num">${inUseCount}</div><div class="stat-lbl">In Use</div></div>
     <div class="stat-cell"><div class="stat-num">${cats}</div><div class="stat-lbl">Categories</div></div>
     <div class="stat-cell"><div class="stat-num">${valFmt}</div><div class="stat-lbl">Est. Value</div></div>
     ${emptyLow?`<div class="stat-cell" style="cursor:pointer;border-color:rgba(143,72,72,0.4);background:rgba(143,72,72,0.06)" onclick="document.getElementById('chat-toggle-btn').click()" title="View supply status"><div class="stat-num" style="color:#d08080;font-size:22px">${emptyLow}</div><div class="stat-lbl" style="color:#d08080">Low/Empty</div></div>`:''}
@@ -1581,8 +1824,8 @@ function desktopAttnHTML(){
   const chip=(label,onclick,color)=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;background:${color}22;border:1px solid ${color}44;color:${color};font-family:var(--font-mono);font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="${onclick}"><span style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></span>${label}</span>`;
   return`<div style="display:flex;gap:8px;padding:12px 0 20px;align-items:center;flex-wrap:wrap">
     <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#d08080">Needs Attention</span>
-    ${empty?chip(empty+' empty',"navigate(['Supply Run'] /* handled by supply run */)",'#d08080'):''}
-    ${low?chip(low+' low',"navigate([])",'#c07030'):''}
+    ${empty?chip(empty+' empty',"tSwitchTab('supply')",'#d08080'):''}
+    ${low?chip(low+' low',"tSwitchTab('supply')",'#c07030'):''}
     ${review?chip(review+' to review',"searchQuery='keep:maybe';renderStage()",'#9e7a32'):''}
   </div>`;
 }
@@ -1590,7 +1833,7 @@ function desktopAttnHTML(){
 function desktopDailyHTML(){
   const daily=inventory.filter(i=>i.frequency==='Daily'&&(_pinUnlocked||!i.lockedItem)).slice(0,12);
   if(!daily.length)return'';
-  const chips=daily.map(i=>{const n=splitName(i.name);const pid=regPath([i]);return`<span style="display:inline-flex;padding:6px 14px;border-radius:20px;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.2);color:var(--green);font-size:12px;white-space:nowrap;cursor:pointer" onclick="openLocInspector(${i.id},this)">${esc(n.primary)}</span>`;}).join('');
+  const chips=daily.map(i=>{const n=splitName(i.name);const pid=regPath([i]);var did=regPath([i]);return`<span style="display:inline-flex;padding:6px 14px;border-radius:20px;background:rgba(77,143,106,0.1);border:1px solid rgba(77,143,106,0.2);color:var(--green);font-size:12px;white-space:nowrap;cursor:pointer" onclick="nav('${did}')">${esc(n.primary)}</span>`;}).join('');
   return`<div style="display:flex;gap:8px;padding:0 0 16px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;align-items:center">
     <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);flex-shrink:0">Daily</span>
     ${chips}
@@ -2099,7 +2342,7 @@ async function load(){
     }
     inventory=all;setSyncStatus('ok');renderSidebar();renderStage();restoreSbCollapse();
     if(document.body.classList.contains('mob-mode')){mobRenderBrowseAt([]);}
-    setTimeout(function(){updateSupplyBadge();},100);
+    setTimeout(function(){updateSupplyBadge();renderAttnStrip();renderDailyStrip();},100);
   }catch(err){
     setSyncStatus('error');
     document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
@@ -2150,6 +2393,13 @@ function setViewMode(mode){
   }
 }
 setViewMode(getViewPref());
+// Ensure t-tab active state matches initial tab
+window.addEventListener('DOMContentLoaded',function(){
+  var activeMobTab=document.querySelector('.mob-tab.active');
+  if(activeMobTab){var id=activeMobTab.id;var tab=id.replace('mob-tab-','');var tTab=document.getElementById('mob-tab-'+tab);if(tTab)tTab.classList.add('active');}
+  // Browse tab always starts active
+  var bt=document.getElementById('mob-tab-browse');if(bt){document.querySelectorAll('.t-tab').forEach(function(t){t.classList.remove('active');});bt.classList.add('active');}
+});
 
 // ── MOBILE PATH REGISTRY ──────────────────────────────────────────────────────
 var _mp={};var _mpid=0;
@@ -2166,12 +2416,23 @@ var _mobDrExp=new Set();
 var _mobBrowsePath=[]; // tracks current browse location
 
 // ── MOBILE TABS ────────────────────────────────────────────────────────────
+function tSwitchTab(tab){
+  // Update t-tab active states
+  document.querySelectorAll('.t-tab').forEach(function(t){t.classList.remove('active');});
+  var tb=document.getElementById('mob-tab-'+tab);if(tb)tb.classList.add('active');
+  // Delegate to mobSwitchTab for page switching
+  mobSwitchTab(tab);
+  // Extra actions per tab
+  if(tab==='supply'&&inventory.length)mobRenderSupply();
+  if(tab==='browse')mobRenderBrowseAt(_mobBrowsePath||[]);
+}
+
 function mobSwitchTab(tab){
   document.querySelectorAll('.mob-page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.mob-tab').forEach(function(t){t.classList.remove('active');});
   document.getElementById('mob-page-'+tab).classList.add('active');
   document.getElementById('mob-tab-'+tab).classList.add('active');
-  if(tab==='find')setTimeout(function(){document.getElementById('mob-search').focus();},200);
+  if(tab==='find')setTimeout(function(){var s=document.getElementById('mob-search');if(s){s.focus();renderSrchHist();}},200);
   // Auto-populate location from browse path when switching to Add
   if(tab==='add'&&_mobBrowsePath&&_mobBrowsePath.length){
     _maddLoc=_mobBrowsePath.slice();
@@ -2299,9 +2560,9 @@ function mobRenderBrowseAt(path){
     // iPad dashboard stats bar
     statsH='<div class="ipad-stats-bar">'
       +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+vis.length+'</div><div class="ipad-stat-lbl">Items</div></div>'
-      +'<div class="ipad-stat-cell" style="cursor:pointer" onclick="showInUseItems()"><div class="ipad-stat-num">'+inUseCnt+'</div><div class="ipad-stat-lbl">In Use ›</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+inUseCnt+'</div><div class="ipad-stat-lbl">In Use</div></div>'
       +'<div class="ipad-stat-cell"><div class="ipad-stat-num">'+locCnt+'</div><div class="ipad-stat-lbl">Locations</div></div>'
-      +'<div class="ipad-stat-cell" style="cursor:pointer" onclick="ipadGoTab(\'supply\')"><div class="ipad-stat-num">$'+(valTotal>=1000?(valTotal/1000).toFixed(1)+'k':Math.round(valTotal))+'</div><div class="ipad-stat-lbl">Est. Value ›</div></div>'
+      +'<div class="ipad-stat-cell"><div class="ipad-stat-num">$'+(valTotal>=1000?(valTotal/1000).toFixed(1)+'k':Math.round(valTotal))+'</div><div class="ipad-stat-lbl">Est. Value</div></div>'
       +'</div>'
       // Phone stats
       +'<div class="mob-stats"><div class="mob-stat"><div class="mob-stat-num">'+vis.length+'</div><div class="mob-stat-lbl">Items</div></div><div class="mob-stat"><div class="mob-stat-num">'+inUseCnt+'</div><div class="mob-stat-lbl">In Use</div></div><div class="mob-stat"><div class="mob-stat-num">'+locCnt+'</div><div class="mob-stat-lbl">Locations</div></div></div>';
@@ -2327,17 +2588,23 @@ function mobRenderBrowseAt(path){
       subLocs.forEach(function(sl){prevLines.push('› '+esc(sl));});
       if(prevLines.length<4){directHere.slice(0,4-prevLines.length).forEach(function(i){prevLines.push('· '+esc(splitName(i.name).primary));});}
       var prevH=prevLines.length?'<div class="mob-box-preview">'+prevLines.map(function(l){return'<div class="mob-box-prev-item">'+l+'</div>';}).join('')+'</div>':'';
-      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)"><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+'</div>';
+      // Build fill bar for this location
+      var fillItems=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&pathStartsWith(i.locationPath||[],childPath)&&i.fillLevel;});
+      var fillBarH='';
+      if(fillItems.length){
+        var FC2={'Full':'full','Most':'most','Half':'half','Low':'low','Empty':'empty'};
+        fillBarH='<div class="mob-box-fill-bar">'+fillItems.slice(0,8).map(function(i){return'<div class="mob-box-fill-seg '+(FC2[i.fillLevel]||'')+'"></div>';}).join('')+'</div>';
+      }
+      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)"><div class="mob-box-arrow">›</div><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+fillBarH+'</div>';
     }).join('')+'</div>';
   }
   var itemsH='';
   if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div>'+directItems.map(function(i){return mobCard(i);}).join('');}
   var backPid=path.length?mReg(path.slice(0,-1)):'';
-  var hdrH='<div class="mob-browse-hdr">'+(path.length?'<button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">&#8249;</button>':'')+'<div class="mob-btitle" style="color:'+(depth>0?mDC(depth-1):'var(--text)')+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>';
+  var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>':'';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
   document.querySelector('.mob-content').scrollTop=0;
-  // Refresh iPad sidebar to highlight active location
-  if(typeof isIPad==='function'&&isIPad()&&typeof ipadRenderSidebar==='function')ipadRenderSidebar();
+  // No sidebar to refresh
 }
 
 // ── MOBILE DRAWER ─────────────────────────────────────────────────────────────
@@ -3350,8 +3617,8 @@ function ipadGo(pidOrArr){
 
 function ipadGoTab(tab){
   _ipadTab=tab;
-  mobSwitchTab(tab);
-  ipadRenderSidebar();
+  tSwitchTab(tab);
+  if(typeof ipadRenderSidebar==='function')ipadRenderSidebar();
   // On iPad, "Search" focuses the sidebar search box which drives the find tab
   if(tab==='find'){
     var isearch=document.getElementById('ipad-search');
@@ -3400,10 +3667,10 @@ function toggleIpadSidebar(){
 
 function showInUseItems(){
   var res=inventory.filter(function(i){return i.inUse&&(_pinUnlocked||!i.lockedItem);});
-  var html='<div class="mob-count-bar">'+res.length+' in use</div>';
-  res.forEach(function(i){html+=mobCard(i,true);});
-  document.getElementById('mob-find-results').innerHTML=html;
-  mobSwitchTab('find');
+  var h='<div class="mob-count-bar">'+res.length+' in use</div>';
+  res.forEach(function(i){h+=mobCard(i,true);});
+  document.getElementById('mob-find-results').innerHTML=h;
+  tSwitchTab('find');
 }
 
 function renderAttnStrip(){
@@ -3415,19 +3682,19 @@ function renderAttnStrip(){
   if(!empty&&!low&&!review){strip.style.display='none';return;}
   var chipStyle='display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;background:rgba(143,72,72,0.12);border:1px solid rgba(143,72,72,0.25);color:#d08080;font-family:var(--font-mono);font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent';
   var html='<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#d08080;flex-shrink:0">Attention</span>';
-  if(empty)html+='<span style="'+chipStyle+'" onclick="ipadGoTab(\'supply\')"><span style="width:6px;height:6px;border-radius:50%;background:#d08080;flex-shrink:0"></span>'+empty+' empty</span>';
-  if(low)html+='<span style="'+chipStyle.replace('#d08080','#c07030').replace('143,72,72','160,100,50')+'" onclick="ipadGoTab(\'supply\')"><span style="width:6px;height:6px;border-radius:50%;background:#c07030;flex-shrink:0"></span>'+low+' low</span>';
-  if(review)html+='<span style="'+chipStyle.replace('#d08080','#9e7a32').replace('143,72,72','158,122,50')+'" onclick="mobShowReview()"><span style="width:6px;height:6px;border-radius:50%;background:#9e7a32;flex-shrink:0"></span>'+review+' to review</span>';
+  if(empty)html+='<span style="'+chipStyle+'" onclick="tSwitchTab(\'supply\')"><span style="width:6px;height:6px;border-radius:50%;background:#d08080;flex-shrink:0"></span>'+empty+' empty</span>';
+  if(low)html+='<span style="'+chipStyle.replace('#d08080','#c07030').replace('143,72,72','160,100,50')+'" onclick="tSwitchTab(\'supply\')"><span style="width:6px;height:6px;border-radius:50%;background:#c07030;flex-shrink:0"></span>'+low+' low</span>';
+  if(review)html+='<span style="'+chipStyle.replace('#d08080','#9e7a32').replace('143,72,72','158,122,50')+'" onclick="mobShowReview();tSwitchTab(\'find\')"><span style="width:6px;height:6px;border-radius:50%;background:#9e7a32;flex-shrink:0"></span>'+review+' to review</span>';
   strip.style.cssText='display:flex;gap:8px;padding:10px 16px;background:rgba(143,72,72,0.06);border-bottom:1px solid rgba(143,72,72,0.15);flex-wrap:wrap;align-items:center';
   strip.innerHTML=html;
 }
 
 function mobShowReview(){
   var res=inventory.filter(function(i){return(i.keep==='Maybe'||i.keep==='Sell')&&(_pinUnlocked||!i.lockedItem);});
-  var html='<div class="mob-count-bar">'+res.length+' items to review</div>';
-  res.forEach(function(i){html+=mobCard(i,true);});
-  document.getElementById('mob-find-results').innerHTML=html;
-  mobSwitchTab('find');
+  var h='<div class="mob-count-bar">'+res.length+' items to review</div>';
+  res.forEach(function(i){h+=mobCard(i,true);});
+  document.getElementById('mob-find-results').innerHTML=h;
+  // tSwitchTab called by attn chip onclick
 }
 
 function renderDailyStrip(){
