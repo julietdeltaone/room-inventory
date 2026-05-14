@@ -199,6 +199,15 @@ header {
 .skip-btn { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); background: transparent; border: none; cursor: pointer; padding: 4px 0; text-decoration: underline; text-decoration-style: dotted; }
 .skip-btn:hover { color: var(--text-mid); }
 
+/* Checkbox */
+.field-checkbox { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 11px; color: var(--text-mid); padding: 3px 0; }
+.field-checkbox input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--rose); cursor: pointer; }
+.field-checkbox:hover { color: var(--text); }
+
+/* Loc display */
+.loc-seg { color: var(--text-mid); }
+.loc-arrow { color: var(--text-dim); margin: 0 3px; font-size: 10px; }
+
 /* Toast */
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--s3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 8px 16px; font-family: var(--font-mono); font-size: 11px; color: var(--text); opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 9999; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -555,6 +564,20 @@ function selectItem(id) {
   document.getElementById('edit-panel').scrollTop = 0;
 }
 
+const CATEGORIES = ['Electronics','Cables & Charging','Camera/Photo Gear','Military','Firearms & Ammo','Clothing','Footwear','Accessories','Tools & Hardware','Office Supplies','Bags & Carry','Personal Care & Grooming','Health & Supplements','Cleaning & Home','Furniture','Identity Documents','Legal Documents','Vehicle Documents','Military Documents','Financial Documents','Books & Notebooks','Gym & Fitness','Automotive','Memorabilia & Keepsakes','Misc'];
+const DOC_TYPES  = ['','Certificate','Title','Receipt','Permit','Application','ID','License','Insurance','Registration','Contract','Letter','Notes/Handouts','Financial','Book','Other'];
+
+function fieldLabel(field) {
+  const map = { category:'Category', condition:'Condition', keep:'Keep', frequency:'Frequency', criticality:'Criticality', replaceability:'Replaceability', estValue:'Est. Value', fillLevel:'Fill Level', name:'Name', location:'Location' };
+  return map[field] || field;
+}
+
+function scrollToField(label) {
+  const fieldMap = { 'Category':'f-category','Condition':'f-condition','Keep':'f-keep','Frequency':'f-frequency','Criticality':'f-criticality','Replaceability':'f-replaceability','Est. Value':'f-estValue','Name':'f-name' };
+  const el = document.getElementById(fieldMap[label]);
+  if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); }
+}
+
 function renderEditor(item) {
   const status  = itemStatus(item);
   const missing = getMissingFields(item);
@@ -570,7 +593,6 @@ function renderEditor(item) {
   const fq = filteredQueue();
   const qIdx = fq.findIndex(i => i.id === item.id);
   const qNum = qIdx >= 0 ? qIdx + 1 : '?';
-
   const freqCurrent = item.auditFreq || '';
 
   function freqOptCls(val) {
@@ -579,30 +601,48 @@ function renderEditor(item) {
     return map[val] || '';
   }
 
-  function sel(field, options) {
+  function isMissing(f) { return missing.includes(fieldLabel(f)); }
+
+  function sel(field, options, extraCls='') {
     const val = item[field] || '';
-    const flagged = missing.includes(fieldLabel(field));
+    const flagged = isMissing(field);
     const filled  = !!val && !flagged;
     const cls = flagged ? 'flagged' : (filled ? 'filled' : '');
-    return `<select class="field-select ${cls}" id="f-${field}" onchange="liveUpdate(${item.id},'${field}',this.value)">
+    return `<select class="field-select ${cls} ${extraCls}" id="f-${field}" onchange="liveUpdate(${item.id},'${field}',this.value)">
       <option value="">--</option>
-      ${options.map(o => `<option${val===o?' selected':''}>${o}</option>`).join('')}
+      ${options.map(o => `<option${val===o?' selected':''}>${esc(o)}</option>`).join('')}
     </select>`;
   }
 
-  function inp(field, placeholder='') {
+  function inp(field, placeholder='', type='text') {
     const val = item[field] || '';
-    const flagged = missing.includes(fieldLabel(field));
+    const flagged = isMissing(field);
     const filled  = !!val && !flagged;
     const cls = flagged ? 'flagged' : (filled ? 'filled' : '');
-    return `<input class="field-input ${cls}" id="f-${field}" type="text" value="${esc(val)}" placeholder="${placeholder}" oninput="liveUpdate(${item.id},'${field}',this.value)">`;
+    return `<input class="field-input ${cls}" id="f-${field}" type="${type}" value="${esc(val)}" placeholder="${placeholder}" oninput="liveUpdate(${item.id},'${field}',this.value)">`;
   }
+
+  function chk(field, label) {
+    const val = !!item[field];
+    return `<label class="field-checkbox">
+      <input type="checkbox" id="f-${field}" ${val?'checked':''} onchange="liveUpdate(${item.id},'${field}',this.checked)">
+      <span>${label}</span>
+    </label>`;
+  }
+
+  // Location autocomplete options
+  const allPaths = [...new Set(inventory.flatMap(i => {
+    const p = i.locationPath||[];
+    return Array.from({length:p.length},(_,k)=>p.slice(0,k+1).join(' > '));
+  }))].sort();
+
+  const locVal = (item.locationPath||[]).join(' > ');
 
   document.getElementById('edit-form').innerHTML = `
     <div class="item-header">
       <div class="item-number">Item #${item.id} · Queue position ${qNum}</div>
-      <div class="item-name-display">${esc(item.name||'Unnamed')}</div>
-      <div class="item-loc-display">${path ? path.split(' › ').join('<span>›</span>') : '<span style="color:var(--text-dim)">No location set</span>'}</div>
+      <div class="item-name-display" id="item-name-display">${esc(item.name||'Unnamed')}</div>
+      <div class="item-loc-display">${path ? path.split(' › ').map(s=>`<span class="loc-seg">${esc(s)}</span>`).join('<span class="loc-arrow">›</span>') : '<span style="color:var(--text-dim)">No location set</span>'}</div>
     </div>
 
     <div class="audit-banner ${status}">
@@ -615,16 +655,50 @@ function renderEditor(item) {
       <div class="missing-tags">${missing.map(f=>`<span class="missing-tag" onclick="scrollToField('${f}')">${f}</span>`).join('')}</div>
     </div>` : ''}
 
-    <!-- AUDIT FREQUENCY (required) -->
+    <!-- AUDIT FREQUENCY -->
     <div class="field-section">
       <div class="field-section-title">Audit Frequency <span style="color:var(--rose)">*</span></div>
       <div class="freq-selector">
-        <button class="freq-opt ${freqOptCls('Quarterly')}"   onclick="setFreq(${item.id},'Quarterly'  ,this)">Quarterly<br><span style="font-size:8px;opacity:0.6">every 90d</span></button>
-        <button class="freq-opt ${freqOptCls('Bi-Annual')}"   onclick="setFreq(${item.id},'Bi-Annual'  ,this)">Bi-Annual<br><span style="font-size:8px;opacity:0.6">every 180d</span></button>
-        <button class="freq-opt ${freqOptCls('Annual')}"      onclick="setFreq(${item.id},'Annual'     ,this)">Annual<br><span style="font-size:8px;opacity:0.6">every 365d</span></button>
-        <button class="freq-opt ${freqOptCls('Never')}"       onclick="setFreq(${item.id},'Never'      ,this)">Never<br><span style="font-size:8px;opacity:0.6">one-time</span></button>
+        <button class="freq-opt ${freqOptCls('Quarterly')}"  onclick="setFreq(${item.id},'Quarterly',this)">Quarterly<br><span style="font-size:8px;opacity:0.6">every 90d</span></button>
+        <button class="freq-opt ${freqOptCls('Bi-Annual')}"  onclick="setFreq(${item.id},'Bi-Annual',this)">Bi-Annual<br><span style="font-size:8px;opacity:0.6">every 180d</span></button>
+        <button class="freq-opt ${freqOptCls('Annual')}"     onclick="setFreq(${item.id},'Annual',this)">Annual<br><span style="font-size:8px;opacity:0.6">every 365d</span></button>
+        <button class="freq-opt ${freqOptCls('Never')}"      onclick="setFreq(${item.id},'Never',this)">Never<br><span style="font-size:8px;opacity:0.6">one-time</span></button>
       </div>
       <div class="freq-required-hint" id="freq-hint">← Required before marking done</div>
+    </div>
+
+    <!-- IDENTITY -->
+    <div class="field-section">
+      <div class="field-section-title">Identity</div>
+      <div class="field-grid">
+        <div class="field-group field-full">
+          <div class="field-label required${isMissing('name')?' flagged':''}">Name</div>
+          <input class="field-input${isMissing('name')?' flagged':item.name?' filled':''}" id="f-name" type="text" value="${esc(item.name||'')}" placeholder="Item name" oninput="liveUpdateName(${item.id},this.value)">
+        </div>
+        <div class="field-group field-full" style="position:relative">
+          <div class="field-label">Location</div>
+          <input class="field-input${locVal?' filled':''}" id="f-location" type="text" value="${esc(locVal)}" placeholder="Room > Shelf > Drawer" oninput="liveUpdateLoc(${item.id},this.value)" autocomplete="off" list="loc-datalist">
+          <datalist id="loc-datalist">${allPaths.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+        </div>
+      </div>
+      <div class="field-grid" style="margin-top:10px">
+        <div class="field-group">
+          <div class="field-label">Qty</div>
+          ${inp('qty','1','text')}
+        </div>
+        <div class="field-group">
+          <div class="field-label">Serial / ID</div>
+          ${inp('sn','')}
+        </div>
+        <div class="field-group">
+          <div class="field-label">Est. Value $</div>
+          ${inp('estValue','e.g. 25')}
+        </div>
+        <div class="field-group" style="justify-content:flex-end;padding-top:18px">
+          ${chk('inUse','Currently In Use')}
+          ${chk('digitalCopy','Has Digital Copy')}
+        </div>
+      </div>
     </div>
 
     <!-- CLASSIFICATION -->
@@ -632,16 +706,16 @@ function renderEditor(item) {
       <div class="field-section-title">Classification</div>
       <div class="field-grid">
         <div class="field-group">
-          <div class="field-label${missing.includes('Category')?'  flagged':''} required">Category</div>
-          ${sel('category',['Electronics','Cables & Charging','Camera/Photo Gear','Military','Firearms & Ammo','Clothing','Footwear','Accessories','Tools & Hardware','Office Supplies','Bags & Carry','Personal Care & Grooming','Health & Supplements','Cleaning & Home','Furniture','Identity Documents','Legal Documents','Vehicle Documents','Military Documents','Financial Documents','Books & Notebooks','Gym & Fitness','Automotive','Memorabilia & Keepsakes','Misc'])}
+          <div class="field-label required${isMissing('category')?' flagged':''}">Category</div>
+          ${sel('category', CATEGORIES)}
         </div>
         <div class="field-group">
-          <div class="field-label${missing.includes('Condition')?'  flagged':''} required">Condition</div>
+          <div class="field-label required${isMissing('condition')?' flagged':''}">Condition</div>
           ${sel('condition',['New','Good','Fair','Poor'])}
         </div>
         <div class="field-group">
-          <div class="field-label${missing.includes('Keep')?'  flagged':''} required">Keep</div>
-          ${sel('keep',['Keep','Maybe','Sell','Trash'])}
+          <div class="field-label required${isMissing('keep')?' flagged':''}">Keep</div>
+          ${sel('keep',['Keep','Maybe','Sell','Donate','Trash'])}
         </div>
         <div class="field-group">
           <div class="field-label">Fill Level</div>
@@ -655,27 +729,27 @@ function renderEditor(item) {
       <div class="field-section-title">Usage & Importance</div>
       <div class="field-grid">
         <div class="field-group">
-          <div class="field-label${missing.includes('Frequency')?'  flagged':''} required">Frequency</div>
+          <div class="field-label required${isMissing('frequency')?' flagged':''}">Frequency</div>
           ${sel('frequency',['Daily','Weekly','Monthly','Rarely','Never'])}
         </div>
         <div class="field-group">
-          <div class="field-label${missing.includes('Criticality')?'  flagged':''} required">Criticality</div>
+          <div class="field-label required${isMissing('criticality')?' flagged':''}">Criticality</div>
           ${sel('criticality',['Essential','Important','Nice to Have','Redundant'])}
         </div>
         <div class="field-group">
-          <div class="field-label${missing.includes('Replaceability')?'  flagged':''} required">Replaceability</div>
-          ${sel('replaceability',['Unique','Moderate','Easy/Cheap'])}
+          <div class="field-label required${isMissing('replaceability')?' flagged':''}">Replaceability</div>
+          ${sel('replaceability',['Irreplaceable','Hard/Expensive','Moderate','Easy/Cheap'])}
         </div>
         <div class="field-group">
-          <div class="field-label${missing.includes('Est. Value')?'  flagged':''}" id="label-estValue">Est. Value</div>
-          ${inp('estValue','e.g. 25')}
+          <div class="field-label">Doc Type</div>
+          ${sel('docType', DOC_TYPES)}
         </div>
       </div>
     </div>
 
-    <!-- DETAILS -->
+    <!-- TIMELINE -->
     <div class="field-section">
-      <div class="field-section-title">Details</div>
+      <div class="field-section-title">Timeline</div>
       <div class="field-grid">
         <div class="field-group">
           <div class="field-label">Year Purchased</div>
@@ -685,22 +759,20 @@ function renderEditor(item) {
           <div class="field-label">Last Used</div>
           ${inp('lastUsed','MM/YYYY')}
         </div>
-        <div class="field-group">
-          <div class="field-label">Qty</div>
-          ${inp('qty','')}
-        </div>
-        <div class="field-group">
-          <div class="field-label">Serial / ID</div>
-          ${inp('sn','')}
-        </div>
-      </div>
-      <div class="field-grid" style="margin-top:10px">
-        <div class="field-group field-full">
-          <div class="field-label">Notes</div>
-          <textarea class="field-textarea" id="f-notes" oninput="liveUpdate(${item.id},'notes',this.value)">${esc(item.notes||'')}</textarea>
-        </div>
       </div>
     </div>
+
+    <!-- NOTES -->
+    <div class="field-section">
+      <div class="field-section-title">Notes</div>
+      <textarea class="field-textarea" id="f-notes" oninput="liveUpdate(${item.id},'notes',this.value)">${esc(item.notes||'')}</textarea>
+    </div>
+
+    <!-- AUDIT INFO -->
+    ${item.lastAudited ? `<div class="field-section">
+      <div class="field-section-title">Audit History</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mid)">Last audited: ${new Date(item.lastAudited).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+    </div>` : ''}
 
     <!-- ACTION BAR -->
     <div class="action-bar">
@@ -712,16 +784,7 @@ function renderEditor(item) {
   `;
 }
 
-function fieldLabel(field) {
-  const map = { category:'Category', condition:'Condition', keep:'Keep', frequency:'Frequency', criticality:'Criticality', replaceability:'Replaceability', estValue:'Est. Value', fillLevel:'Fill Level' };
-  return map[field] || field;
-}
 
-function scrollToField(label) {
-  const fieldMap = { 'Category':'f-category','Condition':'f-condition','Keep':'f-keep','Frequency':'f-frequency','Criticality':'f-criticality','Replaceability':'f-replaceability','Est. Value':'f-estValue' };
-  const el = document.getElementById(fieldMap[label]);
-  if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); }
-}
 
 // ─── LIVE UPDATE ───────────────────────────────────────────────────────────
 function liveUpdate(id, field, value) {
@@ -730,12 +793,28 @@ function liveUpdate(id, field, value) {
   item[field] = value;
   // update field styling live
   const el = document.getElementById('f-' + field);
-  if (el) {
-    const missing = getMissingFields(item);
-    const isMissing = missing.includes(fieldLabel(field));
-    el.classList.toggle('flagged', isMissing);
-    el.classList.toggle('filled', !!value && !isMissing);
+  if (el && el.type !== 'checkbox') {
+    const miss = getMissingFields(item);
+    const isM = miss.includes(fieldLabel(field));
+    el.classList.toggle('flagged', isM);
+    el.classList.toggle('filled', !!value && !isM);
   }
+  scheduleSave(item);
+}
+
+function liveUpdateName(id, value) {
+  const item = inventory.find(i => i.id === id);
+  if (!item) return;
+  item.name = value;
+  const display = document.getElementById('item-name-display');
+  if (display) display.textContent = value || 'Unnamed';
+  scheduleSave(item);
+}
+
+function liveUpdateLoc(id, value) {
+  const item = inventory.find(i => i.id === id);
+  if (!item) return;
+  item.locationPath = value ? value.split(' > ').map(s=>s.trim()).filter(Boolean) : [];
   scheduleSave(item);
 }
 
