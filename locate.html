@@ -2144,6 +2144,25 @@ function toggleFav(path){
   renderAllFavs();
 }
 function renderAllFavs(){
+// Star button handler — reads path from data-star-pid registry, safe in innerHTML onclick
+function mobBoxStar(btn){
+  var pid=btn.dataset.starPid;
+  var path=_mp[pid];
+  if(!path)return;
+  toggleFav(path);
+  var now=isFav(path);
+  btn.textContent=now?'★':'☆';
+  btn.classList.toggle('starred',now);
+  btn.title=now?'Remove favorite':'Favorite this location';
+  renderFavBrowseStrip();
+  renderFavSidebar();
+}
+// Remove favorite by key string (safe for use in onclick attrs — no JSON needed)
+function removeFavByKey(key){
+  var favs=getFavs().filter(function(f){return f.key!==key;});
+  saveFavs(favs);
+  renderAllFavs();
+}
   renderFavSidebar();
   renderFavBrowseStrip();
   renderFavLocPicker();
@@ -2164,7 +2183,7 @@ function renderFavSidebar(){
     return'<div class="sb-fav-item" onclick="nav(\''+pid+'\')">'
       +'<span style="font-size:13px;color:#e8b84b;flex-shrink:0">★</span>'
       +'<span class="sb-fav-name">'+esc(leaf)+(parent?'<span class="sb-fav-sub"> in '+esc(parent)+'</span>':'')+'</span>'
-      +'<button class="sb-fav-rm" title="Remove" onclick="event.stopPropagation();toggleFav('+JSON.stringify(f.path)+');renderFavSidebar()">✕</button>'
+      +'<button class="sb-fav-rm" title="Remove" data-fav-key="'+esc(f.key)+'" onclick="event.stopPropagation();removeFavByKey(this.dataset.favKey);renderFavSidebar()">✕</button>'
       +'</div>';
   }).join('');
 }
@@ -2189,7 +2208,7 @@ function renderFavBrowseStrip(){
       return'<div class="fav-chip" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'
         +'<span class="fav-chip-icon">★</span>'
         +'<span>'+esc(leaf)+'</span>'
-        +'<span class="fav-chip-x" onclick="event.stopPropagation();toggleFav('+JSON.stringify(f.path)+')">✕</span>'
+        +'<span class="fav-chip-x" data-fav-key="'+esc(f.key)+'" onclick="event.stopPropagation();removeFavByKey(this.dataset.favKey)">✕</span>'
         +'</div>';
     }).join('')+'</div>';
 }
@@ -3487,7 +3506,8 @@ function mobRenderBrowseAt(path){
         fillBarH='<div class="mob-box-fill-bar">'+fillItems.slice(0,8).map(function(i){return'<div class="mob-box-fill-seg '+(FC2[i.fillLevel]||'')+'"></div>';}).join('')+'</div>';
       }
       var isStarred=isFav(childPath);
-      var starBtn='<button class="mob-box-star'+(isStarred?' starred':'')+'" onclick="event.stopPropagation();toggleFav('+JSON.stringify(childPath)+');renderFavBrowseStrip();this.classList.toggle(\'starred\',isFav('+JSON.stringify(childPath)+'))" title="'+(isStarred?'Remove favorite':'Add to favorites')+'">'+(isStarred?'★':'☆')+'</button>';
+      var starPid=mReg(childPath); // reuse the same path registry
+      var starBtn='<button class="mob-box-star'+(isStarred?' starred':'')+'" data-star-pid="'+starPid+'" onclick="event.stopPropagation();mobBoxStar(this)" title="'+(isStarred?'Remove favorite':'Favorite this location')+'">'+(isStarred?'★':'☆')+'</button>';
       return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'+starBtn+'<div class="mob-box-arrow">›</div><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+fillBarH+'</div>';
     }).join('')+'</div>';
   }
@@ -3496,7 +3516,8 @@ function mobRenderBrowseAt(path){
   var backPid=path.length?mReg(path.slice(0,-1)):'';
   var hdrStar=path.length?(function(){
     var starred=isFav(path);
-    return'<button class="mob-bc-star'+(starred?' starred':'')+'" onclick="toggleFav('+JSON.stringify(path)+');renderFavBrowseStrip();this.classList.toggle(\'starred\',isFav('+JSON.stringify(path)+'))" title="'+(starred?'Remove favorite':'Favorite this location')+'">'+(starred?'★':'☆')+'</button>';
+    var starPid=mReg(path);
+    return'<button class="mob-bc-star'+(starred?' starred':'')+'" data-star-pid="'+starPid+'" onclick="mobBoxStar(this)" title="'+(starred?'Remove favorite':'Favorite this location')+'">'+(starred?'★':'☆')+'</button>';
   })():'';
   var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div>'+hdrStar+'<div class="mob-bcount">'+allItems.length+'</div></div>':'';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
