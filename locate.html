@@ -2662,10 +2662,8 @@ function mobSwitchTab(tab){
   // Auto-populate location from browse path when switching to Add
   if(tab==='add'&&_mobBrowsePath&&_mobBrowsePath.length){
     _maddLoc=_mobBrowsePath.slice();
-    var txt=document.getElementById('madd-loc-txt');
-    var btn=document.getElementById('madd-loc-btn');
-    if(txt)txt.textContent=_maddLoc.join(' › ');
-    if(btn)btn.classList.add('set');
+    var txt=document.getElementById('madd-loc-txt-inline');
+    if(txt){txt.textContent=_maddLoc.join(' › ');txt.style.color='var(--rose)';}
   }
   if(tab==='ask')setTimeout(function(){var i=document.getElementById('mob-ask-input');if(i)i.focus();},200);
 }
@@ -2996,9 +2994,9 @@ function mobLPClose(commit){
     return;
   }
   _maddLoc=_maddLpSel?_maddLpSel.slice():null;
-  var txt=document.getElementById('madd-loc-txt');var btn=document.getElementById('madd-loc-btn');
-  if(_maddLoc&&_maddLoc.length){txt.textContent=_maddLoc.join(' › ');btn.classList.add('set');}
-  else{txt.textContent='Tap to pick location';btn.classList.remove('set');}
+  var txt=document.getElementById('madd-loc-txt-inline');
+  if(txt){if(_maddLoc&&_maddLoc.length){txt.textContent=_maddLoc.join(' › ');txt.style.color='var(--rose)';}
+  else{txt.textContent='Pick from tree →';txt.style.color='var(--text-dim)';}}
 }
 function mobLPUpdateBar(){
   var bar=document.getElementById('mob-lp-sel');
@@ -3090,7 +3088,8 @@ function mobCancelAdd(){
   document.getElementById('madd-keep').value='Keep';
   var sugg=document.getElementById('madd-sugg');if(sugg)sugg.classList.remove('open');
   _maddLoc=null;
-  var txt=document.getElementById('madd-loc-txt');var btn=document.getElementById('madd-loc-btn');
+  var txt=document.getElementById('madd-loc-txt');var btn=null;var locBtn=null; //removed with 2-col layout
+  
   if(txt)txt.textContent='Tap to pick location';if(btn)btn.classList.remove('set');
   var stat=document.getElementById('madd-status');if(stat)stat.textContent='';
   mobSwitchTab('browse');
@@ -3145,7 +3144,8 @@ async function mobAddSubmit(){
     document.getElementById('madd-name').value='';document.getElementById('madd-qty').value='1';
     document.getElementById('madd-cat').value='Misc';document.getElementById('madd-cond').value='Good';
     document.getElementById('madd-keep').value='Keep';document.getElementById('madd-sugg').classList.remove('open');
-    _maddLoc=null;var locBtn=document.getElementById('madd-loc-btn');
+    _maddLoc=null;var btn=null;var locBtn=null; //removed with 2-col layout
+  
     document.getElementById('madd-loc-txt').textContent='Tap to pick location';locBtn.classList.remove('set');
     setTimeout(function(){stat.textContent='';},4000);
     if(document.getElementById('mob-page-browse').classList.contains('active'))mobRenderBrowseAt([]);
@@ -4156,7 +4156,7 @@ function supplyRenderShoppingList(body){
     var parStr=cur<par?'<span style="color:var(--red);font-family:var(--font-mono);font-size:10px">'+cur+'/'+par+'</span>':'';
     return'<div class="shop-list-item">'
       +'<span class="shop-item-fill" style="color:'+fc+';border-color:'+fc+'55;background:'+fc+'11">'+fl+'</span>'
-      +'<span class="shop-item-cat" style="color:'+cs.text+';background:'+cs.bg+'">'+esc((item.category||'').split(' & ')[0])+'</span>'
+      +'<span class="shop-item-cat" style="color:'+cs.text+';background:'+cs.bg+'">'+esc(item.category||'')+'</span>'
       +'<span class="shop-item-name">'+esc(splitName(item.name).primary)+'</span>'
       +parStr
       +'</div>';
@@ -4288,7 +4288,7 @@ function supplyRenderDetail(body, gname){
     html+='<div style="flex:1;min-width:0">';
     html+='<div class="supply-item-name">'+esc(n.primary)+'</div>';
     html+='<div style="display:flex;align-items:center;gap:6px;margin-top:3px">';
-    html+='<span style="font-family:var(--font-mono);font-size:9px;color:'+cs.text+';background:'+cs.bg+';padding:1px 5px;border-radius:3px">'+esc((item.category||'').split(' & ')[0])+'</span>';
+    html+='<span style="font-family:var(--font-mono);font-size:9px;color:'+cs.text+';background:'+cs.bg+';padding:1px 5px;border-radius:3px">'+esc(item.category||'')+'</span>';
     html+=qtyStatus;
     html+='</div></div>';
     html+=supplyMeterHTML(item.id, item.fillLevel||'');
