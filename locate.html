@@ -1638,8 +1638,80 @@ body.mob-mode .shell{display:none;}
   padding:6px 10px;background:rgba(77,143,106,0.08);border:1px solid rgba(77,143,106,0.2);
   border-radius:8px;line-height:1.6;
 }
+/* ── LOCATION FAVORITES ───────────────────────────────────────────────────── */
+.fav-strip{padding:0 20px 4px;display:flex;gap:8px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;flex-shrink:0;}
+.fav-strip::-webkit-scrollbar{display:none;}
+.fav-strip:empty{display:none;}
+.fav-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:20px;
+  background:rgba(176,122,132,0.1);border:1px solid rgba(176,122,132,0.3);
+  color:var(--rose);font-family:var(--font-mono);font-size:11px;font-weight:500;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:background 0.15s,border-color 0.15s,transform 0.12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.fav-chip:hover{background:rgba(176,122,132,0.18);border-color:var(--rose);}
+.fav-chip:active{transform:scale(0.96);}
+.fav-chip-icon{font-size:12px;opacity:0.8;}
+.fav-chip-x{
+  font-size:12px;color:rgba(176,122,132,0.55);margin-left:2px;
+  line-height:1;cursor:pointer;padding:0 2px;
+  transition:color 0.15s;flex-shrink:0;
+}
+.fav-chip-x:hover{color:var(--rose);}
+.fav-strip-label{
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--text-dim);
+  padding:10px 20px 4px;flex-shrink:0;display:flex;align-items:center;
+}
+/* Star button on mob-box cards */
+.mob-box-star{
+  position:absolute;top:14px;right:44px;
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;cursor:pointer;
+  font-size:16px;color:var(--text-dim);opacity:0;
+  transition:opacity 0.15s,color 0.15s,transform 0.15s;
+  -webkit-tap-highlight-color:transparent;z-index:2;
+}
+.mob-box:hover .mob-box-star{opacity:1;}
+.mob-box-star.starred{color:#e8b84b;opacity:1!important;}
+.mob-box-star:hover{transform:scale(1.2);}
+/* Breadcrumb star when drilled in */
+.mob-bc-star{
+  background:none;border:none;cursor:pointer;font-size:16px;
+  color:var(--text-dim);padding:4px 6px;transition:color 0.15s,transform 0.12s;
+  -webkit-tap-highlight-color:transparent;flex-shrink:0;
+}
+.mob-bc-star.starred{color:#e8b84b;}
+.mob-bc-star:active{transform:scale(1.2);}
+/* Favorites in sidebar (desktop) */
+.sb-fav-item{
+  display:flex;align-items:center;gap:6px;padding:6px 12px;
+  cursor:pointer;border-radius:3px;transition:background 0.12s;
+  min-height:32px;
+}
+.sb-fav-item:hover{background:var(--s1);}
+.sb-fav-name{font-family:var(--font-ui);font-size:12px;color:var(--rose);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-fav-sub{font-size:10px;color:var(--text-dim);margin-left:3px;font-weight:400;}
+.sb-fav-rm{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:12px;padding:0 3px;opacity:0;transition:opacity 0.1s,color 0.1s;}
+.sb-fav-item:hover .sb-fav-rm{opacity:1;}
+.sb-fav-rm:hover{color:var(--rose);}
+/* Favorites in loc-picker sheet */
+.lp-fav-section{flex-shrink:0;border-bottom:1px solid var(--border);padding:8px 0 4px;}
+.lp-fav-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);padding:0 16px 6px;}
+.lp-fav-row{
+  display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;
+  border-left:3px solid rgba(176,122,132,0.4);
+  -webkit-tap-highlight-color:transparent;transition:background 0.1s;
+}
+.lp-fav-row:active{background:var(--s2);}
+.lp-fav-row.sel{background:rgba(176,122,132,0.1);border-left-color:var(--rose);}
+.lp-fav-icon{font-size:13px;color:#e8b84b;flex-shrink:0;}
+.lp-fav-name{font-size:15px;color:var(--rose);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lp-fav-name .lp-fav-parent{font-size:11px;color:var(--text-dim);font-weight:400;margin-right:4px;}
 </style>
-</head>
 <body>
 <div class="shell">
   <header>
@@ -1719,6 +1791,17 @@ body.mob-mode .shell{display:none;}
         </div>
       </div>
 
+      <!-- Favorite Locations -->
+      <div class="sb-section">
+        <div class="sb-section-hdr" onclick="toggleSbSection('fav-sb-body','fav-sb-arrow')">
+          <span class="sb-section-label">★ Favorites</span>
+          <span class="sb-section-arrow open" id="fav-sb-arrow">›</span>
+        </div>
+        <div class="sb-section-body" id="fav-sb-body">
+          <div id="fav-sb-list"><div style="padding:4px 12px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">No favorites yet — star a location</div></div>
+        </div>
+      </div>
+
       <!-- Recent Locations -->
       <div class="sb-section">
         <div class="sb-section-hdr" onclick="toggleSbSection('recent-body','recent-arrow')">
@@ -1765,7 +1848,7 @@ body.mob-mode .shell{display:none;}
     <div class="mob-page active" id="mob-page-browse">
       <div id="attn-strip" style="display:none"></div>
       <div id="daily-strip" style="display:none"></div>
-
+      <div id="fav-browse-strip" style="display:none"></div>
       <div id="mob-browse-inner"></div>
     </div>
     <div class="mob-page" id="mob-page-add" style="height:100%">
@@ -1959,6 +2042,10 @@ body.mob-mode .shell{display:none;}
     <div class="mob-lp-handle"></div>
     <div class="mob-lp-hdr"><div class="mob-lp-title">Pick Location</div><button class="mob-lp-done" onclick="mobLPClose(true)">Done</button></div>
     <div class="mob-lp-sel" id="mob-lp-sel"></div>
+    <div class="lp-fav-section" id="lp-fav-section" style="display:none">
+      <div class="lp-fav-lbl">★ Favorites</div>
+      <div id="lp-fav-rows"></div>
+    </div>
     <div class="mob-lp-tree" id="mob-lp-tree"></div>
   </div>
 </div>
@@ -1978,6 +2065,115 @@ let _catView=null; // category name when browsing by category
 let _sortMode='default'; // 'default'|'name'|'value'|'keep'
 const RECENT_KEY='inv_recent_locs';
 const SB_COLLAPSE_KEY='inv_sb_collapse';
+
+// ── LOCATION FAVORITES ────────────────────────────────────────────────────────
+const FAV_KEY='inv_fav_locs';
+const FAV_MAX=12;
+
+function getFavs(){
+  try{return JSON.parse(localStorage.getItem(FAV_KEY)||'[]');}catch(e){return[];}
+}
+function saveFavs(favs){
+  try{localStorage.setItem(FAV_KEY,JSON.stringify(favs));}catch(e){}
+}
+function isFav(path){
+  if(!path||!path.length)return false;
+  var key=path.join('::');
+  return getFavs().some(function(f){return f.key===key;});
+}
+function toggleFav(path){
+  if(!path||!path.length)return;
+  var key=path.join('::');
+  var favs=getFavs();
+  var idx=favs.findIndex(function(f){return f.key===key;});
+  if(idx>=0){
+    favs.splice(idx,1);
+  } else {
+    favs.unshift({key:key,path:path.slice()});
+    if(favs.length>FAV_MAX)favs=favs.slice(0,FAV_MAX);
+  }
+  saveFavs(favs);
+  renderAllFavs();
+}
+function renderAllFavs(){
+  renderFavSidebar();
+  renderFavBrowseStrip();
+  renderFavLocPicker();
+}
+
+// Desktop sidebar favorites
+function renderFavSidebar(){
+  var el=document.getElementById('fav-sb-list');if(!el)return;
+  var favs=getFavs();
+  if(!favs.length){
+    el.innerHTML='<div style="padding:4px 12px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">No favorites yet — star a location</div>';
+    return;
+  }
+  el.innerHTML=favs.map(function(f){
+    var leaf=f.path[f.path.length-1];
+    var parent=f.path.length>1?f.path.slice(0,-1).join(' › '):'';
+    var pid=regPath(f.path);
+    return'<div class="sb-fav-item" onclick="nav(\''+pid+'\')">'
+      +'<span style="font-size:13px;color:#e8b84b;flex-shrink:0">★</span>'
+      +'<span class="sb-fav-name">'+esc(leaf)+(parent?'<span class="sb-fav-sub"> in '+esc(parent)+'</span>':'')+'</span>'
+      +'<button class="sb-fav-rm" title="Remove" onclick="event.stopPropagation();toggleFav('+JSON.stringify(f.path)+');renderFavSidebar()">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+// Browse home favorites strip
+function renderFavBrowseStrip(){
+  var strip=document.getElementById('fav-browse-strip');if(!strip)return;
+  var favs=getFavs();
+  if(!favs.length){strip.style.display='none';return;}
+  strip.style.display='';
+  strip.innerHTML='<div class="fav-strip-label">★ Favorites</div>'
+    +'<div class="fav-strip">'+favs.map(function(f){
+      var leaf=f.path[f.path.length-1];
+      var pid=mReg(f.path);
+      return'<div class="fav-chip" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'
+        +'<span class="fav-chip-icon">★</span>'
+        +'<span>'+esc(leaf)+'</span>'
+        +'<span class="fav-chip-x" onclick="event.stopPropagation();toggleFav('+JSON.stringify(f.path)+')">✕</span>'
+        +'</div>';
+    }).join('')+'</div>';
+}
+
+// Loc picker sheet favorites
+function renderFavLocPicker(){
+  var sec=document.getElementById('lp-fav-section');
+  var rows=document.getElementById('lp-fav-rows');
+  if(!sec||!rows)return;
+  var favs=getFavs();
+  if(!favs.length){sec.style.display='none';return;}
+  sec.style.display='';
+  var curKey=_maddLpSel?_maddLpSel.join('::'):'';
+  rows.innerHTML=favs.map(function(f){
+    var leaf=f.path[f.path.length-1];
+    var parent=f.path.length>1?f.path.slice(0,-1).join(' › '):'';
+    var isSel=curKey===f.key;
+    var kid=mRegK(f.key);
+    return'<div class="lp-fav-row'+(isSel?' sel':'')+'" data-fkey="'+esc(f.key)+'" onclick="lpFavSelect(this.dataset.fkey)">'
+      +'<span class="lp-fav-icon">★</span>'
+      +'<span class="lp-fav-name">'+(parent?'<span class="lp-fav-parent">'+esc(parent)+' ›</span>':'')+esc(leaf)+'</span>'
+      +(isSel?'<span style="color:var(--rose);font-size:14px">✓</span>':'')
+      +'</div>';
+  }).join('');
+}
+function lpFavSelect(key){
+  var favs=getFavs();
+  var fav=favs.find(function(f){return f.key===key;});
+  if(!fav)return;
+  _maddLpSel=fav.path.slice();
+  mobLPUpdateBar();
+  renderFavLocPicker();
+  // Check if leaf
+  var tree=buildTree();var node=tree;
+  _maddLpSel.forEach(function(seg){if(node&&node.children&&node.children[seg])node=node.children[seg];else node=null;});
+  var isLeaf=!node||!Object.keys(node.children||{}).length;
+  if(isLeaf){mobLPClose(true);}
+  else{_maddLpExp.add(key);mobLPRender();}
+}
 // Path registry — maps numeric IDs to path arrays to avoid JSON-in-HTML issues
 const _paths={};let _pid=0;
 function regPath(arr){const id='p'+(++_pid);_paths[id]=arr;return id;}
@@ -2142,6 +2338,7 @@ function renderRecent(){
       <div class="recent-path">${prefix}<span class="recent-leaf">${esc(leaf)}</span></div>
     </div>`;
   }).join('');
+  renderAllFavs();
 }
 
 // ── CATEGORY BROWSE ──────────────────────────────────────────────────────────
@@ -2460,7 +2657,16 @@ function renderTree(){
       arrow.onclick=e=>{e.stopPropagation();if(!hasChildren)return;if(isExpanded)expandedSb.delete(pk);else expandedSb.add(pk);renderTree();};
       const nameEl=document.createElement('span');nameEl.className='sb-name';nameEl.textContent=name;
       const countEl=document.createElement('span');countEl.className='sb-count';countEl.textContent=node.total;
-      row.appendChild(arrow);row.appendChild(nameEl);row.appendChild(countEl);
+      // Star button
+      const starEl=document.createElement('button');
+      const starred=isFav(path);
+      starEl.className='sb-fav-rm';starEl.textContent=starred?'★':'☆';
+      starEl.title=starred?'Remove favorite':'Add to favorites';
+      starEl.style.cssText='color:'+(starred?'#e8b84b':'var(--text-dim)')+';font-size:12px;opacity:'+(starred?'1':'0')+';background:none;border:none;cursor:pointer;padding:0 3px;transition:opacity 0.1s,color 0.1s;flex-shrink:0;';
+      starEl.onclick=e=>{e.stopPropagation();toggleFav(path);renderFavSidebar();renderFavBrowseStrip();starEl.textContent=isFav(path)?'★':'☆';starEl.style.color=isFav(path)?'#e8b84b':'var(--text-dim)';starEl.style.opacity=isFav(path)?'1':'0';};
+      row.onmouseenter=()=>{if(!isFav(path))starEl.style.opacity='1';};
+      row.onmouseleave=()=>{if(!isFav(path))starEl.style.opacity='0';};
+      row.appendChild(arrow);row.appendChild(nameEl);row.appendChild(countEl);row.appendChild(starEl);
       row.onclick=()=>navigate(path);wrap.appendChild(row);
       if(hasChildren&&isExpanded){
         const ch=document.createElement('div');ch.className='sb-children open';
@@ -3179,8 +3385,8 @@ function mobRenderBrowseAt(path){
   // Show/hide CTA + strips at home
   var _addCta=document.getElementById('add-cta-card');
   if(_addCta)_addCta.style.display=(!path.length&&isIPad())?'flex':'none';
-  if(!path.length){setTimeout(function(){if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();},30);}
-  else{var _as=document.getElementById('attn-strip');if(_as)_as.style.display='none';var _ds=document.getElementById('daily-strip');if(_ds)_ds.style.display='none';}
+  if(!path.length){setTimeout(function(){if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();renderFavBrowseStrip();},30);}
+  else{var _as=document.getElementById('attn-strip');if(_as)_as.style.display='none';var _ds=document.getElementById('daily-strip');if(_ds)_ds.style.display='none';var _fs=document.getElementById('fav-browse-strip');if(_fs)_fs.style.display='none';}
   var boxH='';
   if(children.length){
     var cc=mDC(depth);
@@ -3216,13 +3422,19 @@ function mobRenderBrowseAt(path){
         var FC2={'Full':'full','Most':'most','Half':'half','Low':'low','Empty':'empty'};
         fillBarH='<div class="mob-box-fill-bar">'+fillItems.slice(0,8).map(function(i){return'<div class="mob-box-fill-seg '+(FC2[i.fillLevel]||'')+'"></div>';}).join('')+'</div>';
       }
-      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)"><div class="mob-box-arrow">›</div><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+fillBarH+'</div>';
+      var isStarred=isFav(childPath);
+      var starBtn='<button class="mob-box-star'+(isStarred?' starred':'')+'" onclick="event.stopPropagation();toggleFav('+JSON.stringify(childPath)+');renderFavBrowseStrip();this.classList.toggle(\'starred\',isFav('+JSON.stringify(childPath)+'))" title="'+(isStarred?'Remove favorite':'Add to favorites')+'">'+(isStarred?'★':'☆')+'</button>';
+      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'+starBtn+'<div class="mob-box-arrow">›</div><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+fillBarH+'</div>';
     }).join('')+'</div>';
   }
   var itemsH='';
   if(directItems.length){itemsH='<div class="mob-sec-label">Items here</div><div class="mc-col-hdr"><span>Category</span><span>Name</span><span>Cond</span><span>Qty</span><span>Fill</span><span>Audit</span></div>'+directItems.map(function(i){return mobCard(i);}).join('');}
   var backPid=path.length?mReg(path.slice(0,-1)):'';
-  var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div><div class="mob-bcount">'+allItems.length+'</div></div>':'';
+  var hdrStar=path.length?(function(){
+    var starred=isFav(path);
+    return'<button class="mob-bc-star'+(starred?' starred':'')+'" onclick="toggleFav('+JSON.stringify(path)+');renderFavBrowseStrip();this.classList.toggle(\'starred\',isFav('+JSON.stringify(path)+'))" title="'+(starred?'Remove favorite':'Favorite this location')+'">'+(starred?'★':'☆')+'</button>';
+  })():'';
+  var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div>'+hdrStar+'<div class="mob-bcount">'+allItems.length+'</div></div>':'';
   el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
   document.querySelector('.mob-content').scrollTop=0;
   // No sidebar to refresh
@@ -3292,7 +3504,7 @@ function maddPick(el){
 function mobLPOpen(){
   _maddLpSel=_maddLoc?_maddLoc.slice():null;_maddLpExp=new Set();
   if(_maddLpSel){for(var i=1;i<=_maddLpSel.length;i++)_maddLpExp.add(_maddLpSel.slice(0,i).join('::'));}
-  mobLPRender();mobLPUpdateBar();
+  mobLPRender();mobLPUpdateBar();renderFavLocPicker();
   document.getElementById('mob-lp-ov').classList.add('open');
 }
 var _locInspPickMode = false;
@@ -3302,7 +3514,7 @@ function locInspPickLoc(){
   _maddLpSel = item&&item.locationPath&&item.locationPath.length ? item.locationPath.slice() : null;
   _maddLpExp = new Set();
   if(_maddLpSel){for(var i=1;i<=_maddLpSel.length;i++)_maddLpExp.add(_maddLpSel.slice(0,i).join('::'));}
-  mobLPRender();mobLPUpdateBar();
+  mobLPRender();mobLPUpdateBar();renderFavLocPicker();
   // Hide inspector temporarily — show LP on top cleanly
   document.getElementById('loc-insp-overlay').style.opacity='0';
   document.getElementById('loc-insp-overlay').style.pointerEvents='none';
