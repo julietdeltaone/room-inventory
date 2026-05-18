@@ -1362,13 +1362,9 @@ body.mob-mode .shell{display:none;}
   0%{background-position:200% center;}
   100%{background-position:-200% center;}
 }
-/* Apply to border-top of location cards */
-.mob-box{
-  position:relative;overflow:hidden;
-}
+.mob-box{position:relative;overflow:hidden;}
 .mob-box::before{
   content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:inherit;border-top-color:inherit;
   background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.35) 50%,transparent 100%);
   background-size:200% 100%;
   animation:surge-sweep 3s linear infinite;
@@ -1376,22 +1372,181 @@ body.mob-mode .shell{display:none;}
   border-radius:18px 18px 0 0;
 }
 .mob-box:hover::before{opacity:1;}
-/* Tab bar active indicator */
-.t-tab.active::before{
-  animation:surge 2s ease-in-out infinite;
-}
-/* Progress fill */
+.t-tab.active::before{animation:surge 2s ease-in-out infinite;}
 .prog-fill{
   background:linear-gradient(90deg,var(--rose) 0%,#c97882 40%,var(--rose) 80%);
   background-size:200% 100%;
   animation:surge-sweep 2s linear infinite;
 }
-/* Category colored border on items */
-.mob-card::after{
-  content:'';position:absolute;bottom:0;left:0;width:4px;top:0;
-  background:inherit;opacity:0.3;
-  animation:surge 3s ease-in-out infinite;
+
+/* ══════════════════════════════════════════════════════════════════════
+   15 APP-STORE DESIGN UPGRADES
+══════════════════════════════════════════════════════════════════════ */
+
+/* #1 — Card entrance stagger animation */
+@keyframes cardEnter{
+  from{opacity:0;transform:translateY(18px) scale(0.97);}
+  to{opacity:1;transform:translateY(0) scale(1);}
 }
+.mob-box{animation:cardEnter 0.38s cubic-bezier(0.16,1,0.3,1) both;}
+.mob-box:nth-child(1){animation-delay:.00s}
+.mob-box:nth-child(2){animation-delay:.06s}
+.mob-box:nth-child(3){animation-delay:.12s}
+.mob-box:nth-child(4){animation-delay:.18s}
+.mob-box:nth-child(5){animation-delay:.22s}
+.mob-box:nth-child(6){animation-delay:.26s}
+.mob-box:nth-child(n+7){animation-delay:.30s}
+
+/* #2 — Larger, bolder card titles */
+.mob-box-name{
+  font-size:28px!important;font-weight:700;
+  letter-spacing:-0.02em;
+  line-height:1.1;
+}
+@media(min-width:768px){.mob-box-name{font-size:30px!important;}}
+@media(min-width:1024px){.mob-box-name{font-size:32px!important;}}
+
+/* #3 — Press state: scale + dim (tactile feedback) */
+.mob-box:active{
+  transform:scale(0.975)!important;
+  filter:brightness(0.88);
+  transition:transform 0.08s,filter 0.08s!important;
+}
+
+/* #4 — Stat numbers count-up animation is handled in JS below */
+/* CSS prep: tight tracking on stat numbers */
+.ipad-stat-num{letter-spacing:-0.03em!important;}
+
+/* #5 — Fill bar: rounded pill segments with gaps (iOS-style) */
+.mob-box-fill-bar{
+  display:flex;gap:4px;margin-top:14px;height:6px;
+}
+.mob-box-fill-seg{
+  height:6px!important;border-radius:3px!important;flex:1;
+  background:var(--border);
+}
+.mob-box-fill-seg.empty{background:#8f3838;}
+.mob-box-fill-seg.low{background:#8f5530;}
+.mob-box-fill-seg.half{background:#9e7a32;}
+.mob-box-fill-seg.most{background:#7a9e44;}
+.mob-box-fill-seg.full{background:#3d8f5a;}
+
+/* #6 — Active tab: icon scales up, label bolds */
+.t-tab .t-tab-icon{
+  transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),opacity 0.2s;
+  display:inline-block;
+}
+.t-tab .t-tab-lbl{transition:font-weight 0.1s,color 0.15s,letter-spacing 0.15s;}
+.t-tab.active .t-tab-icon{transform:scale(1.18);}
+.t-tab.active .t-tab-lbl{font-weight:700;letter-spacing:0.04em;}
+.t-tab:not(.active) .t-tab-icon{opacity:0.55;}
+.t-tab:not(.active) .t-tab-lbl{opacity:0.6;}
+
+/* #7 — Item count as a monospace pill badge */
+.mob-box-count{
+  display:inline-flex!important;align-items:center;
+  font-family:var(--font-mono)!important;
+  font-size:11px!important;letter-spacing:0.06em;
+  color:var(--text-dim)!important;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:2px 10px!important;
+  margin-bottom:14px;
+  width:fit-content;
+}
+
+/* #8 — Frosted glass header on scroll */
+.t-hdr{
+  transition:background 0.25s,backdrop-filter 0.25s,border-color 0.25s;
+  will-change:background;
+}
+.t-hdr.scrolled{
+  background:rgba(10,10,10,0.75)!important;
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border-bottom-color:rgba(255,255,255,0.08)!important;
+}
+
+/* #9 — Search bar morphs on focus */
+.t-search{
+  transition:border-color 0.2s,padding 0.2s cubic-bezier(0.16,1,0.3,1),box-shadow 0.2s;
+}
+.t-search:focus{
+  border-color:var(--rose)!important;
+  padding-top:13px!important;padding-bottom:13px!important;
+  box-shadow:0 0 0 3px rgba(176,122,132,0.12);
+}
+
+/* #10 — Sub-location preview items as chips */
+.mob-box-prev-item{
+  display:inline-flex!important;align-items:center;
+  font-size:12px!important;color:var(--text-dim)!important;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:3px 10px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;
+  transition:background 0.12s;
+}
+.mob-box-preview{
+  display:flex!important;flex-direction:row!important;
+  flex-wrap:wrap;gap:5px!important;margin-top:8px;
+}
+
+/* #11 — Ripple on card tap */
+@keyframes ripple{
+  from{transform:scale(0);opacity:0.35;}
+  to{transform:scale(4);opacity:0;}
+}
+.mob-box{overflow:hidden;}
+.ripple-el{
+  position:absolute;border-radius:50%;
+  width:60px;height:60px;margin-left:-30px;margin-top:-30px;
+  background:rgba(255,255,255,0.18);
+  pointer-events:none;
+  animation:ripple 0.55s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+/* #12 — Per-location persistent color accent border */
+/* Colors assigned by JS via --loc-accent CSS var */
+.mob-box{border-top:3px solid var(--loc-accent,var(--border))!important;}
+
+/* #13 — Supply badge pulse ring */
+@keyframes supplyRing{
+  0%{box-shadow:0 0 0 0 rgba(143,72,72,0.6);}
+  70%{box-shadow:0 0 0 7px rgba(143,72,72,0);}
+  100%{box-shadow:0 0 0 0 rgba(143,72,72,0);}
+}
+#supply-tab-badge{animation:supplyRing 2s ease infinite!important;}
+
+/* #14 — Card hover: border brightens + 2px lift (desktop) */
+@media(hover:hover){
+  .mob-box{
+    transition:background 0.18s,transform 0.22s cubic-bezier(0.16,1,0.3,1),
+              border-color 0.18s,box-shadow 0.22s!important;
+  }
+  .mob-box:hover{
+    transform:translateY(-3px)!important;
+    border-color:rgba(176,122,132,0.45)!important;
+    box-shadow:0 12px 40px rgba(0,0,0,0.45)!important;
+  }
+}
+
+/* #15 — Letter-spacing pass: Inter SF-Pro feel */
+.mob-box-name{letter-spacing:-0.02em;}
+.ipad-stat-num{letter-spacing:-0.03em;}
+.ipad-stat-lbl{letter-spacing:0.14em;}
+.mob-badge{letter-spacing:0.05em;}
+.mob-card-name,.mc-name{letter-spacing:-0.01em;}
+.t-logo{letter-spacing:0.20em;}
+.mob-count-bar{letter-spacing:0.10em;}
+.mob-sec-label{letter-spacing:0.16em;}
+.mob-supply-title{letter-spacing:-0.02em;}
+.mob-btitle{letter-spacing:-0.02em;}
+.t-tab-lbl{letter-spacing:0.06em;}
+
 </style>
 </head>
 <body>
@@ -4643,6 +4798,138 @@ function addTreeCollapseAll(){
 }
 
 // tree hooks now in tSwitchTab directly
+
+// ════════════════════════════════════════════════════════════
+// 15 DESIGN UPGRADES — runtime JS
+// ════════════════════════════════════════════════════════════
+
+// #4 — Stat number count-up animation
+function animateStatNum(el, target, duration){
+  if(!el) return;
+  var start = 0;
+  var isValue = target.toString().includes('k') || target.toString().includes('$');
+  var rawNum = parseFloat(target.toString().replace(/[$k,]/g,''));
+  var prefix = target.toString().includes('$') ? '$' : '';
+  var suffix = target.toString().includes('k') ? 'k' : '';
+  var startTime = null;
+  function step(ts){
+    if(!startTime) startTime = ts;
+    var progress = Math.min((ts - startTime) / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 3);
+    var current = Math.round(ease * rawNum * 10) / 10;
+    el.textContent = prefix + (suffix ? current.toFixed(1) : Math.round(current)) + suffix;
+    if(progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+
+var _statsAnimated = false;
+function maybeAnimateStats(){
+  if(_statsAnimated) return;
+  var cells = document.querySelectorAll('.ipad-stat-num');
+  if(!cells.length || !inventory.length) return;
+  _statsAnimated = true;
+  cells.forEach(function(el){
+    var val = el.textContent.trim();
+    if(val && val !== '—') animateStatNum(el, val, 900);
+  });
+}
+
+// #8 — Frosted glass header on scroll
+(function(){
+  var hdr = document.getElementById('t-hdr');
+  if(!hdr) return;
+  var content = document.querySelector('.mob-content');
+  if(!content) return;
+  function onScroll(){
+    if(content.scrollTop > 10) hdr.classList.add('scrolled');
+    else hdr.classList.remove('scrolled');
+  }
+  content.addEventListener('scroll', onScroll, {passive:true});
+})();
+
+// #11 — Ripple on card tap
+document.addEventListener('pointerdown', function(e){
+  var box = e.target.closest('.mob-box');
+  if(!box) return;
+  var rect = box.getBoundingClientRect();
+  var x = e.clientX - rect.left;
+  var y = e.clientY - rect.top;
+  var rip = document.createElement('span');
+  rip.className = 'ripple-el';
+  rip.style.left = x + 'px';
+  rip.style.top = y + 'px';
+  box.appendChild(rip);
+  setTimeout(function(){ rip.remove(); }, 600);
+}, {passive:true});
+
+// #12 — Location accent colors (persistent per top-level name)
+var LOC_ACCENTS = [
+  'hsla(200,65%,60%,0.7)',
+  'hsla(160,65%,58%,0.7)',
+  'hsla(45,70%,58%,0.7)',
+  'hsla(280,60%,62%,0.7)',
+  'hsla(20,65%,60%,0.7)',
+  'hsla(320,60%,60%,0.7)',
+  'hsla(90,55%,55%,0.7)',
+  'hsla(260,60%,62%,0.7)',
+];
+var _locColorMap = {};
+function assignLocColors(){
+  var boxes = document.querySelectorAll('.mob-box[data-loc-name]');
+  boxes.forEach(function(box){
+    var name = box.dataset.locName || '';
+    if(!_locColorMap[name]){
+      var idx = Object.keys(_locColorMap).length % LOC_ACCENTS.length;
+      _locColorMap[name] = LOC_ACCENTS[idx];
+    }
+    box.style.setProperty('--loc-accent', _locColorMap[name]);
+    box.style.borderTopColor = _locColorMap[name];
+  });
+}
+
+// Hook into mobRenderBrowseAt to apply colors after render
+var _origMobRender = window.mobRenderBrowseAt;
+if(typeof mobRenderBrowseAt === 'function'){
+  var __origRender = mobRenderBrowseAt;
+  window.mobRenderBrowseAt = function(path){
+    __origRender(path);
+    setTimeout(function(){ assignLocColors(); maybeAnimateStats(); }, 60);
+  };
+}
+
+// Also apply on initial load
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){ assignLocColors(); maybeAnimateStats(); }, 800);
+});
+
+// Re-apply after any dynamic render
+var _observeTarget = document.getElementById('mob-browse-inner');
+if(_observeTarget){
+  new MutationObserver(function(){
+    assignLocColors();
+    maybeAnimateStats();
+  }).observe(_observeTarget, {childList:true, subtree:false});
+}
+
+// Patch mob-box HTML to carry data-loc-name — hook the innerHTML generation
+// The boxes are built in mobRenderBrowseAt; we intercept via MutationObserver above
+// and read box names from .mob-box-name text
+document.addEventListener('DOMContentLoaded', function(){
+  var inner = document.getElementById('mob-browse-inner');
+  if(!inner) return;
+  new MutationObserver(function(){
+    inner.querySelectorAll('.mob-box').forEach(function(box){
+      if(!box.dataset.locName){
+        var nameEl = box.querySelector('.mob-box-name');
+        if(nameEl) box.dataset.locName = nameEl.textContent.trim();
+      }
+    });
+    assignLocColors();
+  }).observe(inner, {childList:true, subtree:true});
+});
+
 </script>
 
 <!-- ── LOCATE INSPECTOR OVERLAY ── -->
