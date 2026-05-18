@@ -794,13 +794,29 @@ body.mob-mode .shell{display:none;}
     position:fixed;
     top:50%;left:50%;
     transform:translate(-50%,-50%);
-    border-radius:12px;width:400px;max-width:90vw;
-    box-shadow:0 24px 60px rgba(0,0,0,0.7);
+    border-radius:16px;
+    width:760px;max-width:94vw;
+    max-height:90vh;
+    box-shadow:0 32px 80px rgba(0,0,0,0.8);
     border:1px solid var(--border2);
+    display:flex;flex-direction:column;
   }
   .loc-insp-overlay.open .loc-insp-pop{transform:translate(-50%,-50%);}
-  .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
+  .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);}
   .loc-insp-handle{display:none;}
+  /* 2-col body layout on desktop */
+  .loc-insp-body{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:18px 28px;
+    padding:22px 28px 28px!important;
+    overflow-y:auto;
+    align-content:start;
+  }
+  /* Save button and status span full width */
+  .loc-insp-save{grid-column:1/-1;}
+  .loc-insp-status{grid-column:1/-1;}
+  #linsp-supply-col{grid-column:1/-1;}
 }
 .loc-insp-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;flex-shrink:0;}
 @media(min-width:768px){.loc-insp-handle{display:none;}}
@@ -1547,6 +1563,81 @@ body.mob-mode .shell{display:none;}
 .mob-btitle{letter-spacing:-0.02em;}
 .t-tab-lbl{letter-spacing:0.06em;}
 
+/* ── EXPANDED ADD EDITOR ──────────────────────────────────────────────── */
+.add-exp-toggle{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:10px 0 2px;background:none;border:none;cursor:pointer;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text-dim);
+  -webkit-tap-highlight-color:transparent;transition:color 0.15s;
+}
+.add-exp-toggle:hover{color:var(--text-mid);}
+.add-exp-toggle.open{color:var(--rose);}
+.add-exp-arrow{transition:transform 0.22s cubic-bezier(0.16,1,0.3,1);display:inline-block;}
+.add-exp-toggle.open .add-exp-arrow{transform:rotate(90deg);}
+.add-exp-panel{
+  display:none;flex-direction:column;gap:14px;
+  padding:16px 0 4px;
+  border-top:1px solid var(--border);
+  animation:expandIn 0.22s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes expandIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.add-exp-panel.open{display:flex;}
+.add-exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.add-exp-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+.add-exp-sel{
+  width:100%;background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-family:var(--font-ui);font-size:14px;
+  outline:none;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  transition:border-color 0.15s;
+}
+.add-exp-sel:focus{border-color:var(--rose);}
+.add-exp-inp{
+  width:100%;background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-family:var(--font-ui);font-size:14px;
+  outline:none;-webkit-appearance:none;transition:border-color 0.15s;
+}
+.add-exp-inp:focus{border-color:var(--rose);}
+.add-exp-ta{
+  width:100%;background:var(--s2);border:1.5px solid var(--border2);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-family:var(--font-ui);font-size:14px;
+  outline:none;resize:vertical;min-height:72px;line-height:1.5;
+  -webkit-appearance:none;transition:border-color 0.15s;
+}
+.add-exp-ta:focus{border-color:var(--rose);}
+.add-exp-fill-row{display:flex;gap:6px;}
+.add-exp-fill-btn{
+  flex:1;padding:8px 4px;border-radius:8px;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  cursor:pointer;background:var(--s3);border:1.5px solid var(--border2);
+  color:var(--text-dim);transition:all 0.15s;-webkit-tap-highlight-color:transparent;
+}
+.add-exp-fill-btn.active-fill{background:rgba(77,143,106,0.15);border-color:#4d8f6a;color:#4d8f6a;}
+.add-exp-fill-btn[data-fill="Most"].active-fill{background:rgba(122,158,100,0.15);border-color:#7a9e64;color:#7a9e64;}
+.add-exp-fill-btn[data-fill="Half"].active-fill{background:rgba(158,122,50,0.15);border-color:#9e7a32;color:#9e7a32;}
+.add-exp-fill-btn[data-fill="Low"].active-fill{background:rgba(143,85,48,0.15);border-color:#8f5530;color:#8f5530;}
+.add-exp-fill-btn[data-fill="Empty"].active-fill{background:rgba(143,72,72,0.15);border-color:#8f4848;color:#8f4848;}
+.add-exp-enrich-bar{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:rgba(110,143,168,0.08);border:1px solid rgba(110,143,168,0.2);
+  border-radius:10px;
+}
+.add-exp-enrich-lbl{font-family:var(--font-mono);font-size:10px;color:var(--steel,#6e8fa8);flex:1;letter-spacing:0.04em;}
+.add-exp-enrich-btn{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;
+  padding:6px 14px;border-radius:8px;border:1px solid rgba(110,143,168,0.4);
+  background:rgba(110,143,168,0.12);color:#6e8fa8;cursor:pointer;
+  transition:all 0.15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;
+}
+.add-exp-enrich-btn:hover{background:rgba(110,143,168,0.22);border-color:rgba(110,143,168,0.6);}
+.add-exp-enrich-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.add-exp-enrich-result{
+  font-family:var(--font-mono);font-size:10px;color:var(--green);
+  padding:6px 10px;background:rgba(77,143,106,0.08);border:1px solid rgba(77,143,106,0.2);
+  border-radius:8px;line-height:1.6;
+}
 </style>
 </head>
 <body>
@@ -1714,6 +1805,75 @@ body.mob-mode .shell{display:none;}
           <div class="mob-field"><div class="mob-field-lbl">Keep?</div>
             <select class="mob-field-sel" id="madd-keep"><option value="">--</option><option selected>Keep</option><option>Maybe</option><option>Sell</option><option>Donate</option><option>Trash</option></select>
           </div>
+
+          <!-- Expanded editor toggle -->
+          <button class="add-exp-toggle" id="add-exp-toggle" onclick="toggleAddExpanded()" type="button">
+            <span class="add-exp-arrow">›</span>
+            <span id="add-exp-toggle-lbl">More fields &amp; enrichment</span>
+          </button>
+
+          <!-- Expanded editor panel -->
+          <div class="add-exp-panel" id="add-exp-panel">
+            <!-- Fill Level -->
+            <div>
+              <div class="add-exp-lbl">Fill Level</div>
+              <div class="add-exp-fill-row" id="add-exp-fill-row">
+                <button class="add-exp-fill-btn" data-fill="Full"  onclick="addExpSetFill('Full')" type="button">Full</button>
+                <button class="add-exp-fill-btn" data-fill="Most"  onclick="addExpSetFill('Most')" type="button">Most</button>
+                <button class="add-exp-fill-btn" data-fill="Half"  onclick="addExpSetFill('Half')" type="button">Half</button>
+                <button class="add-exp-fill-btn" data-fill="Low"   onclick="addExpSetFill('Low')"  type="button">Low</button>
+                <button class="add-exp-fill-btn" data-fill="Empty" onclick="addExpSetFill('Empty')" type="button">Empty</button>
+                <button class="add-exp-fill-btn" data-fill="" onclick="addExpSetFill('')" type="button" style="flex:0 0 auto;padding:8px 10px">✕</button>
+              </div>
+            </div>
+            <!-- Freq / Crit / Repl / Est Value -->
+            <div class="add-exp-grid">
+              <div>
+                <div class="add-exp-lbl">Frequency</div>
+                <select class="add-exp-sel" id="madd-freq">
+                  <option value="">--</option>
+                  <option>Daily</option><option>Weekly</option><option>Monthly</option>
+                  <option>Quarterly</option><option>Annually</option><option>Rarely</option>
+                </select>
+              </div>
+              <div>
+                <div class="add-exp-lbl">Criticality</div>
+                <select class="add-exp-sel" id="madd-crit">
+                  <option value="">--</option>
+                  <option>Essential</option><option>Important</option>
+                  <option>Nice to Have</option><option>Redundant</option>
+                </select>
+              </div>
+              <div>
+                <div class="add-exp-lbl">Replaceability</div>
+                <select class="add-exp-sel" id="madd-repl">
+                  <option value="">--</option>
+                  <option>Irreplaceable</option><option>Hard/Expensive</option>
+                  <option>Moderate</option><option>Easy/Cheap</option>
+                </select>
+              </div>
+              <div>
+                <div class="add-exp-lbl">Est. Value ($)</div>
+                <input class="add-exp-inp" id="madd-estval" type="number" placeholder="0" min="0" inputmode="decimal">
+              </div>
+            </div>
+            <!-- Notes / Keywords -->
+            <div>
+              <div class="add-exp-lbl">Notes</div>
+              <textarea class="add-exp-ta" id="madd-notes" placeholder="Storage tips, condition details, serial number…"></textarea>
+            </div>
+            <div>
+              <div class="add-exp-lbl">Keywords</div>
+              <input class="add-exp-inp" id="madd-keywords" type="text" placeholder="comma-separated tags">
+            </div>
+            <!-- AI Enrich -->
+            <div class="add-exp-enrich-bar">
+              <span class="add-exp-enrich-lbl">✦ AI can fill Freq, Crit, Repl, Value, Notes and Keywords for you</span>
+              <button class="add-exp-enrich-btn" id="add-exp-enrich-btn" onclick="addExpRunEnrich()" type="button">Enrich ✦</button>
+            </div>
+            <div id="add-exp-enrich-result" style="display:none" class="add-exp-enrich-result"></div>
+          </div>
+
           <div style="display:flex;gap:10px;margin-top:8px;"><button style="flex:1;padding:14px;border-radius:12px;border:1px solid var(--border2);background:var(--s2);color:var(--text-mid);font-family:var(--font-ui);font-size:16px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="mobCancelAdd()">Cancel</button><button class="mob-submit-btn" id="madd-btn" onclick="mobAddSubmit()" style="flex:2;margin-top:0;">Add ✦ Enrich</button></div>
           <div class="mob-add-status" id="madd-status"></div>
         </div><!-- /add-form-col -->
@@ -3260,9 +3420,14 @@ function mobCancelAdd(){
   document.getElementById('madd-keep').value='Keep';
   var sugg=document.getElementById('madd-sugg');if(sugg)sugg.classList.remove('open');
   _maddLoc=null;
-  var txt=document.getElementById('madd-loc-txt');var btn=null;var locBtn=null; //removed with 2-col layout
-  
-  if(txt)txt.textContent='Tap to pick location';if(btn)btn.classList.remove('set');
+  var locTxt=document.getElementById('madd-loc-txt-inline');
+  if(locTxt)locTxt.textContent='Pick from tree →';
+  // Reset expanded editor
+  ['madd-freq','madd-crit','madd-repl'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['madd-notes','madd-keywords'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var ev=document.getElementById('madd-estval');if(ev)ev.value='';
+  _addExpFill='';
+  document.querySelectorAll('.add-exp-fill-btn').forEach(function(b){b.classList.remove('active-fill');});
   var stat=document.getElementById('madd-status');if(stat)stat.textContent='';
   mobSwitchTab('browse');
 }
@@ -3277,9 +3442,17 @@ async function mobAddSubmit(){
   var row={id:nextId,name:name,sn:'',category:document.getElementById('madd-cat').value||'Misc',
     location:locPath.join(' > '),qty:document.getElementById('madd-qty').value||'1',
     condition:document.getElementById('madd-cond').value||'Good',keep:document.getElementById('madd-keep').value||'Keep',
-    frequency:'',criticality:'',replaceability:'',notes:'',est_value:'',year_purchased:'',
-    last_used:'',keywords:'',in_use:false,locked_item:false,locked_notes:false,
-    doc_url:null,doc_type:'',fill_level:'',misplaced:false,mil_sub:null,
+    frequency:(document.getElementById('madd-freq')||{}).value||'',
+    criticality:(document.getElementById('madd-crit')||{}).value||'',
+    replaceability:(document.getElementById('madd-repl')||{}).value||'',
+    notes:(document.getElementById('madd-notes')||{}).value||'',
+    est_value:(document.getElementById('madd-estval')||{}).value||'',
+    keywords:(document.getElementById('madd-keywords')||{}).value||'',
+    year_purchased:'',
+    last_used:'',in_use:false,locked_item:false,locked_notes:false,
+    doc_url:null,doc_type:'',
+    fill_level:_addExpFill||'',
+    misplaced:false,mil_sub:null,
     change_log:'[]',created_at:now,last_modified:now};
   try{
     // Step 1: Save to DB
@@ -3316,6 +3489,13 @@ async function mobAddSubmit(){
     document.getElementById('madd-name').value='';document.getElementById('madd-qty').value='1';
     document.getElementById('madd-cat').value='Misc';document.getElementById('madd-cond').value='Good';
     document.getElementById('madd-keep').value='Keep';document.getElementById('madd-sugg').classList.remove('open');
+    // Reset expanded editor fields
+    ['madd-freq','madd-crit','madd-repl'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    ['madd-notes','madd-keywords'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    var ev=document.getElementById('madd-estval');if(ev)ev.value='';
+    _addExpFill='';
+    document.querySelectorAll('.add-exp-fill-btn').forEach(function(b){b.classList.remove('active-fill');});
+    var er=document.getElementById('add-exp-enrich-result');if(er)er.style.display='none';
     _maddLoc=null;
     var locTxtEl=document.getElementById('madd-loc-txt-inline');
     if(locTxtEl)locTxtEl.textContent='Pick from tree →';
@@ -3327,6 +3507,82 @@ async function mobAddSubmit(){
     if(document.getElementById('mob-page-browse').classList.contains('active'))mobRenderBrowseAt([]);
   }catch(e){stat.style.color='var(--rose)';stat.textContent='Save failed: '+e.message;}
   btn.disabled=false;
+}
+
+// ── EXPANDED ADD EDITOR ────────────────────────────────────────────────────────
+var _addExpFill = '';
+
+function toggleAddExpanded(){
+  var panel = document.getElementById('add-exp-panel');
+  var toggle = document.getElementById('add-exp-toggle');
+  var lbl = document.getElementById('add-exp-toggle-lbl');
+  if(!panel) return;
+  var isOpen = panel.classList.toggle('open');
+  toggle.classList.toggle('open', isOpen);
+  if(lbl) lbl.textContent = isOpen ? 'Hide extra fields' : 'More fields & enrichment';
+}
+
+function addExpSetFill(level){
+  _addExpFill = level;
+  document.querySelectorAll('.add-exp-fill-btn').forEach(function(btn){
+    btn.classList.toggle('active-fill', btn.dataset.fill === level && level !== '');
+  });
+}
+
+async function addExpRunEnrich(){
+  var name = (document.getElementById('madd-name').value || '').trim();
+  if(!name){ alert('Enter an item name first'); return; }
+  var btn = document.getElementById('add-exp-enrich-btn');
+  var result = document.getElementById('add-exp-enrich-result');
+  btn.disabled = true;
+  btn.textContent = '⟳ Enriching…';
+  result.style.display = 'none';
+
+  try{
+    var catCounts = {};
+    inventory.forEach(function(i){ catCounts[i.category] = (catCounts[i.category]||0)+1; });
+    var topCats = Object.entries(catCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,8).map(function(e){return e[0];}).join(', ');
+    var cat = document.getElementById('madd-cat').value || '';
+    var res = await fetch(SUPABASE_URL+'/functions/v1/suggest-item',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({name:name,topCats:topCats,category:cat,enrichMode:true,itemContext:{frequency:'',criticality:'',replaceability:'',condition:document.getElementById('madd-cond').value||'',keep:document.getElementById('madd-keep').value||'',location:'',qty:document.getElementById('madd-qty').value||'1'}})
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var s = await res.json();
+
+    // Apply suggestions to form fields
+    if(s.frequency && !document.getElementById('madd-freq').value)
+      document.getElementById('madd-freq').value = s.frequency;
+    if(s.criticality && !document.getElementById('madd-crit').value)
+      document.getElementById('madd-crit').value = s.criticality;
+    if(s.replaceability && !document.getElementById('madd-repl').value)
+      document.getElementById('madd-repl').value = s.replaceability;
+    if(s.keep && !document.getElementById('madd-keep').value)
+      document.getElementById('madd-keep').value = s.keep;
+    if(s.estimatedValue && !document.getElementById('madd-estval').value)
+      document.getElementById('madd-estval').value = s.estimatedValue;
+    if(s.category && cat !== s.category)
+      document.getElementById('madd-cat').value = s.category;
+    if(s.notes && !document.getElementById('madd-notes').value.trim())
+      document.getElementById('madd-notes').value = s.notes;
+    if(s.keywords && !document.getElementById('madd-keywords').value.trim())
+      document.getElementById('madd-keywords').value = s.keywords;
+
+    var lines = [];
+    if(s.frequency)     lines.push('Freq: '+s.frequency);
+    if(s.criticality)   lines.push('Crit: '+s.criticality);
+    if(s.replaceability)lines.push('Repl: '+s.replaceability);
+    if(s.estimatedValue)lines.push('Est $'+s.estimatedValue);
+    result.textContent = '✓ Applied — ' + (lines.join(' · ') || 'suggestions added');
+    result.style.display = 'block';
+  } catch(err){
+    result.textContent = '✗ Enrich failed: '+err.message;
+    result.style.color = 'var(--rose)';
+    result.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Enrich ✦';
 }
 
 // ── ADD ITEM CONFIRMATION ─────────────────────────────────────────────────────
@@ -3394,25 +3650,15 @@ function openLocInspector(itemId, btnEl){
       +'<input class="loc-insp-inp" id="linsp-name" type="text" value="'+esc(item.name)+'" autocomplete="off" autocorrect="off">'
     +'</div>'
     +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Category</div>'
+      +'<select class="loc-insp-sel" id="linsp-cat">'+catOpts+'</select>'
+    +'</div>'
+    +'<div class="loc-insp-section">'
       +'<div class="loc-insp-lbl">Location Path</div>'
       +'<button class="mob-loc-btn" id="linsp-loc-btn" onclick="locInspPickLoc()" style="margin:0;font-size:14px;">'
         +'<span id="linsp-loc-txt">'+esc((item.locationPath||[]).join(' › ')||'Tap to pick location')+'</span>'
         +'<span style="color:var(--text-dim)">›</span>'
       +'</button>'
-    +'</div>'
-    +'<div class="loc-insp-section">'
-      +'<div class="loc-insp-lbl">Category</div>'
-      +'<select class="loc-insp-sel" id="linsp-cat">'+catOpts+'</select>'
-    +'</div>'
-    +'<div class="loc-insp-two">'
-      +'<div class="loc-insp-section">'
-        +'<div class="loc-insp-lbl">Quantity</div>'
-        +'<input class="loc-insp-inp" id="linsp-qty" type="number" value="'+esc(item.qty||'1')+'" min="1" inputmode="numeric">'
-      +'</div>'
-      +'<div class="loc-insp-section">'
-        +'<div class="loc-insp-lbl">Condition</div>'
-        +'<select class="loc-insp-sel" id="linsp-cond">'+condOpts+'</select>'
-      +'</div>'
     +'</div>'
     +'<div class="loc-insp-section">'
       +'<div class="loc-insp-lbl">Status</div>'
@@ -3422,29 +3668,28 @@ function openLocInspector(itemId, btnEl){
       +'</div>'
     +'</div>'
     +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Quantity</div>'
+      +'<input class="loc-insp-inp" id="linsp-qty" type="number" value="'+esc(item.qty||'1')+'" min="1" inputmode="numeric">'
+    +'</div>'
+    +'<div class="loc-insp-section">'
+      +'<div class="loc-insp-lbl">Condition</div>'
+      +'<select class="loc-insp-sel" id="linsp-cond">'+condOpts+'</select>'
+    +'</div>'
+    +'<div class="loc-insp-section">'
       +'<div class="loc-insp-lbl">Last Used</div>'
       +'<div class="loc-insp-last-used">'
         +'<span class="loc-insp-lu-val'+(luSet?' set':'')+'" id="linsp-lu-val">'+esc(luDisplay)+'</span>'
         +'<button class="loc-insp-lu-btn" onclick="locInspMarkLastUsed()">Mark Today &#x21b5;</button>'
       +'</div>'
     +'</div>'
+    +'<div style="display:flex;align-items:flex-end">'
+      +'<button class="loc-insp-save" id="linsp-save-btn" onclick="saveLocInspector()" style="flex:1;margin:0">Save Changes</button>'
+    +'</div>'
     +'<div id="linsp-supply-col">'+inspFillSectionHTML(item)+'</div>'
-    +'<button class="loc-insp-save" id="linsp-save-btn" onclick="saveLocInspector()">Save Changes</button>'
     +'<div class="loc-insp-status" id="linsp-status"></div>';
 
   var overlay = document.getElementById('loc-insp-overlay');
   overlay.classList.add('open');
-
-  if(window.innerWidth >= 768){
-    // Desktop: center in viewport, fixed position — no scroll glitching
-    var pop = document.getElementById('loc-insp-pop');
-    pop.style.position = 'fixed';
-    pop.style.top = '50%';
-    pop.style.left = '50%';
-    pop.style.transform = 'translate(-50%, -50%)';
-    pop.style.bottom = '';
-    pop.style.right = '';
-  }
 }
 
 function locInspToggleInUse(){
