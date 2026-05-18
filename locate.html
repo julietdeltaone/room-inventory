@@ -778,42 +778,42 @@ body.mob-mode .shell{display:none;}
 .loc-insp-overlay{position:fixed;inset:0;z-index:900;display:none;}
 .loc-insp-overlay.open{display:block;}
 .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);}
-/* Mobile: bottom sheet */
+/* Mobile: bottom sheet — full height */
 .loc-insp-pop{
   position:absolute;left:0;right:0;bottom:0;
   background:var(--s1);border-radius:20px 20px 0 0;
   border-top:1px solid var(--border2);
-  max-height:88vh;display:flex;flex-direction:column;
+  height:94vh;display:flex;flex-direction:column;
   transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.16,1,0.3,1);
   box-shadow:0 -16px 48px rgba(0,0,0,0.5);
 }
 .loc-insp-overlay.open .loc-insp-pop{transform:translateY(0);}
-/* Desktop: positioned popup */
+/* Desktop: near-fullscreen */
 @media(min-width:768px){
   .loc-insp-pop{
     position:fixed;
     top:50%;left:50%;
     transform:translate(-50%,-50%);
     border-radius:16px;
-    width:760px;max-width:94vw;
-    max-height:90vh;
-    box-shadow:0 32px 80px rgba(0,0,0,0.8);
+    width:min(960px,94vw);
+    height:min(700px,90vh);
+    box-shadow:0 32px 80px rgba(0,0,0,0.85);
     border:1px solid var(--border2);
     display:flex;flex-direction:column;
   }
   .loc-insp-overlay.open .loc-insp-pop{transform:translate(-50%,-50%);}
-  .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);}
+  .loc-insp-bg{position:absolute;inset:0;background:rgba(0,0,0,0.65);}
   .loc-insp-handle{display:none;}
-  /* 2-col body layout on desktop */
+  /* 3-col body layout — enough room to show everything without scrolling */
   .loc-insp-body{
     display:grid!important;
-    grid-template-columns:1fr 1fr;
-    gap:18px 28px;
-    padding:22px 28px 28px!important;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:16px 28px;
+    padding:24px 32px 28px!important;
     overflow-y:auto;
     align-content:start;
   }
-  /* Save button and status span full width */
+  /* Supply section + save + status full width */
   .loc-insp-save{grid-column:1/-1;}
   .loc-insp-status{grid-column:1/-1;}
   #linsp-supply-col{grid-column:1/-1;}
@@ -827,7 +827,7 @@ body.mob-mode .shell{display:none;}
 .loc-insp-title{font-size:14px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:10px;}
 .loc-insp-close{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0;line-height:1;transition:color 0.15s;}
 .loc-insp-close:hover{color:var(--text);}
-.loc-insp-body{overflow-y:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:14px;}
+@media(max-width:767px){.loc-insp-body{overflow-y:auto;padding:16px 18px 20px;display:flex;flex-direction:column;gap:14px;}} @media(min-width:768px){.loc-insp-body{flex:1;overflow-y:auto;}}
 .loc-insp-body::-webkit-scrollbar{display:none;}
 .loc-insp-section{display:flex;flex-direction:column;gap:8px;}
 .loc-insp-lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px;}
@@ -2173,7 +2173,14 @@ function renderFavSidebar(){
 function renderFavBrowseStrip(){
   var strip=document.getElementById('fav-browse-strip');if(!strip)return;
   var favs=getFavs();
-  if(!favs.length){strip.style.display='none';return;}
+  if(!favs.length){
+    // Show a subtle first-use hint pointing to the star buttons on cards
+    strip.style.display='';
+    strip.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:6px 20px 10px;">'
+      +'<span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--text-dim)">★ Hover a location card and tap ☆ to pin a favorite here</span>'
+      +'</div>';
+    return;
+  }
   strip.style.display='';
   strip.innerHTML='<div class="fav-strip-label">★ Favorites</div>'
     +'<div class="fav-strip">'+favs.map(function(f){
@@ -3109,13 +3116,17 @@ function navigateToSearchItem(el){
     const nameSnippet = item.name.slice(0,22);
     for(const c of cards){
       if(c.textContent.includes(nameSnippet)){
-        c.scrollIntoView({behavior:'smooth', block:'center'});
+        // Instant scroll first so card is fully in view, then animate
+        c.scrollIntoView({behavior:'instant', block:'center'});
         c.style.borderLeftColor = 'var(--rose)';
         c.style.animation = 'none';
-        // Force reflow
-        c.getBoundingClientRect();
-        c.style.animation = 'findFlash 1.4s ease forwards';
-        setTimeout(()=>{ c.style.animation=''; c.style.borderLeftColor=''; }, 1600);
+        // Two rAF frames ensure paint is complete before animation starts
+        requestAnimationFrame(()=>{
+          requestAnimationFrame(()=>{
+            c.style.animation = 'findFlash 1.4s ease forwards';
+            setTimeout(()=>{ c.style.animation=''; c.style.borderLeftColor=''; }, 1600);
+          });
+        });
         break;
       }
     }
@@ -3350,7 +3361,7 @@ function mobNavToItem(pid){
   mobSwitchTab('browse');
   var ms=document.getElementById('mob-search');
   if(ms)ms.value='';
-  // Scroll to and flash the matched item card
+  // Scroll to card instantly, then animate — smooth scroll races with the animation
   setTimeout(function(){
     if(!document.getElementById('find-flash-style')){
       var st=document.createElement('style');st.id='find-flash-style';
@@ -3362,12 +3373,17 @@ function mobNavToItem(pid){
     for(var ci=0;ci<cards.length;ci++){
       var c=cards[ci];
       if(c.textContent.indexOf(nameSnip)!==-1){
-        c.scrollIntoView({behavior:'smooth',block:'center'});
+        // Instant scroll so card is in view before animation fires
+        c.scrollIntoView({behavior:'instant',block:'center'});
         c.style.borderLeftColor='var(--rose)';
         c.style.animation='none';
-        c.getBoundingClientRect();
-        c.style.animation='findFlash 1.4s ease forwards';
-        setTimeout(function(){c.style.animation='';c.style.borderLeftColor='';},1600);
+        // Two rAF frames ensure the scroll paint is committed first
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            c.style.animation='findFlash 1.4s ease forwards';
+            setTimeout(function(){c.style.animation='';c.style.borderLeftColor='';},1600);
+          });
+        });
         break;
       }
     }
@@ -4751,7 +4767,28 @@ function renderReplTracker(){
   var sec=document.getElementById('repl-tracker-section');
   if(!sec)return;
   var cfg=getReplConfig();
-  if(!cfg.length){sec.style.display='none';return;}
+
+  // Always show the section — show empty state with setup prompt when no items configured
+  sec.style.display='';
+
+  if(!cfg.length){
+    sec.innerHTML='<div class="repl-section">'
+      +'<div class="repl-hdr">'
+        +'<span class="repl-title">⟳ Replacements</span>'
+        +'<button class="repl-edit-btn open" onclick="replToggleEdit()">+ Add items</button>'
+      +'</div>'
+      +'<div style="padding:4px 20px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:0.04em">'
+        +"Track when to replace toothbrushes, razor blades, filters, etc. Tap <strong style=\"color:var(--rose)\">+ Add items</strong> to get started."
+      +'</div>'
+      +'<div class="repl-edit-panel open" id="repl-edit-panel">'
+        +'<input class="repl-edit-search" id="repl-search" placeholder="Search items to track…" autocomplete="off" oninput="replFilterSearch(this.value)">'
+        +'<div class="repl-edit-list" id="repl-edit-list"></div>'
+      +'</div>'
+      +'</div>';
+    _replEditOpen=true;
+    replRenderEditList('');
+    return;
+  }
 
   // Resolve items from inventory
   var cards=cfg.map(function(entry){
