@@ -2876,6 +2876,8 @@ function itemToRow(item) {
     doc_url: item.docUrl || null,
     audit_freq: item.auditFreq || null,
     last_audited: item.lastAudited || null,
+    par_level: item.parLevel || null,
+    supply_exclude: item.supplyExclude ? true : false,
   };
 }
 
@@ -2911,6 +2913,8 @@ function rowToItem(row) {
     docUrl: row.doc_url || null,
     auditFreq: row.audit_freq || null,
     lastAudited: row.last_audited || null,
+    parLevel: row.par_level || 1,
+    supplyExclude: row.supply_exclude ? true : false,
   });
 }
 
