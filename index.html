@@ -1712,6 +1712,12 @@ td:hover .loc-copy-btn { display: flex; }
         <button class="filter-btn" id="loc-collapse-btn" onclick="collapseAllNodes()" title="Collapse all" style="flex:1;font-size:10px;color:var(--text-dim);padding:3px 0;text-align:center">↑↑ Collapse</button>
         <button class="filter-btn" id="loc-sort-btn" onclick="toggleLocSort()" title="Toggle sort: count / A–Z" style="flex:1;font-size:10px;color:var(--text-dim);padding:3px 0;text-align:center">A–Z Sort</button>
       </div>
+      <div style="display:flex;gap:3px;margin-bottom:6px;">
+        <input id="sidebar-new-loc-input" class="loc-tree-search" placeholder="+ new top-level location…" autocomplete="off"
+          style="margin:0;flex:1;"
+          onkeydown="if(event.key==='Enter')addTopParentDirect()">
+        <button onclick="addTopParentDirect()" title="Add location" style="flex-shrink:0;padding:0 7px;background:var(--rose-dim);border:1px solid var(--rose-dim);border-radius:var(--radius);color:var(--rose);cursor:pointer;font-size:13px;line-height:1;">+</button>
+      </div>
       <input id="loc-tree-search" class="loc-tree-search" placeholder="filter locations…" autocomplete="off" oninput="onLocTreeSearch(this.value)">
       <div id="loc-tree"></div>
     </div>
@@ -2470,9 +2476,19 @@ CSV FORMAT:
         <div id="locpick-tree"></div>
       </div>
       <div class="locpick-right-panel">
-        <div class="locpick-selection-label">Selected Location</div>
+        <div class="locpick-selection-label">Selected Location <span style="color:var(--text-dim);font-size:8px;text-transform:none;letter-spacing:0">(or type a new path below)</span></div>
         <div class="locpick-breadcrumb" id="locpick-breadcrumb">
           <span class="locpick-bc-empty">Click a location in the tree</span>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px">Or type path directly</div>
+          <input type="text" id="locpick-type-input" class="locpick-search"
+            style="margin-bottom:0;font-size:12px;"
+            placeholder="e.g. Garage > Shelf A"
+            autocomplete="off"
+            oninput="locPickerTypeInput(this.value)"
+            onkeydown="if(event.key==='Enter')locPickerCommitTyped()">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px">Use <span style="color:var(--text-mid)">&gt;</span> or <span style="color:var(--text-mid)">/</span> to separate levels</div>
         </div>
         <button class="locpick-clear" onclick="locPickerClearSelection()">✕ Clear selection</button>
         <div style="flex:1"></div>
@@ -4739,6 +4755,8 @@ function openLocPicker(itemId) {
   }
   document.getElementById('locpick-item-name').textContent = item.name || '—';
   document.getElementById('locpick-search').value = '';
+  const ti = document.getElementById('locpick-type-input');
+  if(ti) ti.value = _locPickSelected ? _locPickSelected.join(' > ') : '';
   renderLocPickerTree('');
   updateLocPickerBreadcrumb();
   document.getElementById('locpick-overlay').classList.add('open');
@@ -4751,18 +4769,43 @@ function closeLocPicker() {
 
 function locPickerClearSelection() {
   _locPickSelected = null;
+  const ti = document.getElementById('locpick-type-input');
+  if(ti) ti.value = '';
   updateLocPickerBreadcrumb();
   renderLocPickerTree(document.getElementById('locpick-search').value);
+}
+
+function locPickerTypeInput(val) {
+  if(!val.trim()) {
+    // Don't clear tree selection when empty — let them clear explicitly
+    return;
+  }
+  // Parse typed path: split on > or /
+  const parts = val.split(/[>/]/).map(s => s.trim()).filter(Boolean);
+  if(parts.length) {
+    _locPickSelected = parts;
+    updateLocPickerBreadcrumb();
+    renderLocPickerTree(document.getElementById('locpick-search').value);
+  }
+}
+
+function locPickerCommitTyped() {
+  const ti = document.getElementById('locpick-type-input');
+  if(!ti || !ti.value.trim()) return;
+  locPickerTypeInput(ti.value);
+  commitLocPicker();
 }
 
 function updateLocPickerBreadcrumb() {
   const bc = document.getElementById('locpick-breadcrumb');
   const btn = document.getElementById('locpick-confirm-btn');
+  const ti = document.getElementById('locpick-type-input');
   if(!_locPickSelected || !_locPickSelected.length) {
     bc.innerHTML = '<span class="locpick-bc-empty">Click a location in the tree</span>';
     bc.classList.remove('has-selection');
     btn.disabled = false;
     btn.textContent = 'Set Location (clear)';
+    if(ti) ti.value = '';
   } else {
     bc.classList.add('has-selection');
     bc.innerHTML = _locPickSelected.map((seg, i) =>
@@ -4770,6 +4813,7 @@ function updateLocPickerBreadcrumb() {
     ).join('');
     btn.disabled = false;
     btn.textContent = 'Set Location';
+    if(ti) ti.value = _locPickSelected.join(' > ');
   }
 }
 
@@ -5923,7 +5967,36 @@ async function runKeywordsEnrich(){
 function addTopLevelLoc(){
   const name=document.getElementById('new-loc-input').value.trim();if(!name)return;
   document.getElementById('new-loc-input').value='';
-  toast(`Assign items to "${name}" to add it to the tree`);
+  // Check for duplicates
+  const tree=buildLocTree();
+  if(tree.children[name]){toast(`"${name}" already exists`);return;}
+  // Create a placeholder item at this path so the tree node appears immediately
+  snapshot();
+  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[name],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false,lockedItem:false,lockedNotes:false};
+  inventory.push(item);
+  save();
+  renderLocMgr();
+  render(); // rebuilds sidebar tree
+  toast(`✓ Added location "${name}" — edit or delete the placeholder item`);
+}
+
+function addTopParentDirect(){
+  const name=document.getElementById('sidebar-new-loc-input').value.trim();
+  if(!name){document.getElementById('sidebar-new-loc-input').focus();return;}
+  document.getElementById('sidebar-new-loc-input').value='';
+  const tree=buildLocTree();
+  if(tree.children[name]){toast(`"${name}" already exists`);return;}
+  snapshot();
+  const item={id:nextId++,name:'New Item',category:'Misc',locationPath:[name],qty:'1',condition:'',frequency:'',criticality:'',replaceability:'',keep:'',estValue:'',yearPurchased:'',lastUsed:'',notes:'',sn:'',docType:'',digitalCopy:false,fillLevel:'',misplaced:false,lockedItem:false,lockedNotes:false};
+  inventory.push(item);
+  save();
+  render();
+  // Auto-select the new location
+  setTimeout(()=>{
+    const row=document.querySelector(`.loc-node-row[data-pk="${CSS.escape(pathKey([name]))}"]`);
+    if(row)setLocFilter([name],row);
+  },80);
+  toast(`✓ Added "${name}" — ready for items`);
 }
 
 // ─── MERGE ────────────────────────────────────────────────────────────────────
