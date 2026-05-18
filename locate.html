@@ -2527,17 +2527,26 @@ function navigateToSearchItem(el){
     navigate(parentPath);
   }
 
-  // After render, scroll to and highlight the specific item card
+  // After render, scroll to and highlight the specific item card with a flash animation
   setTimeout(()=>{
+    // Inject flash keyframe if needed
+    if(!document.getElementById('find-flash-style')){
+      const st=document.createElement('style');
+      st.id='find-flash-style';
+      st.textContent='@keyframes findFlash{0%{box-shadow:0 0 0 0 rgba(176,122,132,0.0)}20%{box-shadow:0 0 0 6px rgba(176,122,132,0.55),0 0 20px rgba(176,122,132,0.25)}60%{box-shadow:0 0 0 4px rgba(176,122,132,0.3)}100%{box-shadow:0 0 0 0 rgba(176,122,132,0)}}';
+      document.head.appendChild(st);
+    }
     const cards = document.querySelectorAll('.item-card, .mob-card');
     const nameSnippet = item.name.slice(0,22);
     for(const c of cards){
       if(c.textContent.includes(nameSnippet)){
         c.scrollIntoView({behavior:'smooth', block:'center'});
-        c.style.transition = 'box-shadow 0.35s, border-left-color 0.35s';
-        c.style.boxShadow = '0 0 0 2px var(--rose), 0 8px 24px rgba(176,122,132,0.18)';
         c.style.borderLeftColor = 'var(--rose)';
-        setTimeout(()=>{ c.style.boxShadow=''; c.style.borderLeftColor=''; }, 2500);
+        c.style.animation = 'none';
+        // Force reflow
+        c.getBoundingClientRect();
+        c.style.animation = 'findFlash 1.4s ease forwards';
+        setTimeout(()=>{ c.style.animation=''; c.style.borderLeftColor=''; }, 1600);
         break;
       }
     }
@@ -2712,8 +2721,10 @@ function mobCard(item, fromSearch){
   var fillH=item.fillLevel?'<button class="fill-cycle-btn '+(FILL_CLASS[item.fillLevel]||'unset')+' mc-fill" data-item-id="'+item.id+'" onclick="event.stopPropagation();tapFillCycle(this,'+item.id+')">'+esc(item.fillLevel)+'</button>':'<span class="mc-fill"></span>';
   // Audit badge
   var auditH=(function(){var af=item.auditFreq;if(!af)return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge loc-audit-none mc-audit" onclick="event.stopPropagation()" style="font-size:9px;padding:3px 6px">AUDIT</a>';var short={Quarterly:'Q','Bi-Annual':'B/A',Annual:'A',Never:'—'};var freqDays={Quarterly:90,'Bi-Annual':180,Annual:365};var days=freqDays[af];var la=item.lastAudited;var due=la?new Date(la).getTime()+days*86400000:0;var now=Date.now();var overdue=due&&now>due;var soon=due&&!overdue&&(due-now)<30*86400000;var cls=overdue?'loc-audit-overdue':soon?'loc-audit-soon':'loc-audit-ok';return'<a href="audit.html?item='+item.id+'" target="_blank" class="loc-audit-badge '+cls+' mc-audit" onclick="event.stopPropagation()">'+short[af]+'</a>';})();
-  // Row bg = subtle category color tint
-  var rowBg='background:linear-gradient(to right,'+cs.bg+'bb 0%,'+cs.bg+'55 60%,'+cs.bg+'22 100%)';
+  // Row bg = subtle category color tint, further tinted by fill level
+  var fillTint={'Full':'rgba(77,143,106,0.07)','Most':'rgba(122,158,100,0.07)','Half':'rgba(158,122,50,0.07)','Low':'rgba(143,85,48,0.07)','Empty':'rgba(143,56,56,0.09)'};
+  var fillOverlay=item.fillLevel&&fillTint[item.fillLevel]?','+fillTint[item.fillLevel]+' 0%,'+fillTint[item.fillLevel]+' 100%':'';
+  var rowBg='background:linear-gradient(to right,'+cs.bg+'bb 0%,'+cs.bg+'55 60%,'+cs.bg+'22 100%'+fillOverlay+')';
   // Search: loc path + inspector button; Browse: just the row
   var locColors=['#6e8fa8','#9e7a32','#7a6ea8','#4d8f6a','#b07a84'];
   var searchLocH='';
@@ -2772,16 +2783,22 @@ function mobNavToItem(pid){
   if(ms)ms.value='';
   // Scroll to and flash the matched item card
   setTimeout(function(){
+    if(!document.getElementById('find-flash-style')){
+      var st=document.createElement('style');st.id='find-flash-style';
+      st.textContent='@keyframes findFlash{0%{box-shadow:0 0 0 0 rgba(176,122,132,0.0)}20%{box-shadow:0 0 0 6px rgba(176,122,132,0.55),0 0 20px rgba(176,122,132,0.25)}60%{box-shadow:0 0 0 4px rgba(176,122,132,0.3)}100%{box-shadow:0 0 0 0 rgba(176,122,132,0)}}';
+      document.head.appendChild(st);
+    }
     var cards=document.querySelectorAll('.mob-card');
     var nameSnip=item.name.slice(0,22);
     for(var ci=0;ci<cards.length;ci++){
       var c=cards[ci];
       if(c.textContent.indexOf(nameSnip)!==-1){
         c.scrollIntoView({behavior:'smooth',block:'center'});
-        c.style.transition='box-shadow 0.35s,border-left-color 0.35s';
-        c.style.boxShadow='0 0 0 2px var(--rose),0 8px 24px rgba(176,122,132,0.18)';
         c.style.borderLeftColor='var(--rose)';
-        setTimeout(function(){c.style.boxShadow='';c.style.borderLeftColor='';},2500);
+        c.style.animation='none';
+        c.getBoundingClientRect();
+        c.style.animation='findFlash 1.4s ease forwards';
+        setTimeout(function(){c.style.animation='';c.style.borderLeftColor='';},1600);
         break;
       }
     }
@@ -3144,15 +3161,46 @@ async function mobAddSubmit(){
     document.getElementById('madd-name').value='';document.getElementById('madd-qty').value='1';
     document.getElementById('madd-cat').value='Misc';document.getElementById('madd-cond').value='Good';
     document.getElementById('madd-keep').value='Keep';document.getElementById('madd-sugg').classList.remove('open');
-    _maddLoc=null;var btn=null;var locBtn=null; //removed with 2-col layout
-  
-    document.getElementById('madd-loc-txt').textContent='Tap to pick location';locBtn.classList.remove('set');
-    setTimeout(function(){stat.textContent='';},4000);
+    _maddLoc=null;
+    var locTxtEl=document.getElementById('madd-loc-txt-inline');
+    if(locTxtEl)locTxtEl.textContent='Pick from tree →';
+
+    // Show a prominent success toast/banner
+    showAddConfirmation('✓ Added: '+item.name);
+
+    setTimeout(function(){if(stat)stat.textContent='';},4000);
     if(document.getElementById('mob-page-browse').classList.contains('active'))mobRenderBrowseAt([]);
   }catch(e){stat.style.color='var(--rose)';stat.textContent='Save failed: '+e.message;}
   btn.disabled=false;
 }
 
+// ── ADD ITEM CONFIRMATION ─────────────────────────────────────────────────────
+function showAddConfirmation(msg){
+  var existing=document.getElementById('add-confirm-banner');
+  if(existing)existing.remove();
+  var banner=document.createElement('div');
+  banner.id='add-confirm-banner';
+  banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;'
+    +'background:var(--green);color:#fff;'
+    +'font-family:var(--font-sans);font-size:15px;font-weight:600;'
+    +'padding:14px 20px;text-align:center;'
+    +'animation:addConfirmSlide 0.25s ease;'
+    +'box-shadow:0 4px 20px rgba(0,0,0,0.4);';
+  banner.textContent=msg;
+  // Add CSS animation if not already present
+  if(!document.getElementById('add-confirm-style')){
+    var st=document.createElement('style');
+    st.id='add-confirm-style';
+    st.textContent='@keyframes addConfirmSlide{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}';
+    document.head.appendChild(st);
+  }
+  document.body.appendChild(banner);
+  setTimeout(function(){
+    banner.style.transition='opacity 0.4s';
+    banner.style.opacity='0';
+    setTimeout(function(){if(banner.parentNode)banner.remove();},450);
+  },2500);
+}
 // ── LOCATE INSPECTOR ─────────────────────────────────────────────────────────
 var _locInspItemId = null;
 var _locInspInUse = null;
@@ -3302,11 +3350,13 @@ async function saveLocInspector(){
     if(!res.ok) throw new Error('HTTP '+res.status);
     stat.textContent = '✓ Saved';
     stat.style.color = 'var(--green)';
+    // Re-render the view immediately so changes are visible without refresh
     if(document.body.classList.contains('mob-mode')){
       mobRenderBrowseAt(_mobBrowsePath);
       mobRenderFind(document.getElementById('mob-search').value||'');
     } else { renderSidebar(); renderStage(); }
-    setTimeout(function(){ closeLocInspector(); }, 800);
+    // Close after a brief flash of "Saved"
+    setTimeout(function(){ closeLocInspector(); }, 500);
   } catch(err){
     stat.textContent = '✗ Save failed: '+err.message;
     stat.style.color = 'var(--rose)';
