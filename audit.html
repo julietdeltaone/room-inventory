@@ -163,6 +163,7 @@ header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:
 .freq-req-inline.show{display:inline;}
 .atree-row{display:flex;align-items:center;gap:8px;padding-top:8px;padding-right:10px;padding-bottom:8px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent;transition:background .1s;}
 .atree-row:hover{background:var(--s2);}
+.qi-sel{background:rgba(176,122,132,0.07)!important;}
 .atree-tog{background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px;transition:transform .15s;flex-shrink:0;line-height:1;}
 .atree-tog.open{transform:rotate(90deg);}
 
@@ -235,7 +236,14 @@ header{height:50px;display:flex;align-items:center;padding:0 20px;border-bottom:
       <button class="btn btn-ghost" style="padding:3px 8px;font-size:9px" onclick="nextBatch()" id="next-btn">Next →</button>
     </div>
     <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--s1);flex-shrink:0">
-      <div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:6px">Batch Actions</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">Batch Actions</div>
+        <div style="display:flex;gap:5px;align-items:center">
+          <span id="bulk-sel-count" style="font-family:var(--font-mono);font-size:9px;color:var(--rose)"></span>
+          <button class="btn btn-ghost" style="padding:2px 7px;font-size:9px;font-family:var(--font-mono)" onclick="selectAllBatch()">All</button>
+          <button class="btn btn-ghost" style="padding:2px 7px;font-size:9px;font-family:var(--font-mono)" onclick="clearSelection()">None</button>
+        </div>
+      </div>
       <div style="display:flex;gap:5px;margin-bottom:6px">
         <select id="bulk-freq-sel" style="flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:5px;padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none">
           <option value="">— Set Frequency —</option>
@@ -405,11 +413,26 @@ function renderQueue(){
   updateStats();
 }
 
+var _selectedIds=new Set();
+
 function qiHtml(item,fs,fc){
   const st=status(item),path=(item.locationPath||[]).join(' › '),freq=item.auditFreq;
   const badge=freq?`<span class="fpip ${fc[freq]||''}">${fs[freq]||freq}</span>`:'';
-  return`<div class="qi${item.id===currentItemId?' active':''}${st==='clean'?' done':''}" onclick="selectItem(${item.id})"><div class="qi-dot ${st==='overdue'?'overdue':st}"></div><div class="qi-info"><div class="qi-name">${esc(item.name||'—')}</div><div class="qi-loc">${esc(path||'No location')}</div></div><div>${badge}</div></div>`;
+  const isSel=_selectedIds.has(item.id);
+  return`<div class="qi${item.id===currentItemId?' active':''}${st==='clean'?' done':''}${isSel?' qi-sel':''}" onclick="selectItem(${item.id})">
+    <input type="checkbox" ${isSel?'checked':''} onclick="event.stopPropagation();toggleQiSel(${item.id},this)" style="width:16px;height:16px;accent-color:var(--rose);flex-shrink:0;cursor:pointer;margin-right:2px">
+    <div class="qi-dot ${st==='overdue'?'overdue':st}" style="flex-shrink:0"></div>
+    <div class="qi-info"><div class="qi-name">${esc(item.name||'—')}</div><div class="qi-loc">${esc(path||'No location')}</div></div>
+    <div>${badge}</div>
+  </div>`;
 }
+
+function toggleQiSel(id,cb){if(cb.checked)_selectedIds.add(id);else _selectedIds.delete(id);updateBulkSelLabel();}
+function selectAllBatch(){fq().slice(batchStart,batchStart+BATCH_SIZE).forEach(i=>_selectedIds.add(i.id));renderQueue();updateBulkSelLabel();}
+function clearSelection(){_selectedIds.clear();renderQueue();updateBulkSelLabel();}
+function updateBulkSelLabel(){const l=document.getElementById('bulk-sel-count');if(l)l.textContent=_selectedIds.size?_selectedIds.size+' selected':'';}
+
+
 
 function updateStats(){
   const tot=inventory.length,aud=inventory.filter(i=>!!i.auditFreq).length;
@@ -734,20 +757,28 @@ function auditTreeClick(pk){
 async function bulkSetFreq(){
   const freq=document.getElementById('bulk-freq-sel').value;
   if(!freq){toast('Select a frequency first');return;}
-  const batch=fq().slice(batchStart,batchStart+BATCH_SIZE);
+  const targets=_selectedIds.size>0
+    ?fq().filter(i=>_selectedIds.has(i.id))
+    :fq().slice(batchStart,batchStart+BATCH_SIZE);
   let saved=0;
-  for(const item of batch){item.auditFreq=freq;const ok=await sbSave(item);if(ok)saved++;}
-  buildQueue();renderQueue();toast('✓ Set '+freq+' on '+saved+' items');
+  for(const item of targets){item.auditFreq=freq;const ok=await sbSave(item);if(ok)saved++;}
+  _selectedIds.clear();buildQueue();renderQueue();updateBulkSelLabel();
+  toast('✓ Set '+freq+' on '+saved+' items');
 }
+
 async function bulkMarkAudited(){
-  const batch=fq().slice(batchStart,batchStart+BATCH_SIZE);
-  const noFreq=batch.filter(function(i){return !i.auditFreq;});
-  if(noFreq.length){toast('⚠ '+noFreq.length+' items need a frequency — use Set Freq first');return;}
+  const targets=_selectedIds.size>0
+    ?fq().filter(i=>_selectedIds.has(i.id))
+    :fq().slice(batchStart,batchStart+BATCH_SIZE);
+  const noFreq=targets.filter(i=>!i.auditFreq);
+  if(noFreq.length){toast('⚠ '+noFreq.length+' need frequency first');return;}
   const now=new Date().toISOString();let saved=0;
-  for(const item of batch){item.lastAudited=now;const ok=await sbSave(item);if(ok)saved++;}
-  buildQueue();renderQueue();toast('✓ Marked '+saved+' as audited');
+  for(const item of targets){item.lastAudited=now;const ok=await sbSave(item);if(ok)saved++;}
+  _selectedIds.clear();buildQueue();renderQueue();updateBulkSelLabel();
+  toast('✓ Marked '+saved+' as audited');
   nextBatch();
 }
+
 
 // ── UTIL ──────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
