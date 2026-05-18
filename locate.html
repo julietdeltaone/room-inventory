@@ -883,6 +883,55 @@ body.mob-mode .shell{display:none;}
 .mob-supply-back.visible{display:block;}
 .mob-supply-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
 .mob-supply-body{flex:1;overflow-y:auto;overflow-x:hidden;}
+/* Supply sub-tabs */
+.supply-subtabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 16px;margin-top:4px;}
+.supply-subtab{font-family:var(--font-mono);font-size:11px;padding:8px 14px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.supply-subtab.active{color:var(--rose);border-bottom-color:var(--rose);}
+/* Supply item touch-friendly */
+.supply-item{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .1s;}
+.supply-item:active{background:var(--s2);}
+.supply-item-name{font-size:15px;font-weight:600;color:var(--text);}
+/* Shopping list */
+.shop-list-controls{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.shop-list-label{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);}
+.shop-threshold-btn{font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
+.shop-threshold-btn.active{border-color:var(--rose);color:var(--rose);background:rgba(176,122,132,.1);}
+.shop-list-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);}
+.shop-item-fill{font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid;flex-shrink:0;}
+.shop-item-par{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);flex-shrink:0;}
+.shop-item-name{flex:1;font-size:14px;color:var(--text);}
+.shop-item-cat{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:3px;flex-shrink:0;}
+/* Par level badge in supply inspector */
+.par-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--s2);border-radius:8px;margin-top:8px;}
+.par-label{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);flex-shrink:0;}
+.par-btn{width:32px;height:32px;border-radius:50%;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background .1s;}
+.par-btn:active{background:var(--s2);}
+.par-val{font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--text);min-width:40px;text-align:center;}
+/* iPhone portrait */
+@media(max-width:480px){
+  .t-hdr{padding:0 12px;height:56px;}
+  .t-search{font-size:15px;padding:9px 12px;}
+  .t-tabs{height:64px;}
+  .t-tab-icon{font-size:20px;}
+  .t-tab-lbl{font-size:9px;}
+  .mob-boxes{grid-template-columns:1fr;padding:12px;gap:12px;}
+  .mob-box{min-height:80px;padding:16px 14px 12px;}
+  .mob-box-name{font-size:20px;}
+  .mc-row{grid-template-columns:minmax(70px,80px) 1fr minmax(56px,70px) 0px minmax(48px,58px) 36px;gap:6px;}
+  .mc-qty{display:none;}
+  .mob-card{padding:11px 14px;}
+  .mob-card-name{font-size:15px;}
+  .mob-browse-hdr{padding:12px 14px 10px;}
+  .mob-btitle{font-size:20px;}
+  .mob-back{font-size:14px;padding:9px 14px;}
+  .add-2col{grid-template-columns:1fr;}
+  .add-tree-col{display:none;}
+  .mob-lp-sheet{height:80vh;}
+  .supply-cards-grid{grid-template-columns:1fr;padding:10px;}
+  .mob-supply-hdr{padding:14px 14px 8px;}
+  .mob-supply-item{padding:12px 14px;}
+  .shop-list-item{padding:10px 14px;}
+}
 .mob-supply-body::-webkit-scrollbar{display:none;}
 .supply-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;}
 .supply-card{border-radius:14px;border:1px solid var(--border);background:var(--s1);cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
@@ -1548,7 +1597,11 @@ body.mob-mode .shell{display:none;}
         <div class="mob-supply-hdr">
           <div class="mob-supply-hdr-row">
             <div class="mob-supply-title">Supply Run</div>
-            <button class="mob-supply-back" id="supply-back-btn" onclick="supplyGoBack()">← All Groups</button>
+            <button class="mob-supply-back" id="supply-back-btn" onclick="supplyGoBack()">← Groups</button>
+          </div>
+          <div class="supply-subtabs">
+            <button class="supply-subtab active" id="subtab-groups" onclick="supplySetSubtab('groups',this)">Groups</button>
+            <button class="supply-subtab" id="subtab-list" onclick="supplySetSubtab('list',this)">🛒 Shopping List</button>
           </div>
           <div class="mob-supply-sub" id="supply-sub-label">Loading…</div>
         </div>
@@ -1702,6 +1755,10 @@ function rowToItem(row){
     keywords:row.keywords||'',
     docUrl:row.doc_url||null,
     lastUsed:normalizeLastUsed(row.last_used||''),
+    auditFreq:row.audit_freq||null,
+    lastAudited:row.last_audited||null,
+    parLevel:row.par_level||1,
+    supplyExclude:row.supply_exclude?true:false,
     locationPath:stringToPath(row.location||'')};
 }
 
@@ -3106,6 +3163,7 @@ function openLocInspector(itemId, btnEl){
   _locInspInUse = null;
   var item = inventory.find(function(i){ return i.id === itemId; });
   if(!item) return;
+  _locInspItem = item; // tracked for par/exclude edits
 
   document.getElementById('loc-insp-title').textContent = item.name;
 
@@ -3167,7 +3225,7 @@ function openLocInspector(itemId, btnEl){
         +'<button class="loc-insp-lu-btn" onclick="locInspMarkLastUsed()">Mark Today &#x21b5;</button>'
       +'</div>'
     +'</div>'
-    +inspFillSectionHTML(item)
+    +'<div id="linsp-supply-col">'+inspFillSectionHTML(item)+'</div>'
     +'<button class="loc-insp-save" id="linsp-save-btn" onclick="saveLocInspector()">Save Changes</button>'
     +'<div class="loc-insp-status" id="linsp-status"></div>';
 
@@ -4031,13 +4089,88 @@ function tapFillCycle(btn, itemId){
 var _supplyChanges = {};
 var _supplyView = 'cards'; // 'cards' or 'detail'
 var _supplyDetailGroup = null;
+var _supplySubtab = 'groups'; // 'groups' or 'list'
+var _shopThreshold = 'Half'; // show items at or below this level
+var _shopSortBy = 'fill'; // 'fill' or 'name'
 
 const FILL_COLORS = {Full:'#3d8f5a',Most:'#7a9e44',Half:'#9e7a22',Low:'#8f3a20',Empty:'#3a1818'};
 const FILL_HEAT   = {Full:'#3d8f5a',Most:'#7a9e64',Half:'#c09030',Low:'#c06030',Empty:'#c04040'};
 
+function supplySetSubtab(tab, btn){
+  _supplySubtab = tab;
+  document.querySelectorAll('.supply-subtab').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  // Show/hide back btn based on tab
+  var bb=document.getElementById('supply-back-btn');
+  if(bb) bb.style.display = (tab==='groups')?'':'none';
+  mobRenderSupply();
+}
+
+function supplyRenderShoppingList(body){
+  var fillPriority={Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var thresholdIdx=fillPriority[_shopThreshold];
+  var all=inventory.filter(function(i){
+    return (_pinUnlocked||!i.lockedItem)&&i.fillLevel&&i.fillLevel!==''&&!i.supplyExclude;
+  });
+  // Filter by threshold: only items AT or BELOW threshold fill
+  var items=all.filter(function(i){return (fillPriority[i.fillLevel]||5)<=thresholdIdx;});
+  // Also include items where qty < parLevel regardless of fill
+  var parNeeded=all.filter(function(i){
+    var par=parseInt(i.parLevel)||1;
+    var cur=parseInt(i.qty)||1;
+    return cur<par&&!items.find(function(x){return x.id===i.id;});
+  });
+  items=items.concat(parNeeded);
+  // Sort
+  if(_shopSortBy==='fill'){
+    items.sort(function(a,b){return(fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5)||a.name.localeCompare(b.name);});
+  } else {
+    items.sort(function(a,b){return a.name.localeCompare(b.name);});
+  }
+
+  var fillColor={Empty:'#c04040',Low:'#8f5530',Half:'#9e7a32',Most:'#7a9e44',Full:'#4d8f6a'};
+
+  var threshLabels=['Empty','Low','Half','Most','Full'];
+  var controls='<div class="shop-list-controls">'
+    +'<span class="shop-list-label">Show below</span>'
+    +threshLabels.slice(0,4).map(function(t){
+      return'<button class="shop-threshold-btn'+(t===_shopThreshold?' active':'')+'" data-t="'+t+'" onclick="shopSetThreshold(this.dataset.t)">'+t+'</button>';
+    }).join('')
+    +'<span style="flex:1"></span>'
+    +'<button class="shop-threshold-btn'+(_shopSortBy==='fill'?' active':'')+'" onclick="shopSetSort(\"fill\")">By Fill</button>'
+    +'<button class="shop-threshold-btn'+(_shopSortBy==='name'?' active':'')+'" onclick="shopSetSort(\"name\")">A–Z</button>'
+    +'</div>';
+
+  if(!items.length){
+    body.innerHTML=controls+'<div style="padding:40px 20px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--text-dim)">Nothing needs restocking ✓</div>';
+    return;
+  }
+
+  var cs_cache={};
+  var rows=items.map(function(item){
+    var cs=cs_cache[item.category]=cs_cache[item.category]||catC(item.category);
+    var fl=item.fillLevel||'';
+    var fc=fillColor[fl]||'var(--text-dim)';
+    var par=parseInt(item.parLevel)||1;
+    var cur=parseInt(item.qty)||1;
+    var parStr=cur<par?'<span style="color:var(--red);font-family:var(--font-mono);font-size:10px">'+cur+'/'+par+'</span>':'';
+    return'<div class="shop-list-item">'
+      +'<span class="shop-item-fill" style="color:'+fc+';border-color:'+fc+'55;background:'+fc+'11">'+fl+'</span>'
+      +'<span class="shop-item-cat" style="color:'+cs.text+';background:'+cs.bg+'">'+esc((item.category||'').split(' & ')[0])+'</span>'
+      +'<span class="shop-item-name">'+esc(splitName(item.name).primary)+'</span>'
+      +parStr
+      +'</div>';
+  }).join('');
+
+  body.innerHTML=controls+'<div style="padding-bottom:60px">'+rows+'</div>';
+}
+
+function shopSetThreshold(t){_shopThreshold=t;mobRenderSupply();}
+function shopSetSort(s){_shopSortBy=s;mobRenderSupply();}
+
 function supplyBuildGroups(){
   var fillPriority = {Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
-  var fillable = inventory.filter(function(i){ return (_pinUnlocked||!i.lockedItem)&&i.fillLevel&&i.fillLevel!==''; });
+  var fillable = inventory.filter(function(i){ return (_pinUnlocked||!i.lockedItem)&&i.fillLevel&&i.fillLevel!==''&&!i.supplyExclude; });
   var groups = {};
   fillable.forEach(function(i){
     var path = i.locationPath||[];
@@ -4067,11 +4200,14 @@ function mobRenderSupply(){
   },0);
   if(sub) sub.textContent = totalItems+' fillable · '+needAttn+' need attention';
 
-  if(_supplyView==='cards'){
-    if(backBtn) backBtn.classList.remove('visible');
+  if(_supplySubtab==='list'){
+    if(backBtn){backBtn.style.display='none';}
+    supplyRenderShoppingList(body);
+  } else if(_supplyView==='cards'){
+    if(backBtn){backBtn.style.display='';backBtn.classList.remove('visible');}
     supplyRenderCards(body, groups);
   } else {
-    if(backBtn) backBtn.classList.add('visible');
+    if(backBtn){backBtn.style.display='';backBtn.classList.add('visible');}
     supplyRenderDetail(body, _supplyDetailGroup);
   }
   updateSupplySaveBar();
@@ -4143,10 +4279,19 @@ function supplyRenderDetail(body, gname){
   if(topLoc&&topLoc!==gname) html+='<span class="supply-detail-loc">'+esc(topLoc)+'</span>';
   html+='</div>';
   items.forEach(function(item){
-    html+='<div class="supply-item">';
-    html+='<div class="supply-item-name">'+esc(splitName(item.name).primary)+'</div>';
+    var cs=catC(item.category);
+    var n=splitName(item.name);
+    var parLevel=item.parLevel||1;
+    var curQty=parseInt(item.qty)||1;
+    var qtyStatus=curQty<parLevel?'<span style="color:var(--red);font-family:var(--font-mono);font-size:10px">'+curQty+'/'+parLevel+'</span>':'<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:10px">'+curQty+'/'+parLevel+'</span>';
+    html+='<div class="supply-item" style="border-left:3px solid '+cs.text+';background:linear-gradient(to right,'+cs.bg+'44 0%,transparent 60%)" onclick="openLocInspector('+item.id+',this)">';
+    html+='<div style="flex:1;min-width:0">';
+    html+='<div class="supply-item-name">'+esc(n.primary)+'</div>';
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-top:3px">';
+    html+='<span style="font-family:var(--font-mono);font-size:9px;color:'+cs.text+';background:'+cs.bg+';padding:1px 5px;border-radius:3px">'+esc((item.category||'').split(' & ')[0])+'</span>';
+    html+=qtyStatus;
+    html+='</div></div>';
     html+=supplyMeterHTML(item.id, item.fillLevel||'');
-    html+='<button class="loc-insp-btn" style="position:static;width:24px;height:24px;font-size:12px;opacity:0.55;flex-shrink:0;" onclick="openLocInspector('+item.id+',this)" title="Edit">ⓘ</button>';
     html+='</div>';
   });
   body.innerHTML=html;
@@ -4159,7 +4304,7 @@ function supplyMeterHTML(itemId, fillLevel){
   levels.forEach(function(lvl,idx){
     var active=fi>=0&&idx<=fi;
     var segClass=active?(FILL_CLASS[lvl]||'unset'):'unset';
-    html+='<div class="fill-seg '+segClass+'" data-item-id="'+itemId+'" data-level="'+lvl+'" onclick="supplySetFill(parseInt(this.dataset.itemId),this.dataset.level)" title="'+lvl+'"></div>';
+    html+='<div class="fill-seg '+segClass+'" title="'+lvl+' — tap item to edit"></div>';
   });
   html+='</div>';
   return html;
@@ -4246,7 +4391,50 @@ function inspFillSectionHTML(item){
     +'transition:all 0.15s;-webkit-tap-highlight-color:transparent;'
     +'">✕</button>';
   html+='</div></div>';
+  // Par level row (Option B+D)
+  var parLevel=item.parLevel||1;
+  var curQty=parseInt(item.qty)||1;
+  html+='<div class="loc-insp-section"><div class="loc-insp-lbl">Par Level <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">(want on hand)</span></div>';
+  html+='<div class="par-row">'
+    +'<span class="par-label">Have</span>'
+    +'<span class="par-val" id="linsp-qty-val">'+curQty+'</span>'
+    +'<span class="par-label" style="margin-left:8px">Par</span>'
+    +'<button class="par-btn" onclick="locInspAdjPar(-1)">−</button>'
+    +'<span class="par-val" id="linsp-par-val">'+parLevel+'</span>'
+    +'<button class="par-btn" onclick="locInspAdjPar(1)">+</button>'
+    +'</div>';
+  if(curQty<parLevel) html+='<div style="font-family:var(--font-mono);font-size:10px;color:var(--red);margin-top:6px">⚠ Below par — add to shopping list</div>';
+  html+='</div>';
+  // Supply exclude toggle
+  html+='<div class="loc-insp-section"><div class="loc-insp-lbl">Supply Run</div>';
+  html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0">'
+    +'<button onclick="locInspToggleSupplyExclude()" style="display:flex;align-items:center;gap:8px;background:'+(item.supplyExclude?'var(--s3)':'rgba(77,143,106,0.12)')+';border:1.5px solid '+(item.supplyExclude?'var(--border2)':'var(--green)')+';border-radius:10px;padding:10px 16px;cursor:pointer;font-family:var(--font-ui);font-size:14px;font-weight:500;color:'+(item.supplyExclude?'var(--text-dim)':'var(--green)')+';-webkit-tap-highlight-color:transparent;width:100%">'
+    +'<span style="font-size:18px">'+(item.supplyExclude?'○':'●')+'</span>'
+    +(item.supplyExclude?'Excluded from Supply Run':'Included in Supply Run')
+    +'</button>'
+    +'</div>';
+  html+='</div>';
   return html;
+}
+
+function locInspAdjPar(delta){
+  var item=_locInspItem;if(!item)return;
+  var cur=parseInt(item.parLevel)||1;
+  item.parLevel=Math.max(1,cur+delta);
+  var pv=document.getElementById('linsp-par-val');
+  if(pv)pv.textContent=item.parLevel;
+  // Auto-save
+  fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+item.id,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({par_level:item.parLevel})}).catch(function(){});
+}
+
+function locInspToggleSupplyExclude(){
+  var item=_locInspItem;if(!item)return;
+  item.supplyExclude=!item.supplyExclude;
+  // Re-render the supply section
+  var sc=document.getElementById('linsp-supply-col');
+  if(sc)sc.innerHTML=inspFillSectionHTML(item);
+  fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+item.id,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({supply_exclude:item.supplyExclude})}).catch(function(){});
+  updateSupplyBadge();
 }
 
 function hexToRgb(hex){
