@@ -2144,6 +2144,10 @@ function toggleFav(path){
   renderAllFavs();
 }
 function renderAllFavs(){
+  renderFavSidebar();
+  renderFavBrowseStrip();
+  renderFavLocPicker();
+}
 // Star button handler — reads path from data-star-pid registry, safe in innerHTML onclick
 function mobBoxStar(btn){
   var pid=btn.dataset.starPid;
@@ -2162,10 +2166,6 @@ function removeFavByKey(key){
   var favs=getFavs().filter(function(f){return f.key!==key;});
   saveFavs(favs);
   renderAllFavs();
-}
-  renderFavSidebar();
-  renderFavBrowseStrip();
-  renderFavLocPicker();
 }
 
 // Desktop sidebar favorites
