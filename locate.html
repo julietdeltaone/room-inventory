@@ -2327,9 +2327,9 @@ function renderRecent(){
 // ── CATEGORY BROWSE ──────────────────────────────────────────────────────────
 function setCatView(cat){
   _catView=cat;currentPath=[];searchQuery='';inUseView=false;
-  document.getElementById('search-input').value='';
+  var _si=document.getElementById('search-input');if(_si)_si.value='';
   renderSidebar();renderStage();
-  document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
+  var _stg=document.getElementById('stage');if(_stg)_stg.scrollTo({top:0,behavior:'smooth'});
 }
 function renderCatBrowse(){
   const el=document.getElementById('cat-browse-list');if(!el)return;
@@ -2662,6 +2662,7 @@ function renderTree(){
 }
 
 function renderSidebar(){
+  if(!document.getElementById('sb-all-count'))return;
   const tree=buildTree();
   const inUseCount=inventory.filter(i=>i.inUse).length;
   document.getElementById('sb-all-count').textContent=tree.total;
@@ -2696,23 +2697,24 @@ function renderSidebar(){
 // ── NAVIGATE ─────────────────────────────────────────────────────────────────
 function navigate(path){
   currentPath=path;searchQuery='';inUseView=false;_catView=null;
-  document.getElementById('search-input').value='';
+  var _si=document.getElementById('search-input');if(_si)_si.value='';
   for(let i=1;i<=path.length;i++)expandedSb.add(path.slice(0,i).join('::'));
   if(path.length)pushRecent(path);
   renderSidebar();renderStage();
-  document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
+  var _stg=document.getElementById('stage');if(_stg)_stg.scrollTo({top:0,behavior:'smooth'});
 }
 
 function setInUseView(){
   inUseView=true;currentPath=[];searchQuery='';_catView=null;
-  document.getElementById('search-input').value='';
+  var _si=document.getElementById('search-input');if(_si)_si.value='';
   renderSidebar();renderStage();
-  document.getElementById('stage').scrollTo({top:0,behavior:'smooth'});
+  var _stg=document.getElementById('stage');if(_stg)_stg.scrollTo({top:0,behavior:'smooth'});
 }
 
 // ── RENDER STAGE ─────────────────────────────────────────────────────────────
 function renderStage(){
   const stage=document.getElementById('stage');
+  if(!stage)return;
 
   // Category browse mode
   if(_catView){
@@ -3016,7 +3018,7 @@ function navigateToSearchItem(el){
   const parentPath = loc.length > 1 ? loc.slice(0,-1) : loc;
 
   // Clear search on whichever view is active
-  const desktopSearch = document.getElementById('search-input');
+  const desktopSearch = document.getElementById('search-input'); // desktop only — may be null
   const mobileSearch = document.getElementById('mob-search');
   if(desktopSearch){ desktopSearch.value = ''; }
   if(mobileSearch){ mobileSearch.value = ''; }
@@ -3061,12 +3063,6 @@ function navigateToSearchItem(el){
   }, 300);
 }
 
-// Search
-document.getElementById('search-input').addEventListener('input',e=>{
-  searchQuery=e.target.value.trim();inUseView=false;_catView=null;renderSidebar();renderStage();
-  document.getElementById('stage').scrollTo({top:0});
-});
-
 // Load
 async function load(){
   setSyncStatus('loading');
@@ -3085,7 +3081,8 @@ async function load(){
     setTimeout(function(){if(typeof updateSupplyBadge==='function')updateSupplyBadge();if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();if(typeof renderFindTree==='function')renderFindTree();if(typeof renderAddTree==='function')renderAddTree();if(typeof renderReplTracker==='function')renderReplTracker();},100);
   }catch(err){
     setSyncStatus('error',err.message);
-    document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
+    var _estg=document.getElementById('stage');
+    if(_estg)_estg.innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
   }
 }
 var _lastSyncTime=null;var _lastSyncCount=0;var _lastSyncErr=null;
@@ -4172,7 +4169,7 @@ INVENTORY: ${JSON.stringify(snapshot)}`;
 
     let actionPill = '';
     if(parsed.action === 'search' && parsed.search_query){
-      const si = document.getElementById('search-input');
+      const si = document.getElementById('search-input'); // desktop only — may be null
       if(si){ si.value = parsed.search_query; si.dispatchEvent(new Event('input')); }
       actionPill = `<div class="chat-action-pill executed">✓ Searching for "${esc(parsed.search_query)}"</div>`;
     }
