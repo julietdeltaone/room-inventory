@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
 <title>Locate — Inventory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
@@ -378,9 +381,43 @@ header{display:flex;align-items:center;padding:0 24px;border-bottom:1px solid va
 .view-toggle{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--s2);border:1px solid var(--border2);font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-mid);cursor:pointer;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;}
 .view-toggle:hover{border-color:var(--rose);color:var(--rose);background:rgba(201,96,58,0.08);}
 /* ── MOBILE ── */
-.mob-shell{display:none;flex-direction:column;height:100vh;height:-webkit-fill-available;background:var(--bg);position:fixed;inset:0;z-index:500;}
+/* ── MOBILE SHELL — phone-first, constrained on desktop ── */
+.mob-shell{display:none;flex-direction:column;background:var(--bg);
+  /* Mobile: true full-screen native feel */
+  height:100vh;height:-webkit-fill-available;
+  position:fixed;inset:0;z-index:500;
+  overflow:hidden;
+}
 body.mob-mode .mob-shell{display:flex;}
 body.mob-mode .shell{display:none;}
+/* Desktop: center as a phone-width column */
+@media(min-width:600px){
+  body.mob-mode{background:#111;display:flex;align-items:center;justify-content:center;}
+  .mob-shell{
+    position:relative;inset:auto;
+    width:390px;
+    height:min(844px,95vh);
+    border-radius:44px;
+    border:1px solid var(--border2);
+    box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04);
+    overflow:hidden;
+  }
+}
+/* Force phone layout inside constrained desktop shell — override all breakpoint column changes */
+@media(min-width:600px){
+  .mob-shell .mob-boxes{grid-template-columns:1fr !important;padding:14px 18px !important;gap:10px !important;}
+  .mob-shell .mob-browse-hdr{padding:14px 18px 10px !important;}
+  .mob-shell .mob-bc{padding:6px 18px 4px !important;}
+  .mob-shell .mob-hdr{padding:0 16px !important;}
+  .mob-shell .mob-add-wrap{padding:20px 18px 48px !important;}
+  .mob-shell .supply-cards-grid{grid-template-columns:1fr !important;padding:14px 18px !important;}
+  .mob-shell .mob-home-stats{padding:0 18px !important;}
+  .mob-shell .mob-attn-strip{padding:0 18px !important;}
+  .mob-shell .mob-fav-strip{padding:0 18px !important;}
+  /* Reset safe-area insets inside the phone frame */
+  .mob-shell .t-hdr{padding-top:12px !important;height:64px !important;}
+  .mob-shell .t-tabs{padding-bottom:12px !important;height:72px !important;}
+}
 .mob-hdr{height:54px;display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);}
 .mob-logo{font-family:var(--font-mono);font-size:9px;letter-spacing:0.24em;color:var(--text-dim);text-transform:uppercase;flex-shrink:0;}
 .mob-search-hdr{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--font-ui);font-size:15px;outline:none;-webkit-appearance:none;transition:border-color 0.15s;min-width:0;}
@@ -438,7 +475,7 @@ body.mob-mode .shell{display:none;}
 .mob-bc::-webkit-scrollbar{display:none;}
 .mob-bc button{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);cursor:pointer;white-space:nowrap;background:none;border:none;padding:0;}
 .mob-bc-sep{font-family:var(--font-mono);font-size:10px;color:var(--border2);}
-.mob-boxes{display:grid;grid-template-columns:1fr;gap:10px;padding:14px 16px;}
+.mob-boxes{display:grid;grid-template-columns:1fr;gap:10px;padding:14px 18px;}
 .mob-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px 14px 12px;cursor:pointer;border-top:3px solid transparent;-webkit-tap-highlight-color:transparent;transition:background 0.12s;display:flex;flex-direction:column;min-height:90px;}
 .mob-box:active{background:var(--s2);}
 .mob-box-name{font-family:var(--font-display);font-size:28px;font-weight:400;letter-spacing:0.04em;color:var(--text);line-height:1.1;margin-bottom:3px;}
@@ -1026,7 +1063,10 @@ body.mob-mode .shell{display:none;}
 /* ── UNIFIED HEADER ───────────────────────────────────────────────────────── */
 .t-hdr{
   display:flex;align-items:center;gap:12px;
-  padding:0 20px;height:64px;flex-shrink:0;
+  padding:0 20px;
+  padding-top:env(safe-area-inset-top,0px);
+  height:calc(64px + env(safe-area-inset-top,0px));
+  flex-shrink:0;
   border-bottom:1px solid var(--border);background:var(--bg);
 }
 .t-hdr-left{display:flex;align-items:center;gap:10px;flex-shrink:0;}
