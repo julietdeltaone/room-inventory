@@ -1,0 +1,37 @@
+name: Supabase keepalive
+
+# Keeps the free-tier Supabase project from auto-pausing.
+# Supabase pauses free projects after ~7 days with no DATABASE activity
+# (dashboard visits and cached calls do not count). This job runs on
+# GitHub's servers twice a week and makes one tiny real query against the
+# inventory table, which resets that inactivity timer. Nothing needs to be
+# open on your phone or laptop for it to work.
+
+on:
+  schedule:
+    # 09:00 UTC every Monday and Thursday -> longest gap between runs is 4 days,
+    # well under the 7-day pause window even if a run is delayed.
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch: {}   # also lets you run it on demand from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Supabase to reset the inactivity timer
+        env:
+          SUPABASE_URL: https://npdtjxjhepaqhrqtvueu.supabase.co
+          SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZHRqeGpoZXBhcWhycXR2dWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MDM1NjYsImV4cCI6MjA5MjQ3OTU2Nn0.7a1y4wBWOJ45Wc7bwJNMJ9L09-QijuG31jWlYANKam8
+        run: |
+          echo "Pinging Supabase at $(date -u)"
+          code=$(curl -sS \
+            "$SUPABASE_URL/rest/v1/inventory?select=id&limit=1" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            -o /dev/null -w "%{http_code}")
+          echo "Supabase responded with HTTP $code"
+          # Treat anything other than a 2xx as a failure so you get an email if it breaks.
+          case "$code" in
+            2*) echo "Keepalive OK." ;;
+            *)  echo "Keepalive FAILED (HTTP $code)"; exit 1 ;;
+          esac
