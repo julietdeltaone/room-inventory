@@ -462,6 +462,10 @@ body.mob-mode .shell{display:none;}
 .mob-tchildren{padding-left:14px;border-left:1px solid var(--border);margin-left:18px;display:none;}
 .mob-tchildren.open{display:block;}
 .mob-dlink{display:flex;align-items:center;padding:11px 16px;color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;background:none;border:none;width:100%;text-align:left;cursor:pointer;}
+.mob-drawer-scroll{display:flex;flex-direction:column;padding-bottom:24px;}
+.mob-drawer-links{padding:10px 0;border-top:1px solid var(--border);margin-top:6px;}
+.mob-drawer-links .mob-dlink{border-radius:0;}
+.mob-drawer-links .mob-dlink:hover,.mob-drawer-links .mob-dlink:active{color:var(--rose);}
 .mob-detail-ov{position:fixed;inset:0;z-index:700;pointer-events:none;}
 .mob-detail-ov.open{pointer-events:auto;}
 .mob-detail-bg{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.28s ease;}
@@ -920,8 +924,15 @@ body.mob-mode .shell{display:none;}
   .mob-boxes{grid-template-columns:1fr;padding:12px 20px;gap:12px;}
   .mob-box{min-height:80px;padding:16px 14px 12px;}
   .mob-box-name{font-size:20px;}
-  .mc-row{grid-template-columns:minmax(70px,80px) 1fr minmax(56px,70px) 0px minmax(48px,58px) 36px;gap:6px;}
-  .mc-qty{display:none;}
+  .mc-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;row-gap:7px;}
+  .mc-name-wrap{order:-1;flex:1 1 100%;}
+  .mc-name{font-size:16px;white-space:normal;overflow:visible;text-overflow:unset;word-break:break-word;}
+  .mc-cat{font-size:9px;padding:3px 6px;flex:0 0 auto;}
+  .mc-cond{font-size:10px;padding:3px 7px;flex:0 0 auto;}
+  .mc-qty{display:flex;font-size:10px;padding:2px 6px;flex:0 0 auto;}
+  .mc-fill{flex:0 0 auto;}
+  .mc-audit{flex:0 0 auto;}
+  .mc-col-hdr{display:none;}
   .mob-card{padding:11px 20px;}
   .mob-card-name{font-size:15px;}
   .mob-browse-hdr{padding:12px 20px 10px;}
@@ -1025,12 +1036,12 @@ body.mob-mode .shell{display:none;}
   cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;flex-shrink:0;
 }
 .t-home-btn:hover,.t-home-btn:active{color:var(--rose);border-color:var(--rose);}
-.t-tree-btn{
-  font-family:var(--font-mono);font-size:11px;color:var(--text-dim);background:none;
-  border:1px solid var(--border2);border-radius:8px;padding:8px 12px;white-space:nowrap;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;letter-spacing:0.04em;
+.t-burger-btn{
+  font-size:17px;line-height:1;color:var(--text-dim);background:none;border:1px solid var(--border2);
+  border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;flex-shrink:0;
 }
-.t-tree-btn:hover,.t-tree-btn:active{color:var(--rose);border-color:var(--rose);}
+.t-burger-btn:hover,.t-burger-btn:active{color:var(--rose);border-color:var(--rose);}
 
 /* ── FULL TREE VIEW ── */
 .mob-tree-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;flex-shrink:0;}
@@ -1082,10 +1093,6 @@ body.mob-mode .shell{display:none;}
 }
 .t-tab:active{background:var(--s2);}
 .t-tab.active{color:var(--rose);}
-.t-tab.active::before{
-  content:'';position:absolute;top:0;left:20%;right:20%;
-  height:2px;background:var(--rose);border-radius:0 0 2px 2px;
-}
 .t-tab-icon{font-size:24px;line-height:1;}
 .t-tab-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;}
 
@@ -1093,7 +1100,7 @@ body.mob-mode .shell{display:none;}
 
 /* Stats bar — purely informational, not clickable */
 .ipad-stats-bar{
-  display:flex;gap:0;padding:0;flex-shrink:0;
+  gap:0;padding:0;flex-shrink:0;
   border-bottom:1px solid var(--border);
 }
 .ipad-stat-cell{
@@ -1108,25 +1115,25 @@ body.mob-mode .shell{display:none;}
 /* Location boxes — big, sorted, full-width grid */
 .mob-boxes{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:16px;padding:20px 24px;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:14px;padding:18px 24px;
 }
 .mob-box{
   background:var(--s1);border:1px solid var(--border);
-  border-radius:18px;padding:22px 20px 18px;
+  border-radius:16px;padding:16px 16px 14px;
   cursor:pointer;border-top:4px solid transparent;
   -webkit-tap-highlight-color:transparent;
   transition:background 0.12s,transform 0.12s;
-  display:flex;flex-direction:column;min-height:130px;
+  display:flex;flex-direction:column;min-height:78px;
   position:relative;
 }
 .mob-box:active{background:var(--s2);transform:scale(0.98);}
 .mob-box-arrow{
-  position:absolute;top:20px;right:18px;
-  font-size:20px;color:var(--text-dim);opacity:0.5;
+  position:absolute;top:15px;right:16px;
+  font-size:18px;color:var(--text-dim);opacity:0.5;
 }
-.mob-box-name{font-size:24px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:4px;padding-right:32px;}
-.mob-box-count{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.mob-box-name{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:8px;padding-right:28px;}
+.mob-box-count{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
 .mob-box-preview{display:flex;flex-direction:column;gap:4px;margin-top:2px;}
 .mob-box-prev-item{font-size:13px;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* Fill status bar on card */
@@ -1411,7 +1418,6 @@ body.mob-mode .shell{display:none;}
   border-radius:18px 18px 0 0;
 }
 .mob-box:hover::before{opacity:1;}
-.t-tab.active::before{animation:surge 2s ease-in-out infinite;}
 .prog-fill{
   background:linear-gradient(90deg,var(--rose) 0%,#c97882 40%,var(--rose) 80%);
   background-size:200% 100%;
@@ -1438,12 +1444,12 @@ body.mob-mode .shell{display:none;}
 
 /* #2 — Larger, bolder card titles */
 .mob-box-name{
-  font-size:28px!important;font-weight:700;
-  letter-spacing:-0.02em;
-  line-height:1.1;
+  font-size:18px!important;font-weight:700;
+  letter-spacing:-0.01em;
+  line-height:1.2;
 }
-@media(min-width:768px){.mob-box-name{font-size:30px!important;}}
-@media(min-width:1024px){.mob-box-name{font-size:32px!important;}}
+@media(min-width:768px){.mob-box-name{font-size:19px!important;}}
+@media(min-width:1024px){.mob-box-name{font-size:20px!important;}}
 
 /* #3 — Press state: scale + dim (tactile feedback) */
 .mob-box:active{
@@ -1481,17 +1487,16 @@ body.mob-mode .shell{display:none;}
 .t-tab:not(.active) .t-tab-icon{opacity:0.55;}
 .t-tab:not(.active) .t-tab-lbl{opacity:0.6;}
 
-/* #7 — Item count as a monospace pill badge */
+/* #7 — Item count as a deep, high-contrast pill badge */
 .mob-box-count{
   display:inline-flex!important;align-items:center;
   font-family:var(--font-mono)!important;
-  font-size:11px!important;letter-spacing:0.06em;
-  color:var(--text-dim)!important;
-  background:rgba(255,255,255,0.05);
-  border:1px solid var(--border);
+  font-size:11px!important;letter-spacing:0.06em;font-weight:600;
+  color:#fafafa!important;
+  background:rgba(0,0,0,0.55);
+  border:1px solid rgba(255,255,255,0.08);
   border-radius:20px;
-  padding:2px 10px!important;
-  margin-bottom:14px;
+  padding:4px 11px!important;
   width:fit-content;
 }
 
@@ -1841,10 +1846,6 @@ body.mob-mode .t-tabs{
 }
 body.mob-mode .t-tab{transition:color .15s;}
 body.mob-mode .t-tab.active{color:var(--rose);}
-body.mob-mode .t-tab.active::before{
-  left:32%;right:32%;height:3px;border-radius:0 0 3px 3px;
-  background:var(--rose);box-shadow:0 0 10px rgba(var(--acc-rgb),0.6);
-}
 body.mob-mode .t-tab-lbl{letter-spacing:0.1em;}
 
 /* ── STATS BAR ── */
@@ -2061,8 +2062,7 @@ body.mob-mode .mob-submit-btn:active{opacity:0.9;}
         onkeydown="if(event.key==='Enter'&&this.value.trim())pushSrchHist(this.value.trim())">
     </div>
     <div class="t-hdr-right">
-      <button class="t-tree-btn" onclick="mobOpenTree()" title="Full tree view">⊞ Tree</button>
-      <a href="index.html" class="t-editor-link">Editor ↗</a>
+      <button class="t-burger-btn" onclick="mobOpenDrawer()" title="Menu" aria-label="Menu">☰</button>
     </div>
   </div>
   <div class="mob-content">
@@ -2071,11 +2071,6 @@ body.mob-mode .mob-submit-btn:active{opacity:0.9;}
       <div id="mob-find-results"><div class="mob-empty"><div class="mob-empty-icon">◎</div>Loading…</div></div>
     </div>
     <div class="mob-page active" id="mob-page-browse">
-      <div id="attn-strip" style="display:none"></div>
-      <div id="fav-browse-strip" style="display:none"></div>
-      <div id="mob-recents-strip" style="display:none"></div>
-      <div id="daily-strip" style="display:none"></div>
-      <div id="repl-tracker-section" style="display:none"></div>
       <div id="mob-browse-inner"></div>
     </div>
     <div class="mob-page" id="mob-page-add" style="height:100%">
@@ -2200,6 +2195,26 @@ body.mob-mode .mob-submit-btn:active{opacity:0.9;}
         </div>
       </div>
     </div>
+    <div class="mob-page" id="mob-page-supply">
+      <div class="mob-supply-wrap">
+        <div class="mob-supply-hdr">
+          <div class="mob-supply-hdr-row">
+            <div class="mob-supply-title">Supply Run</div>
+            <button class="mob-supply-back" id="supply-back-btn" onclick="supplyGoBack()">← Groups</button>
+          </div>
+          <div class="supply-subtabs">
+            <button class="supply-subtab active" id="subtab-groups" onclick="supplySetSubtab('groups',this)">Groups</button>
+            <button class="supply-subtab" id="subtab-list" onclick="supplySetSubtab('list',this)">🛒 Shopping List</button>
+          </div>
+          <div class="mob-supply-sub" id="supply-sub-label">Loading…</div>
+        </div>
+        <div class="mob-supply-body" id="mob-supply-body"></div>
+        <div class="mob-supply-save-bar">
+          <span class="mob-supply-change-count" id="supply-change-count"></span>
+          <button class="mob-supply-save-btn" id="supply-save-btn" onclick="supplyRunSave()" disabled>Save Changes</button>
+        </div>
+      </div>
+    </div>
     <div class="mob-page" id="mob-page-tree">
       <div class="mob-tree-hdr">
         <div class="mob-tree-title">Full Tree</div>
@@ -2218,6 +2233,10 @@ body.mob-mode .mob-submit-btn:active{opacity:0.9;}
     <button class="t-tab" id="mob-tab-find" onclick="tSwitchTab('find')">
       <div class="t-tab-icon">⌕</div><div class="t-tab-lbl">Find</div>
     </button>
+    <button class="t-tab" id="mob-tab-supply" onclick="tSwitchTab('supply')" style="position:relative">
+      <div class="t-tab-icon">⬡</div><div class="t-tab-lbl">Supply</div>
+      <span id="supply-tab-badge" title="Items low or empty" style="display:none;position:absolute;top:8px;right:calc(50% - 22px);background:#8f4848;color:#fff;font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:20px;font-weight:600"></span>
+    </button>
     <button class="t-tab" id="mob-tab-add" onclick="tSwitchTab('add')">
       <div class="t-tab-icon" style="color:var(--rose)">＋</div><div class="t-tab-lbl" style="color:var(--rose)">Add</div>
     </button>
@@ -2229,7 +2248,20 @@ body.mob-mode .mob-submit-btn:active{opacity:0.9;}
 <!-- DRAWER -->
 <div class="mob-drawer-ov" id="mob-drawer-ov">
   <div class="mob-drawer-bg" onclick="mobCloseDrawer()"></div>
-  <div class="mob-drawer"><div class="mob-drawer-hdr"><span class="mob-drawer-title">Inventory</span><button class="mob-drawer-x" onclick="mobCloseDrawer()">✕</button></div><div id="mob-drawer-content"></div></div>
+  <div class="mob-drawer">
+    <div class="mob-drawer-hdr"><span class="mob-drawer-title">Inventory</span><button class="mob-drawer-x" onclick="mobCloseDrawer()">✕</button></div>
+    <div class="mob-drawer-scroll">
+      <div id="attn-strip" style="display:none"></div>
+      <div id="fav-browse-strip" style="display:none"></div>
+      <div id="mob-recents-strip" style="display:none"></div>
+      <div id="daily-strip" style="display:none"></div>
+      <div id="repl-tracker-section" style="display:none"></div>
+      <div class="mob-drawer-links">
+        <button class="mob-dlink" onclick="mobCloseDrawer();mobOpenTree()">⊞ Full Tree View</button>
+        <a class="mob-dlink" href="index.html">✎ Editor</a>
+      </div>
+    </div>
+  </div>
 </div>
 <!-- LOC PICKER -->
 <div class="mob-lp-ov" id="mob-lp-ov">
@@ -3336,7 +3368,7 @@ async function load(){
     }
     inventory=all;setSyncStatus('ok');renderSidebar();renderStage();restoreSbCollapse();
     if(document.body.classList.contains('mob-mode')){mobRenderBrowseAt([]);}
-    setTimeout(function(){if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();if(typeof renderFindTree==='function')renderFindTree();if(typeof renderAddTree==='function')renderAddTree();if(typeof renderReplTracker==='function')renderReplTracker();if(typeof renderMobRecents==='function')renderMobRecents();},100);
+    setTimeout(function(){if(typeof updateSupplyBadge==='function')updateSupplyBadge();if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();if(typeof renderFindTree==='function')renderFindTree();if(typeof renderAddTree==='function')renderAddTree();if(typeof renderReplTracker==='function')renderReplTracker();if(typeof renderMobRecents==='function')renderMobRecents();},100);
   }catch(err){
     setSyncStatus('error');
     document.getElementById('stage').innerHTML=`<div class="loading-state"><div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-dim)">Failed — ${esc(err.message)}</div></div>`;
@@ -3356,6 +3388,14 @@ function setSyncStatus(s){
     mobRenderFind('');
   }
   if(s==='ok'&&typeof isIPad==='function'&&isIPad())ipadRenderSidebar();
+  // Pre-render supply data
+  if(s==='ok'&&typeof mobRenderSupply==='function'){
+    setTimeout(function(){
+      _supplyView='cards';_supplyDetailGroup=null;
+      var sp=document.getElementById('mob-supply-body');
+      if(sp)mobRenderSupply();
+    },500);
+  }
 }
 load();
 
@@ -3419,6 +3459,7 @@ function tSwitchTab(tab){
   document.querySelectorAll('.t-tab').forEach(function(t){t.classList.remove('active');});
   var tb=document.getElementById('mob-tab-'+tab);if(tb)tb.classList.add('active');
   mobSwitchTab(tab);
+  if(tab==='supply'&&inventory.length)mobRenderSupply();
   if(tab==='browse')mobRenderBrowseAt(_mobBrowsePath||[]);
   if(tab==='add'){setTimeout(function(){if(typeof renderAddTree==='function'&&inventory.length)renderAddTree();},80);}
   if(tab==='find'){setTimeout(function(){
@@ -3506,12 +3547,12 @@ function mobCard(item, fromSearch){
   // For search: name cell wraps name + loc path, inspector replaces audit column
   var nameCell;
   if(fromSearch && searchLocH){
-    nameCell='<div style="min-width:0;overflow:hidden">'
+    nameCell='<div class="mc-name-wrap" style="min-width:0;overflow:hidden">'
       +'<div class="mc-name">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</div>'
       +searchLocH
       +'</div>';
   } else {
-    nameCell='<span class="mc-name">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</span>';
+    nameCell='<span class="mc-name mc-name-wrap">'+esc(n.primary)+(n.secondary?'<span class="mc-sec"> — '+esc(n.secondary)+'</span>':'')+iud+'</span>';
   }
   // Search: inspector in the last column (replaces audit badge)
   var lastCol = fromSearch ? searchInspH : auditH;
@@ -3658,24 +3699,10 @@ function mobRenderBrowseAt(path){
       var name=entry[0];var cn=entry[1];
       var pid=mReg(path.concat([name]));
       var childPath=path.concat([name]);
-      // Show sub-locations first, then items
-      var subLocs=Object.keys(cn.children||{}).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});});
-      var directHere=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&(i.locationPath||[]).length===childPath.length&&pathStartsWith(i.locationPath||[],childPath);});
-      var prevLines=[];
-      subLocs.forEach(function(sl){prevLines.push('› '+esc(sl));});
-      if(prevLines.length<4){directHere.slice(0,4-prevLines.length).forEach(function(i){prevLines.push('· '+esc(splitName(i.name).primary));});}
-      var prevH=prevLines.length?'<div class="mob-box-preview">'+prevLines.map(function(l){return'<div class="mob-box-prev-item">'+l+'</div>';}).join('')+'</div>':'';
-      // Build fill bar for this location
-      var fillItems=inventory.filter(function(i){return(!i.lockedItem||_pinUnlocked)&&pathStartsWith(i.locationPath||[],childPath)&&i.fillLevel;});
-      var fillBarH='';
-      if(fillItems.length){
-        var FC2={'Full':'full','Most':'most','Half':'half','Low':'low','Empty':'empty'};
-        fillBarH='<div class="mob-box-fill-bar">'+fillItems.slice(0,8).map(function(i){return'<div class="mob-box-fill-seg '+(FC2[i.fillLevel]||'')+'"></div>';}).join('')+'</div>';
-      }
       var isStarred=isFav(childPath);
       var starPid=mReg(childPath); // reuse the same path registry
       var starBtn='<button class="mob-box-star'+(isStarred?' starred':'')+'" data-star-pid="'+starPid+'" onclick="event.stopPropagation();mobBoxStar(this)" title="'+(isStarred?'Remove favorite':'Favorite this location')+'">'+(isStarred?'★':'☆')+'</button>';
-      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'+starBtn+'<div class="mob-box-arrow">›</div><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div>'+prevH+fillBarH+'</div>';
+      return'<div class="mob-box" style="border-top-color:'+cc+'" data-pid="'+pid+'" onclick="mNav(this.dataset.pid)">'+starBtn+'<div class="mob-box-arrow">›</div><div class="mob-box-name" style="color:'+cc+'">'+esc(name)+'</div><div class="mob-box-count">'+cn.total+' item'+(cn.total!==1?'s':'')+'</div></div>';
     }).join('')+'</div>';
   }
   var itemsH='';
@@ -3694,13 +3721,6 @@ function mobRenderBrowseAt(path){
 
 // ── MOBILE DRAWER ─────────────────────────────────────────────────────────────
 function mobOpenDrawer(){
-  var tree=buildTree();var vis=inventory.filter(function(i){return _pinUnlocked||!i.lockedItem;});
-  var html='<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="mob-drawer-slbl">Filter</div>'
-    +'<div class="mob-ditem" onclick="mobDrawAll()"><span>All Items</span><span class="mob-dcount">'+vis.length+'</span></div>'
-    +'<div class="mob-ditem" onclick="mobDrawInUse()"><span>In Use</span><span class="mob-dcount">'+vis.filter(function(i){return i.inUse;}).length+'</span></div></div>';
-  html+='<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="mob-drawer-slbl">Locations</div>'+mobBuildTree(tree.children,[],0)+'</div>';
-  html+='<div style="padding:6px 0"><button class="mob-dlink" onclick="setViewMode(\'desktop\');mobCloseDrawer()">Desktop View</button><a class="mob-dlink" href="index.html">Editor</a><a class="mob-dlink" href="dashboard.html">Dashboard</a></div>';
-  document.getElementById('mob-drawer-content').innerHTML=html;
   document.getElementById('mob-drawer-ov').classList.add('open');
 }
 function mobCloseDrawer(){document.getElementById('mob-drawer-ov').classList.remove('open');}
@@ -4546,6 +4566,8 @@ function ipadRenderSidebar(){
   html+=navItem('◎','All Locations','browse',[],vis.length);
   html+=navItem('⌕','Search','find',null,null);
   html+='<div class="ipad-nav-item ipad-add-nav'+((_ipadTab==="add")?' active':'')+'"\ data-tab="add" onclick="ipadNavClick(this)"><span class="ipad-nav-icon">＋</span><span style="flex:1">Add Item</span></div>';
+  var supplyAttn=inventory.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
+  html+='<div class="ipad-nav-item'+((_ipadTab==="supply")?' active':'')+'"\ data-tab="supply" onclick="ipadNavClick(this)"><span class="ipad-nav-icon">⬡</span><span style="flex:1">Supply Run</span>'+(supplyAttn?'<span style="background:rgba(143,72,72,0.25);color:#d08080;font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid rgba(143,72,72,0.3)">'+supplyAttn+'</span>':'')+'</div>';
   if(inUseCnt>0)html+=navItem('●','In Use','inuse',null,inUseCnt);
   html+='</div>';
 
@@ -4562,6 +4584,10 @@ function ipadNavClick(el){
   var pid=el.dataset.pid;
   if(tab==='browse'&&pid){
     ipadGo(pid);
+  } else if(tab==='supply'){
+    _ipadTab='supply';
+    mobSwitchTab('supply');
+    ipadRenderSidebar();
   } else if(tab==='inuse'){
     _ipadTab='find';
     mobSwitchTab('find');
@@ -4627,6 +4653,8 @@ function ipadGoTab(tab){
     var isearch=document.getElementById('ipad-search');
     if(isearch)setTimeout(function(){isearch.focus();},200);
   }
+  if(tab==='supply'&&inventory.length) mobRenderSupply();
+  if(tab==='supply'&&isIPad()) ipadRenderSidebar();
 }
 
 function ipadOnSearch(val){
@@ -4979,6 +5007,12 @@ function renderSrchHist(){
 function applySrchHist(q){var ms=document.getElementById('mob-search');if(ms)ms.value=q;mobRenderFind(q);document.getElementById('search-hist-panel').innerHTML='';}
 function clearSrchHist(){try{localStorage.removeItem(SRCH_HIST_KEY);}catch(e){}document.getElementById('search-hist-panel').innerHTML='';}
 
+function updateSupplyBadge(){
+  var n=inventory.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
+  var b=document.getElementById('supply-tab-badge');
+  if(b){b.style.display=n?'block':'none';if(n)b.textContent=n;}
+}
+
 function quickSetFill(itemId, fillLevel, btn){
   var item=inventory.find(function(i){return i.id===itemId;});if(!item)return;
   item.fillLevel=fillLevel;
@@ -4987,7 +5021,7 @@ function quickSetFill(itemId, fillLevel, btn){
   segs.forEach(function(b){var fl=b.textContent;b.style.borderColor='var(--border2)';b.style.background='var(--s3)';b.style.color='var(--text-dim)';});
   btn.style.borderColor=fc[fillLevel]||'var(--rose)';btn.style.background=(fc[fillLevel]||'var(--rose)')+'22';btn.style.color=fc[fillLevel]||'var(--rose)';
   fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({fill_level:fillLevel})}).catch(function(){});
-  renderAttnStrip();
+  updateSupplyBadge();renderAttnStrip();
 }
 
 function markUsedToday(itemId,btn){
@@ -5041,6 +5075,284 @@ function tapFillCycle(btn, itemId){
 }
 
 
+// ── SUPPLY RUN ────────────────────────────────────────────────────────────────
+var _supplyChanges = {};
+var _supplyView = 'cards'; // 'cards' or 'detail'
+var _supplyDetailGroup = null;
+var _supplySubtab = 'groups'; // 'groups' or 'list'
+var _shopThreshold = 'Half'; // show items at or below this level
+var _shopSortBy = 'fill'; // 'fill' or 'name'
+
+const FILL_COLORS = {Full:'#3d8f5a',Most:'#7a9e44',Half:'#9e7a22',Low:'#8f3a20',Empty:'#3a1818'};
+const FILL_HEAT   = {Full:'#3d8f5a',Most:'#7a9e64',Half:'#c09030',Low:'#c06030',Empty:'#c04040'};
+
+function supplySetSubtab(tab, btn){
+  _supplySubtab = tab;
+  document.querySelectorAll('.supply-subtab').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  // Show/hide back btn based on tab
+  var bb=document.getElementById('supply-back-btn');
+  if(bb) bb.style.display = (tab==='groups')?'':'none';
+  mobRenderSupply();
+}
+
+function supplyRenderShoppingList(body){
+  var fillPriority={Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var thresholdIdx=fillPriority[_shopThreshold];
+  var all=inventory.filter(function(i){
+    return (_pinUnlocked||!i.lockedItem)&&i.fillLevel&&i.fillLevel!==''&&!i.supplyExclude;
+  });
+  // Filter by threshold: only items AT or BELOW threshold fill
+  var items=all.filter(function(i){return (fillPriority[i.fillLevel]||5)<=thresholdIdx;});
+  // Also include items where qty < parLevel regardless of fill
+  var parNeeded=all.filter(function(i){
+    var par=parseInt(i.parLevel)||1;
+    var cur=parseInt(i.qty)||1;
+    return cur<par&&!items.find(function(x){return x.id===i.id;});
+  });
+  items=items.concat(parNeeded);
+  // Sort
+  if(_shopSortBy==='fill'){
+    items.sort(function(a,b){return(fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5)||a.name.localeCompare(b.name);});
+  } else {
+    items.sort(function(a,b){return a.name.localeCompare(b.name);});
+  }
+
+  var fillColor={Empty:'#c04040',Low:'#8f5530',Half:'#9e7a32',Most:'#7a9e44',Full:'#4d8f6a'};
+
+  var threshLabels=['Empty','Low','Half','Most','Full'];
+  var controls='<div class="shop-list-controls">'
+    +'<span class="shop-list-label">Show below</span>'
+    +threshLabels.slice(0,4).map(function(t){
+      return'<button class="shop-threshold-btn'+(t===_shopThreshold?' active':'')+'" data-t="'+t+'" onclick="shopSetThreshold(this.dataset.t)">'+t+'</button>';
+    }).join('')
+    +'<span style="flex:1"></span>'
+    +'<button class="shop-threshold-btn'+(_shopSortBy==='fill'?' active':'')+'" onclick="shopSetSort(\"fill\")">By Fill</button>'
+    +'<button class="shop-threshold-btn'+(_shopSortBy==='name'?' active':'')+'" onclick="shopSetSort(\"name\")">A–Z</button>'
+    +'</div>';
+
+  if(!items.length){
+    body.innerHTML=controls+'<div style="padding:40px 20px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--text-dim)">Nothing needs restocking ✓</div>';
+    return;
+  }
+
+  var cs_cache={};
+  var rows=items.map(function(item){
+    var cs=cs_cache[item.category]=cs_cache[item.category]||catC(item.category);
+    var fl=item.fillLevel||'';
+    var fc=fillColor[fl]||'var(--text-dim)';
+    var par=parseInt(item.parLevel)||1;
+    var cur=parseInt(item.qty)||1;
+    var parStr=cur<par?'<span style="color:var(--red);font-family:var(--font-mono);font-size:10px">'+cur+'/'+par+'</span>':'';
+    return'<div class="shop-list-item">'
+      +'<span class="shop-item-fill" style="color:'+fc+';border-color:'+fc+'55;background:'+fc+'11">'+fl+'</span>'
+      +'<span class="shop-item-cat" style="color:'+cs.text+';background:'+cs.bg+'">'+esc(item.category||'')+'</span>'
+      +'<span class="shop-item-name">'+esc(splitName(item.name).primary)+'</span>'
+      +parStr
+      +'</div>';
+  }).join('');
+
+  body.innerHTML=controls+'<div style="padding-bottom:60px">'+rows+'</div>';
+}
+
+function shopSetThreshold(t){_shopThreshold=t;mobRenderSupply();}
+function shopSetSort(s){_shopSortBy=s;mobRenderSupply();}
+
+function supplyBuildGroups(){
+  var fillPriority = {Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var fillable = inventory.filter(function(i){ return (_pinUnlocked||!i.lockedItem)&&i.fillLevel&&i.fillLevel!==''&&!i.supplyExclude; });
+  var groups = {};
+  fillable.forEach(function(i){
+    var path = i.locationPath||[];
+    var gname = path.length>=3 ? path[path.length-1] : path.length===2 ? path[0]+' — '+path[1] : (path[0]||'Unassigned');
+    if(!groups[gname]) groups[gname]={items:[],topLoc:path[0]||''};
+    groups[gname].items.push(i);
+  });
+  // Sort groups: lowest fill first
+  return Object.entries(groups).sort(function(a,b){
+    var aMin=Math.min.apply(null,a[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
+    var bMin=Math.min.apply(null,b[1].items.map(function(i){return fillPriority[i.fillLevel]||5;}));
+    return aMin-bMin||a[0].localeCompare(b[0]);
+  });
+}
+
+function mobRenderSupply(){
+  var body = document.getElementById('mob-supply-body');
+  var sub  = document.getElementById('supply-sub-label');
+  var backBtn = document.getElementById('supply-back-btn');
+  if(!body) return;
+  _supplyChanges={};
+
+  var groups = supplyBuildGroups();
+  var totalItems = groups.reduce(function(s,g){return s+g[1].items.length;},0);
+  var needAttn = groups.reduce(function(s,g){
+    return s+g[1].items.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low'||i.fillLevel==='Half';}).length;
+  },0);
+  if(sub) sub.textContent = totalItems+' fillable · '+needAttn+' need attention';
+
+  if(_supplySubtab==='list'){
+    if(backBtn){backBtn.style.display='none';}
+    supplyRenderShoppingList(body);
+  } else if(_supplyView==='cards'){
+    if(backBtn){backBtn.style.display='';backBtn.classList.remove('visible');}
+    supplyRenderCards(body, groups);
+  } else {
+    if(backBtn){backBtn.style.display='';backBtn.classList.add('visible');}
+    supplyRenderDetail(body, _supplyDetailGroup);
+  }
+  updateSupplySaveBar();
+}
+
+function supplyRenderCards(body, groups){
+  var fillPriority={Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var html='<div class="supply-cards-grid">';
+  groups.forEach(function(entry){
+    var gname=entry[0], gdata=entry[1], items=gdata.items;
+    var attnCount=items.filter(function(i){return i.fillLevel==='Empty'||i.fillLevel==='Low';}).length;
+    var halfCount=items.filter(function(i){return i.fillLevel==='Half';}).length;
+
+    // Heatmap bar: gradient from worst to best item color
+    var sorted=items.slice().sort(function(a,b){return(fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5);});
+    var heatColors=sorted.map(function(i){return FILL_HEAT[i.fillLevel]||'#333';});
+    var grad='linear-gradient(to right,'+heatColors.map(function(c,i){
+      var pct1=Math.round(i/heatColors.length*100);
+      var pct2=Math.round((i+1)/heatColors.length*100);
+      return c+' '+pct1+'%,'+c+' '+pct2+'%';
+    }).join(',')+')';
+
+    // Dot grid: one dot per item, colored by fill level
+    var dots=sorted.map(function(i){
+      var col=FILL_COLORS[i.fillLevel]||'#444';
+      return '<div class="supply-card-dot" style="background:'+col+'" title="'+esc(splitName(i.name).primary)+' — '+i.fillLevel+'"></div>';
+    }).join('');
+
+    var alertHTML=attnCount?'<span class="supply-card-alert">'+attnCount+' low</span>':halfCount?'<span class="supply-card-alert" style="color:var(--amber,#c09030);border-color:rgba(192,144,48,0.3);background:rgba(192,144,48,0.08)">'+halfCount+' half</span>':'';
+
+    html+='<div class="supply-card" data-gname="'+esc(gname)+'" onclick="supplyOpenDetail(this.dataset.gname)">';
+    html+='<div class="supply-card-heat" style="background:'+grad+'"></div>';
+    html+='<div class="supply-card-body">';
+    html+='<div class="supply-card-name">'+esc(gname)+'</div>';
+    if(gdata.topLoc&&gdata.topLoc!==gname) html+='<div class="supply-card-loc">'+esc(gdata.topLoc)+'</div>';
+    html+='<div class="supply-card-dots">'+dots+'</div>';
+    html+='<div class="supply-card-stats"><span class="supply-card-count">'+items.length+' item'+(items.length!==1?'s':'')+'</span>'+alertHTML+'</div>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+function supplyOpenDetail(gname){
+  _supplyView='detail';
+  _supplyDetailGroup=gname;
+  mobRenderSupply();
+}
+
+function supplyGoBack(){
+  _supplyView='cards';
+  _supplyDetailGroup=null;
+  _supplyChanges={};
+  mobRenderSupply();
+}
+
+function supplyRenderDetail(body, gname){
+  var fillPriority={Empty:0,Low:1,Half:2,Most:3,Full:4,'':5};
+  var groups=supplyBuildGroups();
+  var entry=groups.find(function(g){return g[0]===gname;});
+  if(!entry){body.innerHTML='';return;}
+  var items=entry[1].items.slice().sort(function(a,b){
+    return(fillPriority[a.fillLevel]||5)-(fillPriority[b.fillLevel]||5)||a.name.localeCompare(b.name);
+  });
+  var topLoc=entry[1].topLoc;
+
+  var html='<div class="supply-detail-hdr">';
+  html+='<div class="supply-detail-gname">'+esc(gname)+'</div>';
+  if(topLoc&&topLoc!==gname) html+='<span class="supply-detail-loc">'+esc(topLoc)+'</span>';
+  html+='</div>';
+  items.forEach(function(item){
+    var cs=catC(item.category);
+    var n=splitName(item.name);
+    var parLevel=item.parLevel||1;
+    var curQty=parseInt(item.qty)||1;
+    var qtyStatus=curQty<parLevel?'<span style="color:var(--red);font-family:var(--font-mono);font-size:10px">'+curQty+'/'+parLevel+'</span>':'<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:10px">'+curQty+'/'+parLevel+'</span>';
+    html+='<div class="supply-item" style="border-left:3px solid '+cs.text+';background:linear-gradient(to right,'+cs.bg+'44 0%,transparent 60%)" onclick="openLocInspector('+item.id+',this)">';
+    html+='<div style="flex:1;min-width:0">';
+    html+='<div class="supply-item-name">'+esc(n.primary)+'</div>';
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-top:3px">';
+    html+='<span style="font-family:var(--font-mono);font-size:9px;color:'+cs.text+';background:'+cs.bg+';padding:1px 5px;border-radius:3px">'+esc(item.category||'')+'</span>';
+    html+=qtyStatus;
+    html+='</div></div>';
+    html+=supplyMeterHTML(item.id, item.fillLevel||'');
+    html+='</div>';
+  });
+  body.innerHTML=html;
+}
+
+function supplyMeterHTML(itemId, fillLevel){
+  var levels=['Empty','Low','Half','Most','Full'];
+  var fi=levels.indexOf(fillLevel);
+  var html='<div class="fill-meter">';
+  levels.forEach(function(lvl,idx){
+    var active=fi>=0&&idx<=fi;
+    var segClass=active?(FILL_CLASS[lvl]||'unset'):'unset';
+    html+='<div class="fill-seg '+segClass+'" title="'+lvl+' — tap item to edit"></div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+function supplySetFill(itemId,level){
+  var item=inventory.find(function(i){return i.id===itemId;});
+  if(!item)return;
+  if(item.fillLevel===level)level='';
+  item.fillLevel=level;
+  _supplyChanges[itemId]=level;
+  updateSupplySaveBar();
+  var levels=['Empty','Low','Half','Most','Full'];
+  var fi=levels.indexOf(level);
+  document.querySelectorAll('.fill-seg[data-item-id="'+itemId+'"]').forEach(function(seg,idx){
+    var lvl=levels[idx];
+    seg.className='fill-seg '+((fi>=0&&idx<=fi)?(FILL_CLASS[lvl]||'unset'):'unset');
+  });
+  // Refresh the card dot for this item if in card view
+  if(_supplyView==='cards') setTimeout(mobRenderSupply, 0);
+}
+
+function supplyToggleGroup(gid){var el=document.getElementById(gid);if(el)el.classList.toggle('collapsed');}
+
+function updateSupplySaveBar(){
+  var count=Object.keys(_supplyChanges).length;
+  var btn=document.getElementById('supply-save-btn');
+  var lbl=document.getElementById('supply-change-count');
+  if(btn)btn.disabled=count===0;
+  if(lbl)lbl.textContent=count?count+' change'+(count>1?'s':''):'';
+}
+
+async function supplyRunSave(){
+  var changes=Object.entries(_supplyChanges);
+  if(!changes.length)return;
+  var btn=document.getElementById('supply-save-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+  var ok=0,fail=0;
+  for(var ci=0;ci<changes.length;ci++){
+    var itemId=parseInt(changes[ci][0]),level=changes[ci][1];
+    try{
+      var r=await fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+itemId,{
+        method:'PATCH',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({fill_level:level})
+      });
+      if(r.ok)ok++;else fail++;
+    }catch(e){fail++;}
+  }
+  _supplyChanges={};
+  var lbl=document.getElementById('supply-change-count');
+  btn.textContent=fail?fail+' failed — retry':'Save Changes';
+  btn.disabled=true;
+  if(lbl)lbl.textContent=ok?'✓ '+ok+' saved':'';
+  // Refresh cards to reflect new states
+  setTimeout(function(){mobRenderSupply();btn.textContent='Save Changes';if(lbl)lbl.textContent='';},1800);
+}
+
 // ── ADD FILL LEVEL TO INSPECTOR ────────────────────────────────────────────────
 function inspFillSectionHTML(item){
   var levels=['Full','Most','Half','Low','Empty'];
@@ -5082,6 +5394,15 @@ function inspFillSectionHTML(item){
     +'</div>';
   if(curQty<parLevel) html+='<div style="font-family:var(--font-mono);font-size:10px;color:var(--red);margin-top:6px">⚠ Below par — add to shopping list</div>';
   html+='</div>';
+  // Supply exclude toggle
+  html+='<div class="loc-insp-section"><div class="loc-insp-lbl">Supply Run</div>';
+  html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0">'
+    +'<button onclick="locInspToggleSupplyExclude()" style="display:flex;align-items:center;gap:8px;background:'+(item.supplyExclude?'var(--s3)':'rgba(77,143,106,0.12)')+';border:1.5px solid '+(item.supplyExclude?'var(--border2)':'var(--green)')+';border-radius:10px;padding:10px 16px;cursor:pointer;font-family:var(--font-ui);font-size:14px;font-weight:500;color:'+(item.supplyExclude?'var(--text-dim)':'var(--green)')+';-webkit-tap-highlight-color:transparent;width:100%">'
+    +'<span style="font-size:18px">'+(item.supplyExclude?'○':'●')+'</span>'
+    +(item.supplyExclude?'Excluded from Supply Run':'Included in Supply Run')
+    +'</button>'
+    +'</div>';
+  html+='</div>';
   return html;
 }
 
@@ -5093,6 +5414,16 @@ function locInspAdjPar(delta){
   if(pv)pv.textContent=item.parLevel;
   // Auto-save
   fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+item.id,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({par_level:item.parLevel})}).catch(function(){});
+}
+
+function locInspToggleSupplyExclude(){
+  var item=_locInspItem;if(!item)return;
+  item.supplyExclude=!item.supplyExclude;
+  // Re-render the supply section
+  var sc=document.getElementById('linsp-supply-col');
+  if(sc)sc.innerHTML=inspFillSectionHTML(item);
+  fetch(SUPABASE_URL+'/rest/v1/inventory?id=eq.'+item.id,{method:'PATCH',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({supply_exclude:item.supplyExclude})}).catch(function(){});
+  updateSupplyBadge();
 }
 
 function hexToRgb(hex){
