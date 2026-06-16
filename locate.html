@@ -443,7 +443,10 @@ body.mob-mode .shell{display:none;}
 .mob-drawer-ov{position:fixed;inset:0;z-index:600;display:none;}
 .mob-drawer-ov.open{display:block;}
 .mob-drawer-bg{position:absolute;inset:0;background:rgba(0,0,0,0.55);}
-.mob-drawer{position:absolute;left:0;top:0;bottom:0;width:82vw;max-width:300px;background:var(--s1);border-right:1px solid var(--border2);overflow-y:auto;transform:translateX(-100%);transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);padding-bottom:env(safe-area-inset-bottom,16px);}
+.mob-drawer{position:absolute;left:0;top:0;bottom:0;width:90vw;max-width:380px;background:var(--s1);border-right:1px solid var(--border2);overflow-y:auto;transform:translateX(-100%);transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);padding-bottom:env(safe-area-inset-bottom,16px);}
+@media(min-width:700px){
+  .mob-drawer{width:46vw;max-width:560px;min-width:420px;}
+}
 .mob-drawer-ov.open .mob-drawer{transform:translateX(0);}
 .mob-drawer-hdr{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .mob-drawer-title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.22em;color:var(--text-dim);text-transform:uppercase;}
@@ -924,15 +927,15 @@ body.mob-mode .shell{display:none;}
   .mob-boxes{grid-template-columns:1fr;padding:12px 20px;gap:12px;}
   .mob-box{min-height:80px;padding:16px 14px 12px;}
   .mob-box-name{font-size:20px;}
-  .mc-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;row-gap:7px;}
-  .mc-name-wrap{order:-1;flex:1 1 100%;}
-  .mc-name{font-size:16px;white-space:normal;overflow:visible;text-overflow:unset;word-break:break-word;}
-  .mc-cat{font-size:9px;padding:3px 6px;flex:0 0 auto;}
-  .mc-cond{font-size:10px;padding:3px 7px;flex:0 0 auto;}
-  .mc-qty{display:flex;font-size:10px;padding:2px 6px;flex:0 0 auto;}
-  .mc-fill{flex:0 0 auto;}
-  .mc-audit{flex:0 0 auto;}
-  .mc-col-hdr{display:none;}
+  .mc-row{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:6px;row-gap:8px;}
+  .mc-name-wrap{order:-1;flex:1 1 100%!important;}
+  .mc-name{font-size:17px!important;font-weight:700;white-space:normal!important;overflow:visible!important;text-overflow:unset!important;word-break:break-word;}
+  .mc-cat{font-size:9px;padding:3px 7px;flex:0 0 auto!important;white-space:nowrap!important;word-break:normal!important;}
+  .mc-cond{font-size:10px;padding:3px 7px;flex:0 0 auto!important;}
+  .mc-qty{display:flex!important;font-size:10px;padding:2px 6px;flex:0 0 auto!important;}
+  .mc-fill{flex:0 0 auto!important;}
+  .mc-audit{flex:0 0 auto!important;}
+  .mc-col-hdr{display:none!important;}
   .mob-card{padding:11px 20px;}
   .mob-card-name{font-size:15px;}
   .mob-browse-hdr{padding:12px 20px 10px;}
@@ -1054,7 +1057,7 @@ body.mob-mode .shell{display:none;}
 }
 .mob-tree-btn:active{color:var(--rose);border-color:var(--rose);}
 .mob-tree-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 14px 32px;}
-.mob-tree-row{display:flex;align-items:center;gap:8px;padding:9px 4px;min-height:30px;}
+.mob-tree-row{display:flex;align-items:center;gap:8px;padding:9px 4px;min-height:30px;cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,0.06);touch-action:manipulation;}
 .mob-tree-exp{
   width:20px;height:20px;flex-shrink:0;background:none;border:none;color:var(--text-dim);
   font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform 0.15s;
@@ -1103,6 +1106,14 @@ body.mob-mode .shell{display:none;}
   gap:0;padding:0;flex-shrink:0;
   border-bottom:1px solid var(--border);
 }
+.mob-home-tree-row{padding:14px 24px 0;}
+.mob-home-tree-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--text-mid);
+  background:var(--s1);border:1px solid var(--border2);border-radius:9px;padding:9px 14px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;
+}
+.mob-home-tree-btn:hover,.mob-home-tree-btn:active{color:var(--rose);border-color:var(--rose);}
 .ipad-stat-cell{
   flex:1;text-align:center;padding:18px 8px;
   background:var(--bg);border-right:1px solid var(--border);
@@ -3678,6 +3689,7 @@ function mobRenderBrowseAt(path){
   if(_addCta)_addCta.style.display=(!path.length&&isIPad())?'flex':'none';
   if(!path.length){setTimeout(function(){if(typeof renderAttnStrip==='function')renderAttnStrip();if(typeof renderDailyStrip==='function')renderDailyStrip();renderFavBrowseStrip();if(typeof renderReplTracker==='function')renderReplTracker();if(typeof renderMobRecents==='function')renderMobRecents();},30);}
   else{var _as=document.getElementById('attn-strip');if(_as)_as.style.display='none';var _ds=document.getElementById('daily-strip');if(_ds)_ds.style.display='none';var _fs=document.getElementById('fav-browse-strip');if(_fs)_fs.style.display='none';var _rs=document.getElementById('repl-tracker-section');if(_rs)_rs.style.display='none';var _rc=document.getElementById('mob-recents-strip');if(_rc)_rc.style.display='none';}
+  var homeTreeH=!path.length?'<div class="mob-home-tree-row"><button class="mob-home-tree-btn" onclick="mobOpenTree()">⊞ Full Tree View</button></div>':'';
   var boxH='';
   if(children.length){
     var cc=mDC(depth);
@@ -3714,7 +3726,7 @@ function mobRenderBrowseAt(path){
     return'<button class="mob-bc-star'+(starred?' starred':'')+'" data-star-pid="'+starPid+'" onclick="mobBoxStar(this)" title="'+(starred?'Remove favorite':'Favorite this location')+'">'+(starred?'★':'☆')+'</button>';
   })():'';
   var hdrH=path.length?'<div class="mob-browse-hdr"><button class="mob-back" data-pid="'+backPid+'" onclick="mNav(this.dataset.pid)">← Back</button><div class="mob-btitle" style="color:'+mDC(depth-1)+'">'+esc(title)+'</div>'+hdrStar+'<div class="mob-bcount">'+allItems.length+'</div></div>':'';
-  el.innerHTML=hdrH+bcH+statsH+boxH+itemsH;
+  el.innerHTML=hdrH+bcH+statsH+homeTreeH+boxH+itemsH;
   document.querySelector('.mob-content').scrollTop=0;
   // No sidebar to refresh
 }
@@ -3787,10 +3799,10 @@ function mobTreeBuildHTML(ch,path,depth){
     var isCollapsed=_treeCollapsed.has(pk);
     var color='hsla('+MOB_DH[depth%MOB_DH.length]+',65%,68%,0.95)';
     var pid=mReg(p);var kid=mRegK(pk);
-    html+='<div class="mob-tree-row" style="padding-left:'+(6+depth*18)+'px">'
+    html+='<div class="mob-tree-row" style="padding-left:'+(6+depth*18)+'px" data-pid="'+pid+'" onclick="mobTreeGo(this.dataset.pid)">'
       +(hasCh?'<button class="mob-tree-exp'+(isCollapsed?'':' open')+'" data-kid="'+kid+'" onclick="event.stopPropagation();mobTreeToggle(this.dataset.kid)">&rsaquo;</button>':'<span class="mob-tree-exp-spacer"></span>')
       +'<span class="mob-tree-dot" style="background:'+color+'"></span>'
-      +'<span class="mob-tree-name" style="color:'+color+'" data-pid="'+pid+'" onclick="mobTreeGo(this.dataset.pid)">'+esc(name)+'</span>'
+      +'<span class="mob-tree-name" style="color:'+color+'">'+esc(name)+'</span>'
       +'<span class="mob-tree-cnt">'+node.total+'</span>'
       +'</div>';
     if(hasCh&&!isCollapsed)html+='<div class="mob-tree-children" style="border-left-color:'+color+'66">'+mobTreeBuildHTML(node.children,p,depth+1)+'</div>';
