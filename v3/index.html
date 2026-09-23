@@ -74,8 +74,8 @@
     cursor:pointer;border-left:3px solid transparent}
   .trow:active{background:#ffffff0d}
   .trow.sel{background:#4da3ff1c;outline:1px solid var(--accent)}
-  .caret{width:22px;flex:none;text-align:center;color:var(--muted);font-size:13px;
-    padding:4px 0;cursor:pointer}
+  .caret{width:34px;flex:none;text-align:center;color:var(--muted);font-size:14px;
+    padding:10px 0;cursor:pointer;border-radius:8px}
   .lchip{width:11px;height:11px;border-radius:4px;flex:none}
   .tname{flex:1;font-size:14px;min-width:0}
   .tname .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
@@ -148,6 +148,25 @@
   .btn.del{background:none;color:var(--red);border:1px solid var(--red);flex:0 0 auto;
     padding:13px 18px}
   .req{color:var(--red)}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,
+  textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  /* ── mobile: table rows become cards ── */
+  @media (max-width:640px){
+    thead{display:none}
+    table{min-width:0}
+    tbody tr{display:block;border:1px solid var(--line);border-radius:10px;
+      margin:10px;background:#ffffff06;border-left:3px solid var(--catc,transparent)}
+    tbody tr.misplaced{background:#e5534b12}
+    tbody td{display:flex;align-items:center;gap:10px;border:none;padding:7px 12px}
+    tbody td::before{content:attr(data-l);font-size:11px;text-transform:uppercase;
+      letter-spacing:.05em;color:var(--muted);min-width:70px;flex:none}
+    tbody td.nmcell{padding-top:11px}
+    tbody td.nmcell::before{display:none}
+    tbody td.nmcell .nm{font-size:16px}
+    tbody td:last-child{padding-bottom:11px}
+    .crumbs{max-width:none}
+    .crumb{max-width:150px}
+  }
   @media (max-width:560px){
     .grid{grid-template-columns:1fr}
     .stats .v{font-size:17px}
@@ -344,13 +363,24 @@ function setSync(state){
 }
 
 /* ---------- API ---------- */
+function fetchWithTimeout(url, opts, ms){
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, ms || 20000);
+  return fetch(url, Object.assign({}, opts, {signal: ctrl.signal})).then(
+    function(res){
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res;
+    },
+    function(err){ clearTimeout(timer); throw err; }
+  );
+}
 async function apiPost(body){
-  var res = await fetch(API_URL, {
+  var res = await fetchWithTimeout(API_URL, {
     method: 'POST',
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(body)
-  });
-  if(!res.ok) throw new Error('HTTP ' + res.status);
+  }, 25000);
   var j = await res.json();
   if(!j || !j.ok) throw new Error((j && j.error) || 'API error');
   return j;
@@ -362,16 +392,20 @@ function persist(){
 
 async function load(){
   setSync('sync');
-  try{
-    var res = await fetch(API_URL + '?action=list');
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    var j = await res.json();
-    if(!j || !j.ok) throw new Error((j && j.error) || 'API error');
+  var j = null;
+  for(var a = 0; a < 2 && !j; a++){   // one automatic retry before falling back to cache
+    try{
+      var r = await fetchWithTimeout(API_URL + '?action=list', null, 20000);
+      var d = await r.json();
+      if(d && d.ok) j = d;
+    }catch(e){ j = null; }
+  }
+  if(j){
     items = j.items || [];
     persist();
     setSync(pending.length ? 'err' : 'ok');
     if(pending.length) flushPending();
-  }catch(e){
+  }else{
     try { items = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch(_){ items = []; }
     setSync('err');
   }
@@ -460,10 +494,11 @@ function renderTree(){
       var has = Object.keys(c.children).length > 0;
       var open = !!expanded[c.path];
       var caret = has
-        ? '<span class="caret" data-caret="' + esc(c.path) + '">' + (open ? '▾' : '▸') + '</span>'
+        ? '<span class="caret" tabindex="0" role="button" aria-label="Expand or collapse ' + esc(c.name) + '" data-caret="' + esc(c.path) + '">' + (open ? '▾' : '▸') + '</span>'
         : '<span class="caret"></span>';
       var sel = locFilter === c.path ? ' sel' : '';
       var html = '<li class="tnode"><div class="trow' + sel + '" data-path="' + esc(c.path) + '"' +
+        ' tabindex="0" role="button" title="Tap to filter · tap again to clear"' +
         ' style="border-left-color:' + bcol + '55">' +
         caret + '<span class="lchip" style="background:' + bcol + '"></span>' +
         '<span class="tname"><span class="tn">' + esc(c.name) + '</span>' +
@@ -475,20 +510,33 @@ function renderTree(){
   }
   el.innerHTML = nodeHtml(tree, null) || '<div class="empty">No locations.</div>';
   Array.prototype.forEach.call(el.querySelectorAll('[data-caret]'), function(sp){
-    sp.addEventListener('click', function(e){
-      e.stopPropagation();
+    var tog = function(e){
+      if(e){ e.stopPropagation(); e.preventDefault(); }
       var p = sp.getAttribute('data-caret');
       expanded[p] = !expanded[p];
       renderTree();
+    };
+    sp.addEventListener('click', tog);
+    sp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ tog(e); }
     });
   });
   Array.prototype.forEach.call(el.querySelectorAll('.trow'), function(row){
-    row.addEventListener('click', function(){
+    var go = function(){
       var p = row.getAttribute('data-path');
-      locFilter = (locFilter === p) ? null : p;   // tap again to clear
+      var turningOn = locFilter !== p;
+      locFilter = turningOn ? p : null;   // tap again to clear
       paintLocChip();
       renderTree();
       render();
+      if(locFilter && turningOn){
+        var tw = document.querySelector('.tablewrap');
+        if(tw) tw.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    };
+    row.addEventListener('click', go);
+    row.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
     });
   });
 }
@@ -584,12 +632,12 @@ function render(){
     var badge = '<span class="cbadge ' + condClass(i.condition) + '">' + esc(i.condition || '—') + '</span>';
     return '<tr data-id="' + esc(String(i.id)) + '" class="' + (i.misplaced ? 'misplaced' : '') + '"' +
       ' style="--catc:' + cc + '" title="' + esc(i.location || '') + '">' +
-      '<td><span class="nm"><span class="cdot"></span>' + flag + esc(i.name || '(unnamed)') + '</span></td>' +
-      '<td><span class="crumbs">' + locCrumbs(i.location) + '</span></td>' +
-      '<td class="qtyv">' + esc(i.qty || '') + '</td>' +
-      '<td style="color:' + cc + '">' + esc(i.category || '') + '</td>' +
-      '<td>' + badge + '</td>' +
-      '<td>' + (i.est_value ? esc(money(i.est_value)) : '') + '</td>' +
+      '<td class="nmcell" data-l="Name"><span class="nm"><span class="cdot"></span>' + flag + esc(i.name || '(unnamed)') + '</span></td>' +
+      '<td data-l="Location"><span class="crumbs">' + locCrumbs(i.location) + '</span></td>' +
+      '<td data-l="Qty" class="qtyv">' + esc(i.qty || '') + '</td>' +
+      '<td data-l="Category" style="color:' + cc + '">' + esc(i.category || '') + '</td>' +
+      '<td data-l="Condition">' + badge + '</td>' +
+      '<td data-l="Est $">' + (i.est_value ? esc(money(i.est_value)) : '') + '</td>' +
     '</tr>';
   }).join('');
   Array.prototype.forEach.call($('tbody').children, function(tr){
@@ -730,7 +778,7 @@ $('addBtn').addEventListener('click', function(){ openEditor(null); });
 $('edCancel').addEventListener('click', closeEditor);
 $('edSave').addEventListener('click', saveEditor);
 $('edDelete').addEventListener('click', deleteEditing);
-$('syncBadge').addEventListener('click', flushPending);
+$('syncBadge').addEventListener('click', function(){ load(); });
 $('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')) closeEditor(); });
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeEditor(); });
 $('treeToggle').addEventListener('click', function(){
