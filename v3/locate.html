@@ -35,6 +35,9 @@
   .tbtn{background:var(--card2);border:1px solid var(--line);color:var(--muted);
     border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer}
   .tbtn:active{background:#ffffff10}
+  .tbtn.on{border-color:var(--red);color:var(--red)}
+  button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px}
   /* find results */
   .results{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     overflow:hidden;margin-bottom:4px}
@@ -70,8 +73,8 @@
     cursor:pointer;border-left:3px solid transparent}
   .trow:active{background:#ffffff0d}
   .trow.sel{background:#4da3ff1c;outline:1px solid var(--accent)}
-  .caret{width:22px;flex:none;text-align:center;color:var(--muted);font-size:13px;
-    padding:4px 0;cursor:pointer}
+  .caret{width:34px;flex:none;text-align:center;color:var(--muted);font-size:14px;
+    padding:10px 0;cursor:pointer;border-radius:8px}
   .lchip{width:11px;height:11px;border-radius:4px;flex:none}
   .tname{flex:1;font-size:15px;min-width:0}
   .tname .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
@@ -127,9 +130,11 @@
   <div class="results" id="findResults" hidden></div>
 
   <h2 class="sec"><span class="sp">Browse by location</span>
+    <button class="tbtn" id="misToggle">⚑ Misplaced</button>
     <button class="tbtn" id="expandAll">Expand all</button>
     <button class="tbtn" id="collapseAll">Collapse</button>
   </h2>
+  <div class="results" id="misPanel" hidden style="margin-bottom:12px"></div>
   <div class="tree" id="tree"></div>
 
   <div class="locpanel" id="locPanel" hidden>
@@ -224,14 +229,25 @@ var detailId = null;
 function setSync(state){
   var dot = $('syncDot'), txt = $('syncText');
   dot.className = 'dot ' + (state === 'ok' ? 'ok' : state === 'sync' ? 'sync' : 'err');
-  txt.textContent = state === 'ok' ? 'saved' : state === 'sync' ? 'syncing…' : 'offline';
+  txt.textContent = state === 'ok' ? 'saved' : state === 'sync' ? 'syncing…' : 'offline — saved locally';
 }
 
+function fetchWithTimeout(url, opts, ms){
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, ms || 20000);
+  return fetch(url, Object.assign({}, opts, {signal: ctrl.signal})).then(
+    function(res){
+      clearTimeout(timer);
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res;
+    },
+    function(err){ clearTimeout(timer); throw err; }
+  );
+}
 async function apiPost(body){
-  var res = await fetch(API_URL, {
+  var res = await fetchWithTimeout(API_URL, {
     method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(body)
-  });
-  if(!res.ok) throw new Error('HTTP ' + res.status);
+  }, 25000);
   var j = await res.json();
   if(!j || !j.ok) throw new Error((j && j.error) || 'API error');
   return j;
@@ -241,21 +257,26 @@ function persist(){
 }
 async function load(){
   setSync('sync');
-  try{
-    var res = await fetch(API_URL + '?action=list');
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    var j = await res.json();
-    if(!j || !j.ok) throw new Error((j && j.error) || 'API error');
+  var j = null;
+  for(var a = 0; a < 2 && !j; a++){   // one automatic retry before falling back to cache
+    try{
+      var r = await fetchWithTimeout(API_URL + '?action=list', null, 20000);
+      var d = await r.json();
+      if(d && d.ok) j = d;
+    }catch(e){ j = null; }
+  }
+  if(j){
     items = j.items || [];
     persist();
     setSync(pending.length ? 'err' : 'ok');
     if(pending.length) flushPending();
-  }catch(e){
+  }else{
     try{ items = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); }catch(_){ items = []; }
     setSync('err');
   }
   tree = buildTree(items);
   renderTree();
+  renderMisplaced();
 }
 async function flushPending(){
   if(!pending.length) return;
@@ -321,10 +342,11 @@ function renderTree(){
       var has = Object.keys(c.children).length > 0;
       var open = !!expanded[c.path];
       var caret = has
-        ? '<span class="caret" data-caret="' + esc(c.path) + '">' + (open ? '▾' : '▸') + '</span>'
+        ? '<span class="caret" tabindex="0" role="button" aria-label="Expand or collapse ' + esc(c.name) + '" data-caret="' + esc(c.path) + '">' + (open ? '▾' : '▸') + '</span>'
         : '<span class="caret"></span>';
       var sel = selectedPath === c.path ? ' sel' : '';
       var html = '<li class="tnode"><div class="trow' + sel + '" data-path="' + esc(c.path) + '"' +
+        ' tabindex="0" role="button" title="Tap to view items here"' +
         ' style="border-left-color:' + bcol + '55">' +
         caret + '<span class="lchip" style="background:' + bcol + '"></span>' +
         '<span class="tname"><span class="tn">' + esc(c.name) + '</span>' +
@@ -336,18 +358,33 @@ function renderTree(){
   }
   el.innerHTML = nodeHtml(tree, null) || '<div class="empty">No locations.</div>';
   Array.prototype.forEach.call(el.querySelectorAll('[data-caret]'), function(sp){
-    sp.addEventListener('click', function(e){
-      e.stopPropagation();
+    var tog = function(e){
+      if(e){ e.stopPropagation(); e.preventDefault(); }
       var p = sp.getAttribute('data-caret');
       expanded[p] = !expanded[p];
       renderTree();
+    };
+    sp.addEventListener('click', tog);
+    sp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ tog(e); }
     });
   });
   Array.prototype.forEach.call(el.querySelectorAll('.trow'), function(row){
-    row.addEventListener('click', function(){
-      selectedPath = row.getAttribute('data-path');
+    var go = function(){
+      var p = row.getAttribute('data-path');
+      if(selectedPath === p){          // tap again to clear
+        selectedPath = null;
+        $('locPanel').hidden = true;
+        renderTree();
+        return;
+      }
+      selectedPath = p;
       renderTree();
       showLocation(selectedPath);
+    };
+    row.addEventListener('click', go);
+    row.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
     });
   });
 }
@@ -438,6 +475,30 @@ function bindRows(container){
   });
 }
 
+/* ---------- misplaced quick view ---------- */
+var showMisplaced = false;
+function renderMisplaced(){
+  var box = $('misPanel');
+  var list = items.filter(function(i){ return i.misplaced; }).sort(function(a, b){
+    var an = String(a.name || '').toLowerCase(), bn = String(b.name || '').toLowerCase();
+    return an < bn ? -1 : an > bn ? 1 : 0;
+  });
+  var btn = $('misToggle');
+  btn.textContent = '⚑ Misplaced' + (list.length ? ' (' + list.length + ')' : '');
+  btn.classList.toggle('on', showMisplaced);
+  if(!showMisplaced){ box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = list.length
+    ? list.map(itemRow).join('')
+    : '<div class="empty">Nothing misplaced right now. 🎉</div>';
+  bindRows(box);
+}
+$('misToggle').addEventListener('click', function(){
+  showMisplaced = !showMisplaced;
+  renderMisplaced();
+  if(showMisplaced) $('misPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
 /* ---------- find ---------- */
 var FIND_LIMIT = 60;
 $('find').addEventListener('input', function(){
@@ -498,7 +559,7 @@ $('dMisplaced').addEventListener('click', async function(){
   var next = !it.misplaced;
   it.misplaced = next;
   paintMisplaced(next);
-  persist(); renderTree(); renderLocItems(); renderFindAgain();
+  persist(); renderTree(); renderLocItems(); renderFindAgain(); renderMisplaced();
   setSync('sync');
   try{
     await apiPost({action:'patch', id:it.id, fields:{misplaced:next}});
@@ -516,7 +577,7 @@ $('dClose').addEventListener('click', closeDetail);
 $('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')) closeDetail(); });
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDetail(); });
 $('inclSubs').addEventListener('change', renderLocItems);
-$('syncBadge').addEventListener('click', flushPending);
+$('syncBadge').addEventListener('click', function(){ load(); });
 $('expandAll').addEventListener('click', function(){ setExpandedAll(true); });
 $('collapseAll').addEventListener('click', function(){ setExpandedAll(false); });
 
