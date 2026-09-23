@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>Inventory</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1e222b; --line:#2a2f3a;
+    --text:#e8eaf0; --muted:#9aa0ae; --accent:#4da3ff; --accent-dim:#2b6cb8;
+    --green:#3ecf6e; --yellow:#e8b93e; --red:#e5534b;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:1100px;margin:0 auto;padding:12px 12px 96px}
+  header.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:8px 2px 12px}
+  header.top h1{font-size:22px;margin:0;flex:1}
+  .sync{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
+    cursor:pointer;user-select:none}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--muted);flex:none}
+  .dot.ok{background:var(--green);box-shadow:0 0 6px #3ecf6e88}
+  .dot.sync{background:var(--yellow);box-shadow:0 0 6px #e8b93e88}
+  .dot.err{background:var(--red);box-shadow:0 0 6px #e5534b88}
+  .count{font-size:13px;color:var(--muted)}
+  .navlink{color:var(--accent);text-decoration:none;font-size:14px;
+    padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 12px}
+  .stat .v{font-size:20px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .search{width:100%;padding:12px;font-size:16px;background:var(--card2);
+    border:1px solid var(--line);border-radius:var(--radius);color:var(--text);margin-bottom:10px}
+  .search:focus{outline:none;border-color:var(--accent)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .filters select{background:var(--card2);color:var(--text);border:1px solid var(--line);
+    border-radius:var(--radius);padding:9px 10px;font-size:14px;max-width:100%}
+  .chk{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted);
+    background:var(--card2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:8px 12px;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  .tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius)}
+  table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px}
+  thead th{position:sticky;top:0;background:var(--card2);text-align:left;
+    padding:10px 8px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap;
+    cursor:pointer;user-select:none}
+  thead th .arr{color:var(--accent)}
+  tbody td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr{cursor:pointer}
+  tbody tr:hover td{background:#ffffff08}
+  tbody tr.misplaced td:first-child{border-left:3px solid var(--red)}
+  .nm{font-weight:600}
+  .flag{color:var(--red);margin-right:4px}
+  .loc{color:var(--muted);font-size:13px;max-width:220px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:top}
+  .empty{padding:28px;text-align:center;color:var(--muted)}
+  .fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));
+    background:var(--accent);color:#04121f;border:none;border-radius:999px;
+    font-size:17px;font-weight:700;padding:15px 22px;cursor:pointer;
+    box-shadow:0 4px 18px #4da3ff55}
+  .fab:active{transform:scale(.97)}
+  /* editor modal */
+  .overlay{position:fixed;inset:0;background:#000a;display:none;
+    align-items:flex-start;justify-content:center;z-index:50;padding:12px;
+    overflow-y:auto}
+  .overlay.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    width:100%;max-width:560px;margin:20px 0;padding:18px;max-height:calc(100vh - 60px);
+    overflow-y:auto}
+  .modal h2{margin:0 0 12px;font-size:19px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid .full{grid-column:1/-1}
+  label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+  label.f input,label.f select,label.f textarea{background:var(--card2);
+    border:1px solid var(--line);border-radius:8px;color:var(--text);
+    padding:10px;font-size:15px;width:100%}
+  label.f textarea{min-height:70px;resize:vertical}
+  label.f input:focus,label.f select:focus,label.f textarea:focus{
+    outline:none;border-color:var(--accent)}
+  .rowchk{flex-direction:row!important;align-items:center;gap:8px;font-size:14px;
+    color:var(--text);cursor:pointer}
+  .rowchk input{width:18px;height:18px;accent-color:var(--red)}
+  .btns{display:flex;gap:10px;margin-top:16px}
+  .btn{flex:1;padding:13px;border-radius:10px;border:none;font-size:16px;
+    font-weight:600;cursor:pointer}
+  .btn.save{background:var(--accent);color:#04121f}
+  .btn.cancel{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+  .btn.del{background:none;color:var(--red);border:1px solid var(--red);flex:0 0 auto;
+    padding:13px 18px}
+  .req{color:var(--red)}
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    .stats .v{font-size:17px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Inventory</h1>
+    <span class="sync" id="syncBadge" title="Tap to retry sync">
+      <span class="dot" id="syncDot"></span><span id="syncText">loading…</span>
+    </span>
+    <span class="count" id="itemCount"></span>
+    <a class="navlink" href="locate.html">⌖ Locate</a>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="v" id="statItems">–</div><div class="l">Items</div></div>
+    <div class="stat"><div class="v" id="statValue">–</div><div class="l">Est. Value</div></div>
+    <div class="stat"><div class="v" id="statMisplaced">–</div><div class="l">Misplaced</div></div>
+  </div>
+
+  <input class="search" id="search" type="search" placeholder="Search name, notes, serial, location…" autocomplete="off">
+
+  <div class="filters">
+    <select id="fCategory" aria-label="Filter by category"><option value="">All categories</option></select>
+    <select id="fCondition" aria-label="Filter by condition">
+      <option value="">All conditions</option>
+      <option>New</option><option>Good</option><option>Fair</option><option>Poor</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="fMisplaced"> Misplaced only</label>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr id="theadRow"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" hidden>No items match.</div>
+  </div>
+</div>
+
+<button class="fab" id="addBtn">＋ Add Item</button>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <h2 id="edTitle">Add Item</h2>
+    <div class="grid">
+      <label class="f full">Item Name <span class="req">*</span><input id="ed_name" maxlength="200"></label>
+      <label class="f full">Location<input id="ed_location" list="locList" placeholder="Bedroom > Shelf…">
+        <datalist id="locList"></datalist></label>
+      <label class="f">Category<select id="ed_category"></select></label>
+      <label class="f">Qty<input id="ed_qty" value="1" inputmode="numeric"></label>
+      <label class="f">Condition<select id="ed_condition"></select></label>
+      <label class="f">Keep<select id="ed_keep"></select></label>
+      <label class="f">Frequency<select id="ed_frequency"></select></label>
+      <label class="f">Criticality<select id="ed_criticality"></select></label>
+      <label class="f">Replaceability<select id="ed_replaceability"></select></label>
+      <label class="f">Serial / Ref #<input id="ed_sn" maxlength="120"></label>
+      <label class="f">Year Purchased<input id="ed_year_purchased" maxlength="10" inputmode="numeric" placeholder="2024"></label>
+      <label class="f">Last Used<input id="ed_last_used" maxlength="40" placeholder="2026-09"></label>
+      <label class="f">Est. Value $<input id="ed_est_value" inputmode="decimal" placeholder="25"></label>
+      <label class="f full">Notes<textarea id="ed_notes" maxlength="2000"></textarea></label>
+      <label class="f full rowchk"><input type="checkbox" id="ed_misplaced"> ⚑ Misplaced</label>
+    </div>
+    <div class="btns">
+      <button class="btn del" id="edDelete" hidden>Delete</button>
+      <button class="btn cancel" id="edCancel">Cancel</button>
+      <button class="btn save" id="edSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════════════
+   DEPLOY-TIME CONFIG — the ONLY thing to change when deploying.
+   Paste the Apps Script web app /exec URL between the quotes.
+   ═══════════════════════════════════════════════════════════════════ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyH0hgBBMiM-D64AEC4S90T4aWDvL7BPtQGXLY50DltWIGOqHTy3Yvkgf-gegPuAWKZ/exec';
+
+const CACHE_KEY = 'inv_v3_cache';
+
+/* ---------- small helpers ---------- */
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function $(id){ return document.getElementById(id); }
+function num(v){
+  var n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.\-]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+function money(v){
+  var n = num(v);
+  return '$' + n.toLocaleString('en-US', {maximumFractionDigits: n % 1 ? 2 : 0});
+}
+function shortLoc(loc){
+  var parts = String(loc || '').split(' > ');
+  return parts[parts.length - 1] || '—';
+}
+
+/* ---------- state ---------- */
+var items = [];            // full item list (snake_case fields from API)
+var pending = [];          // ops that failed to reach the API: retried on tap of sync badge
+var editingId = null;      // id of item open in editor (null = new)
+var sortKey = 'name', sortDir = 1;
+
+var COLUMNS = [
+  {key:'name',      label:'Name'},
+  {key:'location',  label:'Location'},
+  {key:'qty',       label:'Qty'},
+  {key:'category',  label:'Category'},
+  {key:'condition', label:'Condition'},
+  {key:'est_value', label:'Est $'}
+];
+
+/* option presets; merged with values actually present in the data so an
+   edit never wipes a value the preset list doesn't know about */
+var PRESETS = {
+  condition:      ['New','Good','Fair','Poor'],
+  keep:           ['Keep','Maybe','Sell','Donate','Trash'],
+  frequency:      ['Daily','Weekly','Monthly','Quarterly','Annually','Rarely','Never'],
+  criticality:    ['Essential','Important','Nice to Have','Redundant'],
+  replaceability: ['Irreplaceable','Hard','Expensive','Moderate','Easy','Cheap','Hard/Expensive','Easy/Cheap']
+};
+function optionsFor(field){
+  var seen = {}, out = [];
+  (PRESETS[field] || []).concat(items.map(function(i){ return i[field]; })).forEach(function(v){
+    v = String(v == null ? '' : v);
+    if(!v || seen[v]) return;
+    seen[v] = 1; out.push(v);
+  });
+  return out;
+}
+
+/* ---------- sync indicator ---------- */
+function setSync(state){
+  var dot = $('syncDot'), txt = $('syncText');
+  dot.className = 'dot ' + (state === 'ok' ? 'ok' : state === 'sync' ? 'sync' : 'err');
+  txt.textContent = state === 'ok' ? 'saved'
+    : state === 'sync' ? 'syncing…'
+    : 'offline — saved locally' + (pending.length ? ' (' + pending.length + ' pending, tap to retry)' : ', tap to retry');
+}
+
+/* ---------- API ---------- */
+async function apiPost(body){
+  var res = await fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  var j = await res.json();
+  if(!j || !j.ok) throw new Error((j && j.error) || 'API error');
+  return j;
+}
+
+function persist(){
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(items)); } catch(e){}
+}
+
+async function load(){
+  setSync('sync');
+  try{
+    var res = await fetch(API_URL + '?action=list');
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    var j = await res.json();
+    if(!j || !j.ok) throw new Error((j && j.error) || 'API error');
+    items = j.items || [];
+    persist();
+    setSync(pending.length ? 'err' : 'ok');
+    if(pending.length) flushPending();
+  }catch(e){
+    try { items = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]'); } catch(_){ items = []; }
+    setSync('err');
+  }
+  buildFilterOptions();
+  render();
+}
+
+async function flushPending(){
+  if(!pending.length) return;
+  setSync('sync');
+  var queue = pending.slice(); pending = [];
+  for(var k = 0; k < queue.length; k++){
+    var op = queue[k];
+    try{
+      if(op.t === 'upsert'){
+        var body = Object.assign({}, op.item);
+        var wasNew = op.isNew;
+        if(wasNew) delete body.id;
+        var r = await apiPost({action:'upsert', items:[body]});
+        if(wasNew && r.ids && r.ids[0] != null){
+          var local = items.find(function(i){ return i.id === op.item.id; });
+          if(local) local.id = r.ids[0];
+        }
+      }else if(op.t === 'delete'){
+        if(typeof op.ids[0] === 'number') await apiPost({action:'delete', ids:op.ids});
+      }else if(op.t === 'patch'){
+        await apiPost({action:'patch', id:op.id, fields:op.fields});
+      }
+    }catch(e){ pending.push(op); }
+  }
+  persist(); render();
+  setSync(pending.length ? 'err' : 'ok');
+}
+
+/* ---------- filtering / sorting / rendering ---------- */
+function filtered(){
+  var q = $('search').value.trim().toLowerCase();
+  var cat = $('fCategory').value, cond = $('fCondition').value, mis = $('fMisplaced').checked;
+  var out = items.filter(function(i){
+    if(cat && i.category !== cat) return false;
+    if(cond && i.condition !== cond) return false;
+    if(mis && !i.misplaced) return false;
+    if(q){
+      var hay = [i.name, i.notes, i.sn, i.location, i.category].join(' ').toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  out.sort(function(a, b){
+    var va = a[sortKey], vb = b[sortKey];
+    if(sortKey === 'est_value' || sortKey === 'qty'){ va = num(va); vb = num(vb); }
+    else { va = String(va == null ? '' : va).toLowerCase(); vb = String(vb == null ? '' : vb).toLowerCase(); }
+    return (va < vb ? -1 : va > vb ? 1 : 0) * sortDir;
+  });
+  return out;
+}
+
+function renderHead(){
+  $('theadRow').innerHTML = COLUMNS.map(function(c){
+    var arr = c.key === sortKey ? ' <span class="arr">' + (sortDir === 1 ? '▲' : '▼') + '</span>' : '';
+    return '<th data-k="' + c.key + '">' + esc(c.label) + arr + '</th>';
+  }).join('');
+  Array.prototype.forEach.call($('theadRow').children, function(th){
+    th.addEventListener('click', function(){
+      var k = th.getAttribute('data-k');
+      if(sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+      render();
+    });
+  });
+}
+
+function render(){
+  renderHead();
+  var rows = filtered();
+  $('itemCount').textContent = rows.length + ' of ' + items.length;
+  $('emptyMsg').hidden = rows.length > 0;
+
+  // stats over the FULL list
+  var tot = 0, mis = 0;
+  items.forEach(function(i){ tot += num(i.est_value); if(i.misplaced) mis++; });
+  $('statItems').textContent = items.length.toLocaleString('en-US');
+  $('statValue').textContent = money(tot);
+  $('statMisplaced').textContent = mis;
+
+  $('tbody').innerHTML = rows.map(function(i){
+    var flag = i.misplaced ? '<span class="flag" title="Misplaced">⚑</span>' : '';
+    return '<tr data-id="' + esc(String(i.id)) + '" class="' + (i.misplaced ? 'misplaced' : '') + '">' +
+      '<td><span class="nm">' + flag + esc(i.name || '(unnamed)') + '</span></td>' +
+      '<td><span class="loc" title="' + esc(i.location) + '">' + esc(shortLoc(i.location)) + '</span></td>' +
+      '<td>' + esc(i.qty || '') + '</td>' +
+      '<td>' + esc(i.category || '') + '</td>' +
+      '<td>' + esc(i.condition || '') + '</td>' +
+      '<td>' + (i.est_value ? esc(money(i.est_value)) : '') + '</td>' +
+    '</tr>';
+  }).join('');
+  Array.prototype.forEach.call($('tbody').children, function(tr){
+    tr.addEventListener('click', function(){
+      var id = tr.getAttribute('data-id');
+      var it = items.find(function(x){ return String(x.id) === id; });
+      if(it) openEditor(it);
+    });
+  });
+}
+
+function buildFilterOptions(){
+  var cats = {}, i;
+  items.forEach(function(x){ if(x.category) cats[x.category] = 1; });
+  var sel = $('fCategory'), cur = sel.value;
+  sel.innerHTML = '<option value="">All categories</option>' +
+    Object.keys(cats).sort().map(function(c){
+      return '<option' + (c === cur ? ' selected' : '') + '>' + esc(c) + '</option>';
+    }).join('');
+  // location autocomplete for the editor
+  var locs = {};
+  items.forEach(function(x){ if(x.location) locs[x.location] = 1; });
+  $('locList').innerHTML = Object.keys(locs).sort().map(function(l){
+    return '<option value="' + esc(l) + '">';
+  }).join('');
+  // category select in editor
+  var ecs = $('ed_category'), ecv = ecs.value;
+  ecs.innerHTML = '<option value=""></option>' +
+    Object.keys(cats).sort().map(function(c){
+      return '<option' + (c === ecv ? ' selected' : '') + '>' + esc(c) + '</option>';
+    }).join('');
+}
+
+/* ---------- editor ---------- */
+function fillSelect(id, field, current){
+  var el = $(id);
+  el.innerHTML = optionsFor(field).map(function(v){
+    return '<option' + (v === current ? ' selected' : '') + '>' + esc(v) + '</option>';
+  }).join('');
+  if(!current) el.innerHTML = '<option value="" selected></option>' + el.innerHTML;
+}
+
+function openEditor(item){
+  editingId = item ? item.id : null;
+  $('edTitle').textContent = item ? 'Edit Item' : 'Add Item';
+  $('edDelete').hidden = !item;
+  var g = function(k){ return item ? (item[k] == null ? '' : item[k]) : ''; };
+  $('ed_name').value = g('name');
+  $('ed_location').value = g('location');
+  $('ed_category').value = g('category');
+  $('ed_qty').value = g('qty') || '1';
+  $('ed_sn').value = g('sn');
+  $('ed_year_purchased').value = g('year_purchased');
+  $('ed_last_used').value = g('last_used');
+  $('ed_est_value').value = g('est_value');
+  $('ed_notes').value = g('notes');
+  $('ed_misplaced').checked = !!(item && item.misplaced);
+  fillSelect('ed_condition', 'condition', g('condition'));
+  fillSelect('ed_keep', 'keep', g('keep') || 'Keep');
+  fillSelect('ed_frequency', 'frequency', g('frequency'));
+  fillSelect('ed_criticality', 'criticality', g('criticality'));
+  fillSelect('ed_replaceability', 'replaceability', g('replaceability'));
+  $('overlay').classList.add('open');
+  setTimeout(function(){ $('ed_name').focus(); }, 50);
+}
+function closeEditor(){ $('overlay').classList.remove('open'); editingId = null; }
+
+async function saveEditor(){
+  var name = $('ed_name').value.trim();
+  if(!name){ alert('Item name is required.'); $('ed_name').focus(); return; }
+  var it = {
+    name: name,
+    location: $('ed_location').value.trim(),
+    category: $('ed_category').value,
+    qty: $('ed_qty').value.trim() || '1',
+    condition: $('ed_condition').value,
+    keep: $('ed_keep').value,
+    frequency: $('ed_frequency').value,
+    criticality: $('ed_criticality').value,
+    replaceability: $('ed_replaceability').value,
+    sn: $('ed_sn').value.trim(),
+    year_purchased: $('ed_year_purchased').value.trim(),
+    last_used: $('ed_last_used').value.trim(),
+    est_value: $('ed_est_value').value.trim(),
+    notes: $('ed_notes').value,
+    misplaced: $('ed_misplaced').checked
+  };
+  var isNew = editingId == null;
+  if(isNew){
+    it.id = 't' + Date.now();           // temp id until the server assigns one
+    items.unshift(it);
+  }else{
+    it.id = editingId;
+    var idx = items.findIndex(function(x){ return x.id === editingId; });
+    if(idx > -1) items[idx] = it;
+  }
+  closeEditor();
+  persist(); render(); setSync('sync');
+  try{
+    var body = Object.assign({}, it);
+    if(isNew) delete body.id;           // server assigns max+1
+    var r = await apiPost({action:'upsert', items:[body]});
+    if(isNew && r.ids && r.ids[0] != null) it.id = r.ids[0];
+    persist(); render();
+    setSync(pending.length ? 'err' : 'ok');
+  }catch(e){
+    pending.push({t:'upsert', item:it, isNew:isNew});
+    setSync('err');
+  }
+}
+
+async function deleteEditing(){
+  if(editingId == null) return;
+  var it = items.find(function(x){ return x.id === editingId; });
+  if(!confirm('Delete "' + (it ? it.name : 'item') + '"? This cannot be undone.')) return;
+  var id = editingId;
+  items = items.filter(function(x){ return x.id !== id; });
+  pending = pending.filter(function(op){ return !(op.t === 'upsert' && op.item.id === id); });
+  closeEditor();
+  persist(); render(); setSync('sync');
+  try{
+    if(typeof id === 'number') await apiPost({action:'delete', ids:[id]});
+    setSync(pending.length ? 'err' : 'ok');
+  }catch(e){
+    if(typeof id === 'number') pending.push({t:'delete', ids:[id]});
+    setSync('err');
+  }
+}
+
+/* ---------- wire up ---------- */
+$('search').addEventListener('input', render);
+$('fCategory').addEventListener('change', render);
+$('fCondition').addEventListener('change', render);
+$('fMisplaced').addEventListener('change', render);
+$('addBtn').addEventListener('click', function(){ openEditor(null); });
+$('edCancel').addEventListener('click', closeEditor);
+$('edSave').addEventListener('click', saveEditor);
+$('edDelete').addEventListener('click', deleteEditing);
+$('syncBadge').addEventListener('click', flushPending);
+$('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')) closeEditor(); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeEditor(); });
+
+load();
+</script>
+</body>
+</html>
