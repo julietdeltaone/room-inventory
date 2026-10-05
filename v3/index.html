@@ -463,6 +463,30 @@ tbody tr.selrow:hover { background: rgba(176,122,132,0.10); }
 #mvTree .trow { padding: 7px 8px; font-size: 12px; }
 .mvfoot { display: flex; gap: 10px; margin-top: 12px; }
 .mvfoot .btn { flex: 1; }
+
+/* selection clipboard pop-out */
+button.bulk-count { background: none; border: none; padding: 2px 4px; cursor: pointer; text-decoration: underline; text-decoration-color: var(--rose-dim); text-underline-offset: 3px; }
+button.bulk-count:hover { text-decoration-color: var(--rose); }
+.cbmodal { max-width: 480px; display: flex; flex-direction: column; max-height: calc(100vh - 60px); padding: 14px; }
+.cbhead { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.cbhead h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; flex: 1; }
+.cbcount { font-family: var(--font-mono); font-size: 11px; color: var(--rose); background: var(--rose-dim);
+  border: 1px solid var(--rose-dim); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+#cbList { overflow-y: auto; flex: 1 1 auto; min-height: 120px; max-height: 52vh;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--s1); }
+.cbrow { display: flex; align-items: center; gap: 8px; padding: 7px 8px;
+  border-bottom: 1px solid var(--border); font-size: 12px; }
+.cbrow:last-child { border-bottom: none; }
+.cbrow .nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.cbrow .loc-path { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px; color: var(--text-mid); }
+.cbrow .qty { flex: none; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.cbx { flex: none; background: none; border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-dim); width: 28px; height: 28px; cursor: pointer; font-size: 12px; line-height: 1; }
+.cbx:hover { color: var(--text); border-color: var(--border2); }
+.cbempty { padding: 18px 12px; text-align: center; color: var(--text-dim); font-size: 12px; }
+.cbfoot { display: flex; gap: 10px; margin-top: 12px; }
+.cbfoot .btn { flex: 1; }
 .btn.save:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn.save:disabled:hover { filter: none; }
 
@@ -777,7 +801,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
     </div>
 
     <div class="bulk-bar" id="bulkBar">
-      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <button class="bulk-count" id="bulkCount" title="View selected items">0 selected</button>
       <div class="bulk-groups">
         <button class="bbtn" id="bkMoveBtn" title="Pick a destination location for all selected">Move to location</button>
         <label class="bgrp"><span>Category</span><select id="bk_category"><option value="">—</option></select></label>
@@ -869,6 +893,21 @@ textarea:focus-visible, [tabindex]:focus-visible {
     <div class="mvfoot">
       <button class="btn cancel" id="mvCancel">Cancel</button>
       <button class="btn save" id="mvGo" disabled>Choose a destination</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="cbOverlay">
+  <div class="modal cbmodal" role="dialog" aria-modal="true" aria-labelledby="cbTitle">
+    <div class="cbhead">
+      <h2 id="cbTitle">Selected items</h2>
+      <span class="cbcount" id="cbCount">0</span>
+      <button class="mvx" id="cbX" aria-label="Close">✕</button>
+    </div>
+    <div id="cbList"></div>
+    <div class="cbfoot">
+      <button class="btn cancel" id="cbDeselectAll">Deselect all</button>
+      <button class="btn save" id="cbDone">Done</button>
     </div>
   </div>
 </div>
@@ -1470,6 +1509,31 @@ function toggleSelAll(on){
 }
 function clearSel(){ sel = {}; lastChkId = null; paintSel(); }
 
+/* ---------- selection clipboard pop-out ---------- */
+function openClip(){
+  renderClip();
+  $('cbOverlay').classList.add('open');
+}
+function closeClip(){ $('cbOverlay').classList.remove('open'); }
+function renderClip(){
+  var list = selItems(), n = list.length;
+  $('cbCount').textContent = n + (n === 1 ? ' item' : ' items');
+  $('cbList').innerHTML = n ? list.map(function(i){
+    var sid = String(i.id);
+    return '<div class="cbrow" data-id="' + esc(sid) + '">' +
+      '<span class="nm">' + esc(i.name || '(unnamed)') + '</span>' +
+      locCrumbs(i.location) +
+      (i.qty ? '<span class="qty">×' + esc(i.qty) + '</span>' : '') +
+      '<button class="cbx" data-id="' + esc(sid) + '" aria-label="Deselect item">✕</button></div>';
+  }).join('') : '<div class="cbempty">Nothing selected.</div>';
+  Array.prototype.forEach.call($('cbList').querySelectorAll('.cbx'), function(b){
+    b.addEventListener('click', function(){
+      toggleSel(b.getAttribute('data-id'), false);
+      renderClip();
+    });
+  });
+}
+
 function paintSel(){
   var n = selCount();
   $('bulkBar').classList.toggle('on', n > 0);
@@ -1491,6 +1555,7 @@ function paintSel(){
     if(cb && cb.checked !== on) cb.checked = on;
   });
   if(n === 0){ $('bulkStatus').textContent = ''; $('bulkProg').hidden = true; }
+  if($('cbOverlay') && $('cbOverlay').classList.contains('open')) renderClip();
 }
 
 function bulkFieldLabel(k){ return (typeof FIELD_LABELS !== 'undefined' && FIELD_LABELS[k]) || k; }
@@ -1981,6 +2046,11 @@ $('mvOverlay').addEventListener('click', function(e){ if(e.target === $('mvOverl
 $('bkDupe').addEventListener('click', bulkDupe);
 $('bkDelete').addEventListener('click', bulkDelete);
 $('bkClear').addEventListener('click', clearSel);
+$('bulkCount').addEventListener('click', openClip);
+$('cbX').addEventListener('click', closeClip);
+$('cbDone').addEventListener('click', closeClip);
+$('cbDeselectAll').addEventListener('click', function(){ clearSel(); renderClip(); });
+$('cbOverlay').addEventListener('click', function(e){ if(e.target === $('cbOverlay')) closeClip(); });
 $('edCancel').addEventListener('click', closeEditor);
 $('edSave').addEventListener('click', function(){ saveEditor(false); });
 $('edSaveAnother').addEventListener('click', function(){ saveEditor(true); });
@@ -1995,6 +2065,7 @@ $('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
   if(typeof mvOpen !== 'undefined' && mvOpen) closeMove();
+  closeClip();
   closeEditor();
 });
 $('treeFilter').addEventListener('input', function(){
