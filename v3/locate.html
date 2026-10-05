@@ -156,7 +156,6 @@ body{
 }
 .mob-card:last-child{border-bottom:none}
 .mob-card:active{background:var(--s2)}
-.mob-card.misplaced{background:rgba(143,72,72,0.08);border-left-color:var(--red)}
 .mob-card-name{font-weight:600;letter-spacing:-0.01em;font-size:15px;display:flex;align-items:center;gap:8px;flex:1;min-width:0}
 .mob-card-name .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mob-card-loc{background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;padding:3px 8px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);flex-shrink:0;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -167,7 +166,6 @@ body{
 .mob-badge.r{background:rgba(143,72,72,0.14);color:#c07a7a;border-color:rgba(143,72,72,0.25)}
 .mob-badge.d{background:rgba(255,255,255,0.05);color:var(--text-dim);border-color:var(--border)}
 .mob-cdot{width:9px;height:9px;border-radius:50%;flex:none}
-.mob-flag{color:var(--red);flex:none;font-size:13px}
 .mob-empty{padding:32px 16px;text-align:center;color:var(--text-dim)}
 .mob-empty-icon{font-size:28px;margin-bottom:8px;color:var(--text-dim)}
 .mob-empty-t{font-family:var(--font-mono);font-size:11px}
@@ -228,8 +226,6 @@ body{
 .mrow{display:flex;gap:10px;margin-top:16px}
 .btn{padding:13px 18px;border-radius:10px;border:1px solid var(--border2);background:var(--s2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font-ui)}
 .btn.close{flex:1}
-.btn.misplaced{flex:1;border-color:var(--red);color:#c07a7a;background:none}
-.btn.misplaced.on{background:var(--red);color:#fff;border-color:var(--red)}
 
 button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
 
@@ -268,7 +264,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div id="viewHome">
     <div class="mob-home-tree-row">
       <button class="mob-home-tree-btn" id="treeViewBtn">⊞ Full Tree View</button>
-      <button class="mob-home-tree-btn plain" id="misBtn">⚑ Misplaced</button>
     </div>
     <div class="mob-boxes" id="cards"></div>
   </div>
@@ -303,12 +298,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="mob-sec-label"><span>Search results</span></div>
     <div class="mob-list" id="findResults"></div>
   </div>
-
-  <!-- MISPLACED -->
-  <div id="misWrap" hidden>
-    <div class="mob-sec-label"><span>Misplaced</span></div>
-    <div class="mob-list" id="misResults"></div>
-  </div>
 </div>
 
 <div class="t-tabs">
@@ -336,7 +325,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="mob-drawer-sec">Navigate</div>
     <a class="mob-dlink" href="index.html"><span>Inventory Editor</span><span class="mob-dcount">→</span></a>
     <button class="mob-dlink" id="drawerTree"><span>Full Tree View</span><span class="mob-dcount">→</span></button>
-    <button class="mob-dlink" id="drawerMis"><span>Misplaced</span><span class="mob-dcount" id="drawerMisCount">0</span></button>
     <button class="mob-dlink" id="drawerSync"><span>Retry Sync</span><span class="mob-dcount" id="drawerSyncState">—</span></button>
   </div>
 </div>
@@ -349,7 +337,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="kv" id="dFields"></div>
     <div class="notes" id="dNotes"></div>
     <div class="mrow">
-      <button class="btn misplaced" id="dMisplaced">⚑ Misplaced</button>
       <button class="btn close" id="dClose">Close</button>
     </div>
   </div>
@@ -477,7 +464,6 @@ async function load(){
   }
   tree = buildTree(items);
   renderStats();
-  renderMisplacedBtn();
   showHome();
 }
 async function flushPending(){
@@ -490,7 +476,7 @@ async function flushPending(){
   }
   tree = buildTree(items);
   persist();
-  renderStats(); renderMisplacedBtn();
+  renderStats();
   refreshCurrentView();
   setSync(pending.length ? 'err' : 'ok');
 }
@@ -550,12 +536,6 @@ function renderStats(){
   $('stLocs').textContent = topLocs;
   $('stVal').textContent = moneyShort(tot);
 }
-function renderMisplacedBtn(){
-  var n = items.filter(function(i){ return isTrue(i.misplaced); }).length;
-  $('misBtn').textContent = '⚑ Misplaced' + (n ? ' (' + n + ')' : '');
-  var dc = $('drawerMisCount');
-  if(dc) dc.textContent = n;
-}
 
 /* ---------- views ---------- */
 function showView(name){
@@ -563,7 +543,6 @@ function showView(name){
   $('viewTree').hidden = name !== 'tree';
   $('viewDrill').hidden = name !== 'drill';
   $('findWrap').hidden = true;
-  $('misWrap').hidden = true;
   $('mobSearch').value = '';
   setActiveTab('browse');
   $('content').scrollTop = 0;
@@ -732,13 +711,12 @@ $('treeViewBtn').addEventListener('click', function(){
 /* ---------- item rows ---------- */
 function itemRow(i){
   var cc = catColor(i.category);
-  var flag = isTrue(i.misplaced) ? '<span class="mob-flag" title="Misplaced">⚑</span>' : '';
   var badge = '<span class="mob-badge ' + condBadgeClass(i.condition) + '">' + esc(i.condition || '—') + '</span>';
   var leaf = String(i.location || '').split(' > ').filter(function(p){ return p; }).slice(-1)[0] || '—';
-  return '<button class="mob-card' + (isTrue(i.misplaced) ? ' misplaced' : '') + '" data-id="' + esc(String(i.id)) + '"' +
+  return '<button class="mob-card" data-id="' + esc(String(i.id)) + '"' +
     ' style="border-left-color:' + cc + '">' +
     '<span class="mob-cdot" style="background:' + cc + '"></span>' +
-    '<span class="mob-card-name">' + flag + '<span class="tx">' + esc(i.name || '(unnamed)') +
+    '<span class="mob-card-name"><span class="tx">' + esc(i.name || '(unnamed)') +
     (i.qty && i.qty !== '1' ? ' <span style="color:var(--text-dim);font-weight:400">×' + esc(i.qty) + '</span>' : '') +
     '</span></span>' +
     '<span class="mob-card-loc">' + esc(leaf) + '</span>' + badge + '</button>';
@@ -763,7 +741,6 @@ $('mobSearch').addEventListener('input', function(){
     return [i.name, i.notes, i.sn, i.location, i.category, i.keywords].join(' ').toLowerCase().indexOf(q) !== -1;
   });
   $('viewHome').hidden = true; $('viewTree').hidden = true; $('viewDrill').hidden = true;
-  $('misWrap').hidden = true;
   wrap.hidden = false;
   box.innerHTML = hits.length
     ? hits.slice(0, FIND_LIMIT).map(itemRow).join('') +
@@ -772,28 +749,6 @@ $('mobSearch').addEventListener('input', function(){
   bindRows(box);
   setActiveTab('find');
   $('content').scrollTop = 0;
-});
-
-/* ---------- misplaced ---------- */
-var misOpen = false;
-function renderMisplaced(){
-  var box = $('misResults');
-  var list = items.filter(function(i){ return isTrue(i.misplaced); }).sort(function(a, b){
-    var an = String(a.name || '').toLowerCase(), bn = String(b.name || '').toLowerCase();
-    return an < bn ? -1 : an > bn ? 1 : 0;
-  });
-  $('viewHome').hidden = true; $('viewTree').hidden = true; $('viewDrill').hidden = true;
-  $('findWrap').hidden = true;
-  $('misWrap').hidden = false;
-  box.innerHTML = list.length
-    ? list.map(itemRow).join('')
-    : '<div class="mob-empty"><div class="mob-empty-icon">◎</div><div class="mob-empty-t">Nothing misplaced right now.</div></div>';
-  bindRows(box);
-  $('content').scrollTop = 0;
-}
-$('misBtn').addEventListener('click', function(){
-  misOpen = true;
-  renderMisplaced();
 });
 
 /* ---------- detail modal ---------- */
@@ -824,34 +779,10 @@ function openDetail(it){
     return '<div class="k">' + esc(f[1]) + '</div><div class="v">' + esc(v || '—') + '</div>';
   }).join('');
   $('dNotes').textContent = it.notes || '';
-  paintMisplaced(isTrue(it.misplaced));
   $('overlay').classList.add('open');
-}
-function paintMisplaced(on){
-  var b = $('dMisplaced');
-  b.classList.toggle('on', on);
-  b.textContent = on ? '⚑ Misplaced — tap to clear' : '⚑ Mark misplaced';
 }
 function closeDetail(){ $('overlay').classList.remove('open'); detailId = null; }
 
-$('dMisplaced').addEventListener('click', async function(){
-  var it = items.find(function(x){ return x.id === detailId; });
-  if(!it || typeof it.id !== 'number'){ return; }  // not yet synced — toggle in the editor page
-  var next = !isTrue(it.misplaced);
-  it.misplaced = next;
-  paintMisplaced(next);
-  persist();
-  renderMisplacedBtn();
-  refreshCurrentView();
-  setSync('sync');
-  try{
-    await apiPost({action:'patch', id:it.id, fields:{misplaced:next}});
-    setSync(pending.length ? 'err' : 'ok');
-  }catch(e){
-    pending.push({id:it.id, fields:{misplaced:next}});
-    setSync('err');
-  }
-});
 $('dClose').addEventListener('click', closeDetail);
 $('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')) closeDetail(); });
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeDetail(); closeDrawer(); } });
@@ -866,10 +797,6 @@ $('drawerTree').addEventListener('click', function(){
   closeDrawer();
   renderTreeView();
   showView('tree');
-});
-$('drawerMis').addEventListener('click', function(){
-  closeDrawer();
-  renderMisplaced();
 });
 $('drawerSync').addEventListener('click', function(){
   closeDrawer();
