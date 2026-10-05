@@ -421,12 +421,10 @@ th .arr { color: var(--rose); font-size: 10px; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background 0.08s; cursor: pointer; border-left: 3px solid transparent; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--s1); }
-tbody tr.misplaced-row { background: rgba(143,72,72,0.08); border-left-color: var(--red); }
 
 td { padding: 6px 8px; vertical-align: middle; font-size: 12px; }
 td.nm { font-weight: 600; color: var(--text); }
 td.nm .cdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
-td .flag { color: var(--red); margin-right: 6px; }
 
 .loc-path { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); }
 .loc-path-sep { color: var(--text-dim); margin: 0 2px; font-size: 9px; }
@@ -499,6 +497,7 @@ label.f input, label.f select, label.f textarea {
 label.f textarea { min-height: 64px; resize: vertical; font-family: var(--font-sans); }
 label.f input:focus, label.f select:focus, label.f textarea:focus { border-color: var(--rose); }
 label.f select option { background: var(--s2); }
+.grid div.f { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: var(--text-mid); font-family: var(--font-sans); }
 .rowchk { flex-direction: row !important; align-items: center; gap: 8px; font-size: 13px; color: var(--text); cursor: pointer; }
 .rowchk input { width: 15px; height: 15px; accent-color: var(--rose); }
 .btns { display: flex; gap: 10px; margin-top: 16px; }
@@ -513,6 +512,61 @@ label.f select option { background: var(--s2); }
 .btn.del { background: none; color: var(--red); border: 1px solid var(--red); flex: 0 0 auto; padding: 10px 16px; }
 .btn.del:hover { background: rgba(143,72,72,0.12); }
 .req { color: var(--rose); }
+
+/* name autocomplete suggestions (legacy quick-add behavior) */
+.suggest-wrap { position: relative; }
+.suggest {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
+  background: var(--s2); border: 1px solid var(--border2); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  max-height: 180px; overflow-y: auto; margin-top: -3px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+}
+.suggest-item {
+  padding: 8px 10px; font-size: 13px; color: var(--text);
+  cursor: pointer; font-family: var(--font-sans);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.suggest-item:hover, .suggest-item.active { background: var(--s3); color: var(--rose); }
+
+/* qty stepper */
+.flabel { font-size: 11px; color: var(--text-mid); font-family: var(--font-sans); }
+.stepper { display: flex; gap: 6px; align-items: stretch; }
+.stepper input {
+  flex: 1; min-width: 0; text-align: center;
+  background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); padding: 8px 10px; font-size: 13px; font-family: var(--font-sans); outline: none;
+}
+.stepper input:focus { border-color: var(--rose); }
+.stepbtn {
+  flex: 0 0 40px; background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text-mid); font-size: 17px; line-height: 1;
+  cursor: pointer; font-family: var(--font-sans);
+}
+.stepbtn:hover { color: var(--rose); border-color: var(--rose-dim); }
+.stepbtn:active { background: var(--s3); }
+
+/* change history (read-only, from change_log) */
+.hist-label {
+  font-family: var(--font-sans); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;
+}
+#edHistory {
+  background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 6px 10px; max-height: 120px; overflow-y: auto;
+}
+.hist-entry { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); padding: 3px 0; border-bottom: 1px solid var(--border); }
+.hist-entry:last-child { border-bottom: none; }
+.hist-entry .hf { color: var(--rose); margin-right: 6px; }
+.hist-entry .ht { color: var(--text-dim); }
+
+/* editor status line + extra buttons */
+.ed-status { min-height: 18px; font-family: var(--font-mono); font-size: 11px; color: var(--green); margin: 10px 0 0; }
+.btns { flex-wrap: wrap; }
+.btn.another { background: var(--s3); color: var(--text); }
+.btn.another:hover { border-color: var(--border2); }
+.btn.dup { background: none; color: var(--steel); border: 1px solid var(--steel); flex: 0 0 auto; padding: 10px 16px; }
+.btn.dup:hover { background: var(--steel-dim); }
 
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
 textarea:focus-visible, [tabindex]:focus-visible {
@@ -546,7 +600,6 @@ textarea:focus-visible, [tabindex]:focus-visible {
   thead { display: none; }
   table { min-width: 0; }
   tbody tr { display: block; border: 1px solid var(--border); border-radius: var(--radius); margin: 8px; background: var(--s1); border-left: 3px solid var(--catc, transparent); }
-  tbody tr.misplaced-row { border-left-color: var(--red); }
   tbody td { display: flex; align-items: center; gap: 10px; border: none; padding: 6px 12px; }
   tbody td::before {
     content: attr(data-l); font-family: var(--font-sans); font-size: 9px;
@@ -588,7 +641,6 @@ textarea:focus-visible, [tabindex]:focus-visible {
     <div class="sb-section" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
       <div class="sb-label"><span>View</span></div>
       <button class="filter-btn active" data-view="all"><span>All Items</span><span class="count" id="cntViewAll">0</span></button>
-      <button class="filter-btn" data-view="misplaced"><span style="color:var(--amber)">Misplaced</span><span class="count" id="cntMisplaced">0</span></button>
       <button class="filter-btn" data-view="inuse"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>In Use</span><span class="count" id="cntInUse">0</span></button>
       <button class="filter-btn" data-view="hasdigital"><span style="color:var(--steel)">Has Digital Copy</span><span class="count" id="cntHasDigital">0</span></button>
       <button class="filter-btn" data-view="nodigital"><span style="color:var(--steel)">No Digital Copy</span><span class="count" id="cntNoDigital">0</span></button>
@@ -656,11 +708,6 @@ textarea:focus-visible, [tabindex]:focus-visible {
           <div class="info-label">No Digital Copy</div>
           <div class="info-val" style="color:var(--steel)" id="statNoDigital">—</div>
         </div>
-        <div class="info-divider"></div>
-        <div class="info-cell">
-          <div class="info-label">Misplaced</div>
-          <div class="info-val" id="statMisplaced">—</div>
-        </div>
       </div>
     </div>
 
@@ -685,11 +732,11 @@ textarea:focus-visible, [tabindex]:focus-visible {
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edTitle">
     <h2 id="edTitle">Add Item</h2>
     <div class="grid">
-      <label class="f full">Item Name <span class="req">*</span><input id="ed_name" maxlength="200"></label>
+      <label class="f full suggest-wrap">Item Name <span class="req">*</span><input id="ed_name" maxlength="200" autocomplete="off"><span class="suggest" id="ed_suggest" hidden></span></label>
       <label class="f full">Location<input id="ed_location" list="locList" placeholder="Bedroom > Shelf…">
         <datalist id="locList"></datalist></label>
       <label class="f">Category<select id="ed_category"></select></label>
-      <label class="f">Qty<input id="ed_qty" value="1" inputmode="numeric"></label>
+      <div class="f"><span class="flabel">Qty</span><span class="stepper"><button type="button" class="stepbtn" id="qtyMinus" aria-label="Decrease quantity">−</button><input id="ed_qty" value="1" inputmode="numeric"><button type="button" class="stepbtn" id="qtyPlus" aria-label="Increase quantity">+</button></span></div>
       <label class="f">Condition<select id="ed_condition"></select></label>
       <label class="f">Keep<select id="ed_keep"></select></label>
       <label class="f">Frequency<select id="ed_frequency"></select></label>
@@ -705,11 +752,17 @@ textarea:focus-visible, [tabindex]:focus-visible {
       <label class="f full">Notes<textarea id="ed_notes" maxlength="2000"></textarea></label>
       <label class="f rowchk"><input type="checkbox" id="ed_in_use"> In Use</label>
       <label class="f rowchk"><input type="checkbox" id="ed_digital_copy"> Digital Copy</label>
-      <label class="f rowchk"><input type="checkbox" id="ed_misplaced"> Misplaced</label>
+      <div class="full" id="edHistoryWrap" hidden>
+        <div class="hist-label">Change history</div>
+        <div id="edHistory"></div>
+      </div>
     </div>
+    <div class="ed-status" id="edStatus" aria-live="polite"></div>
     <div class="btns">
       <button class="btn del" id="edDelete" hidden>Delete</button>
+      <button class="btn dup" id="edDupe" hidden>Duplicate</button>
       <button class="btn cancel" id="edCancel">Cancel</button>
+      <button class="btn another" id="edSaveAnother">Add Another</button>
       <button class="btn save" id="edSave">Save</button>
     </div>
   </div>
@@ -785,7 +838,7 @@ var sortKey = 'name', sortDir = 1;
 var tree = null;
 var expanded = {};         // path -> true
 var locFilter = null;      // path string filtering the table (subtree), or null
-var viewFilter = 'all';    // all | misplaced | inuse | hasdigital | nodigital
+var viewFilter = 'all';    // all | inuse | hasdigital | nodigital
 var fillFilter = 'all';    // all | Full | Most | Half | Low | Empty | set
 var catFilter = 'all';      // all | category name
 var treeQuery = '';        // sidebar tree text filter
@@ -1034,7 +1087,6 @@ function filtered(){
   var q = $('search').value.trim().toLowerCase();
   return items.filter(function(i){
     if(catFilter !== 'all' && String(i.category || '') !== catFilter) return false;
-    if(viewFilter === 'misplaced' && !isTrue(i.misplaced)) return false;
     if(viewFilter === 'inuse' && !isTrue(i.in_use)) return false;
     if(viewFilter === 'hasdigital' && !isTrue(i.digital_copy)) return false;
     if(viewFilter === 'nodigital' && isTrue(i.digital_copy)) return false;
@@ -1123,16 +1175,15 @@ function render(){
   $('emptyMsg').hidden = rows.length > 0;
 
   // ---- stats over the FULL list ----
-  var tot = 0, priced = 0, mis = 0, inuse = 0, nodig = 0;
+  var tot = 0, priced = 0, inuse = 0, nodig = 0;
   var condCounts = { New: 0, Good: 0, Fair: 0, Poor: 0 };
   var fillTotal = 0, fillSeen = 0;
   var fills = { Full: 0, Most: 0, Half: 0, Low: 0, Empty: 0, set: 0 };
   var cats = {};
-  var views = { misplaced: 0, inuse: 0, hasdigital: 0, nodigital: 0 };
+  var views = { inuse: 0, hasdigital: 0, nodigital: 0 };
   items.forEach(function(i){
     var v = num(i.est_value);
     tot += v; if(v > 0) priced++;
-    if(isTrue(i.misplaced)){ mis++; views.misplaced++; }
     if(isTrue(i.in_use)){ inuse++; views.inuse++; }
     if(isTrue(i.digital_copy)) views.hasdigital++; else { nodig++; views.nodigital++; }
     var cc = String(i.condition || '');
@@ -1155,7 +1206,6 @@ function render(){
   $('statComplete').textContent = pct + '%';
   $('statCompleteSub').textContent = (fillTotal - fillSeen) + ' missing fields';
   $('statNoDigital').textContent = nodig.toLocaleString('en-US');
-  $('statMisplaced').textContent = mis;
 
   // condition distribution bar
   var condOrder = [['New','var(--score-green)'],['Good','var(--score-yellow)'],['Fair','var(--score-orange)'],['Poor','var(--score-red)']];
@@ -1171,7 +1221,6 @@ function render(){
   // ---- sidebar counts ----
   $('cntLocAll').textContent = items.length;
   $('cntViewAll').textContent = items.length;
-  $('cntMisplaced').textContent = views.misplaced;
   $('cntInUse').textContent = views.inuse;
   $('cntHasDigital').textContent = views.hasdigital;
   $('cntNoDigital').textContent = views.nodigital;
@@ -1187,10 +1236,9 @@ function render(){
   // ---- table ----
   $('tbody').innerHTML = rows.map(function(i){
     var cc = catColor(i.category);
-    var flag = isTrue(i.misplaced) ? '<span class="flag" title="Misplaced">⚑</span>' : '';
-    return '<tr data-id="' + esc(String(i.id)) + '" class="' + (isTrue(i.misplaced) ? 'misplaced-row' : '') + '"' +
+    return '<tr data-id="' + esc(String(i.id)) + '"' +
       ' style="--catc:' + cc + '" title="' + esc(i.location || '') + '">' +
-      '<td class="nmcell nm" data-l="Name"><span class="cdot" style="background:' + cc + '"></span>' + flag + esc(i.name || '(unnamed)') + '</td>' +
+      '<td class="nmcell nm" data-l="Name"><span class="cdot" style="background:' + cc + '"></span>' + esc(i.name || '(unnamed)') + '</td>' +
       '<td data-l="Location">' + locCrumbs(i.location) + '</td>' +
       '<td data-l="Qty" class="qtyv">' + esc(i.qty || '') + '</td>' +
       '<td data-l="Category">' + catBadge(i.category) + '</td>' +
@@ -1257,14 +1305,116 @@ function fillSelect(id, field, current){
   }).join('');
   if(!current) el.innerHTML = '<option value="" selected></option>' + el.innerHTML;
 }
+function setSelectIf(id, v){
+  if(!v) return;
+  var el = $(id);
+  for(var i = 0; i < el.options.length; i++){
+    if(el.options[i].value === v || el.options[i].text === v){ el.selectedIndex = i; return; }
+  }
+}
+
+/* name autocomplete — mirrors the legacy quick-add suggestions */
+var edSuggestIndex = -1;
+function edNameInput(){
+  var val = $('ed_name').value.trim().toLowerCase();
+  var box = $('ed_suggest');
+  edSuggestIndex = -1;
+  if(val.length < 1){ box.hidden = true; return; }
+  var seen = {}, matches = [];
+  for(var k = 0; k < items.length && matches.length < 10; k++){
+    var n = items[k].name;
+    if(n && n.toLowerCase().indexOf(val) !== -1 && !seen[n]){ seen[n] = 1; matches.push(n); }
+  }
+  if(!matches.length){ box.hidden = true; return; }
+  box.innerHTML = matches.map(function(n){
+    return '<div class="suggest-item">' + esc(n) + '</div>';
+  }).join('');
+  box.hidden = false;
+  Array.prototype.forEach.call(box.children, function(el){
+    el.addEventListener('mousedown', function(e){
+      e.preventDefault();
+      edPickName(el.textContent);
+    });
+  });
+  for(var j = 0; j < items.length; j++){   // exact match → prefill category like legacy
+    if(String(items[j].name).toLowerCase() === val){
+      if(items[j].category) setSelectIf('ed_category', items[j].category);
+      break;
+    }
+  }
+}
+function edNameKey(e){
+  var box = $('ed_suggest'), list = box.children;
+  if((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !box.hidden && list.length){
+    e.preventDefault();
+    edSuggestIndex = e.key === 'ArrowDown'
+      ? Math.min(edSuggestIndex + 1, list.length - 1)
+      : Math.max(edSuggestIndex - 1, 0);
+    Array.prototype.forEach.call(list, function(el, i){
+      el.classList.toggle('active', i === edSuggestIndex);
+    });
+  }else if((e.key === 'Enter' || e.key === 'Tab') && edSuggestIndex >= 0 && list[edSuggestIndex] && !box.hidden){
+    e.preventDefault();
+    edPickName(list[edSuggestIndex].textContent);
+  }else if(e.key === 'Escape'){
+    box.hidden = true;
+  }
+}
+function edPickName(name){
+  $('ed_name').value = name;
+  $('ed_suggest').hidden = true;
+  edSuggestIndex = -1;
+  for(var j = 0; j < items.length; j++){
+    if(items[j].name === name){
+      if(items[j].category) setSelectIf('ed_category', items[j].category);
+      if(items[j].condition) setSelectIf('ed_condition', items[j].condition);
+      break;
+    }
+  }
+}
+
+/* qty stepper */
+function stepQty(d){
+  var el = $('ed_qty');
+  var v = parseInt(el.value, 10);
+  if(isNaN(v)) v = 0;
+  el.value = String(Math.max(0, v + d));
+}
+
+/* read-only change history, from the sheet's change_log (legacy inspector parity) */
+function renderHistory(item){
+  var wrap = $('edHistoryWrap'), box = $('edHistory');
+  var log = [];
+  if(item && item.change_log){
+    try{ log = JSON.parse(item.change_log); }catch(e){ log = []; }
+    if(!Array.isArray(log)) log = [];
+  }
+  if(!log.length){ wrap.hidden = true; box.innerHTML = ''; return; }
+  wrap.hidden = false;
+  box.innerHTML = log.slice(-8).reverse().map(function(en){
+    var t = '';
+    try{
+      var d = new Date(en.at);
+      t = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
+          d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    }catch(e){}
+    return '<div class="hist-entry"><span class="hf">' + esc(en.field || '') + '</span>' +
+      esc(en.from == null ? '' : en.from) + ' → ' + esc(en.to == null ? '' : en.to) +
+      (t ? ' <span class="ht">· ' + esc(t) + '</span>' : '') + '</div>';
+  }).join('');
+}
 
 function openEditor(item){
   editingId = item ? item.id : null;
   $('edTitle').textContent = item ? 'Edit Item' : 'Add Item';
   $('edDelete').hidden = !item;
+  $('edDupe').hidden = !item;
+  $('ed_suggest').hidden = true; edSuggestIndex = -1;
+  $('edStatus').textContent = '';
   var g = function(k){ return item ? (item[k] == null ? '' : item[k]) : ''; };
   $('ed_name').value = g('name');
-  $('ed_location').value = g('location');
+  // Quick Add auto-location: prefill from the selected sidebar location (legacy behavior)
+  $('ed_location').value = item ? g('location') : (locFilter || '');
   $('ed_category').value = g('category');
   $('ed_qty').value = g('qty') || '1';
   $('ed_sn').value = g('sn');
@@ -1276,23 +1426,23 @@ function openEditor(item){
   $('ed_notes').value = g('notes');
   $('ed_in_use').checked = !!(item && isTrue(item.in_use));
   $('ed_digital_copy').checked = !!(item && isTrue(item.digital_copy));
-  $('ed_misplaced').checked = !!(item && isTrue(item.misplaced));
-  fillSelect('ed_condition', 'condition', g('condition'));
+  fillSelect('ed_condition', 'condition', item ? g('condition') : 'Good');
   fillSelect('ed_keep', 'keep', g('keep') || 'Keep');
   fillSelect('ed_frequency', 'frequency', g('frequency'));
   fillSelect('ed_criticality', 'criticality', g('criticality'));
   fillSelect('ed_replaceability', 'replaceability', g('replaceability'));
   fillSelect('ed_fill_level', 'fill_level', g('fill_level'));
+  renderHistory(item);
   $('overlay').classList.add('open');
   setTimeout(function(){ $('ed_name').focus(); }, 50);
 }
 function closeEditor(){ $('overlay').classList.remove('open'); editingId = null; }
 
-async function saveEditor(){
-  var name = $('ed_name').value.trim();
-  if(!name){ alert('Item name is required.'); $('ed_name').focus(); return; }
-  var it = {
-    name: name,
+var FIELD_LABELS = {name:'Name',location:'Location',category:'Category',qty:'Qty',condition:'Condition',keep:'Keep',frequency:'Frequency',criticality:'Criticality',replaceability:'Replaceability',fill_level:'Fill Level',sn:'Serial',doc_type:'Doc Type',year_purchased:'Year',last_used:'Last Used',est_value:'Est Value',keywords:'Keywords',notes:'Notes',in_use:'In Use',digital_copy:'Digital Copy'};
+
+function collectEditorFields(){
+  return {
+    name: $('ed_name').value.trim(),
     location: $('ed_location').value.trim(),
     category: $('ed_category').value,
     qty: $('ed_qty').value.trim() || '1',
@@ -1310,32 +1460,99 @@ async function saveEditor(){
     keywords: $('ed_keywords').value.trim(),
     notes: $('ed_notes').value,
     in_use: $('ed_in_use').checked,
-    digital_copy: $('ed_digital_copy').checked,
-    misplaced: $('ed_misplaced').checked
+    digital_copy: $('ed_digital_copy').checked
   };
+}
+
+async function saveEditor(keepOpen){
+  var fields = collectEditorFields();
+  if(!fields.name){ alert('Item name is required.'); $('ed_name').focus(); return; }
   var isNew = editingId == null;
+  var it, old = null;
   if(isNew){
-    it.id = 't' + Date.now();           // temp id until the server assigns one
+    it = Object.assign({ id: 't' + Date.now() }, fields);   // temp id until the server assigns one
     items.unshift(it);
   }else{
-    it.id = editingId;
+    old = items.find(function(x){ return x.id === editingId; }) || {};
+    it = Object.assign({}, old, fields, { id: editingId });  // keep sheet fields the editor doesn't touch
+    var log = [];
+    try{ log = JSON.parse(old.change_log || '[]'); }catch(e){ log = []; }
+    if(!Array.isArray(log)) log = [];
+    var now = new Date().toISOString();
+    Object.keys(FIELD_LABELS).forEach(function(k){
+      var a = String(old[k] == null ? '' : old[k]);
+      var b = String(fields[k] == null ? '' : fields[k]);
+      if(a !== b) log.push({field: FIELD_LABELS[k], from: a, to: b, at: now});
+    });
+    if(log.length) it.change_log = JSON.stringify(log);
     var idx = items.findIndex(function(x){ return x.id === editingId; });
     if(idx > -1) items[idx] = it;
   }
-  closeEditor();
+  if(keepOpen){
+    // "Save & Add Another" (legacy): stay open, location sticky, reset the rest
+    var keepLoc = fields.location;
+    editingId = null;
+    $('edTitle').textContent = 'Add Item';
+    $('edDelete').hidden = true;
+    $('edDupe').hidden = true;
+    $('ed_name').value = '';
+    $('ed_qty').value = '1';
+    $('ed_sn').value = '';
+    $('ed_keywords').value = '';
+    $('ed_notes').value = '';
+    $('ed_est_value').value = '';
+    $('ed_in_use').checked = false;
+    $('ed_digital_copy').checked = false;
+    $('ed_location').value = keepLoc;
+    $('ed_suggest').hidden = true; edSuggestIndex = -1;
+    $('edStatus').textContent = 'Added "' + fields.name + '" → ' + (keepLoc || '(no location)');
+    renderHistory(null);
+    setTimeout(function(){ $('ed_name').focus(); }, 30);
+  }else{
+    closeEditor();
+  }
   tree = buildTree(items);
   persist(); renderTree(); render(); setSync('sync');
   try{
     var body = Object.assign({}, it);
     if(isNew) delete body.id;           // server assigns max+1
     var r = await apiPost({action:'upsert', items:[body]});
-    if(isNew && r.ids && r.ids[0] != null) it.id = r.ids[0];
+    if(isNew && r.ids && r.ids[0] != null) it.id = r.ids[0];  // `it` is the array entry itself
     persist(); render();
     setSync(pending.length ? 'err' : 'ok');
   }catch(e){
     pending.push({t:'upsert', item:it, isNew:isNew});
     setSync('err');
   }
+}
+
+/* Duplicate — mirrors the legacy "Dupe Add": prefill a fresh add form from an item */
+function duplicateEditing(){
+  var src = items.find(function(x){ return x.id === editingId; });
+  if(!src) return;
+  openEditor(null);
+  var g = function(k){ return src[k] == null ? '' : src[k]; };
+  $('ed_name').value = g('name') ? g('name') + ' (copy)' : '';
+  $('ed_location').value = g('location');
+  $('ed_qty').value = g('qty') || '1';
+  $('ed_sn').value = '';
+  $('ed_doc_type').value = g('doc_type');
+  $('ed_year_purchased').value = g('year_purchased');
+  $('ed_last_used').value = g('last_used');
+  $('ed_est_value').value = g('est_value');
+  $('ed_keywords').value = g('keywords');
+  $('ed_notes').value = g('notes');
+  $('ed_in_use').checked = false;
+  $('ed_digital_copy').checked = !!isTrue(src.digital_copy);
+  setSelectIf('ed_category', g('category'));
+  fillSelect('ed_condition', 'condition', g('condition'));
+  fillSelect('ed_keep', 'keep', g('keep') || 'Keep');
+  fillSelect('ed_frequency', 'frequency', g('frequency'));
+  fillSelect('ed_criticality', 'criticality', g('criticality'));
+  fillSelect('ed_replaceability', 'replaceability', g('replaceability'));
+  fillSelect('ed_fill_level', 'fill_level', g('fill_level'));
+  $('edStatus').textContent = 'Duplicating "' + (src.name || 'item') + '" — edit and save as new.';
+  setTimeout(function(){ $('ed_name').focus(); $('ed_name').select(); }, 50);
 }
 
 async function deleteEditing(){
@@ -1361,8 +1578,14 @@ async function deleteEditing(){
 $('search').addEventListener('input', render);
 $('addBtn').addEventListener('click', function(){ openEditor(null); });
 $('edCancel').addEventListener('click', closeEditor);
-$('edSave').addEventListener('click', saveEditor);
+$('edSave').addEventListener('click', function(){ saveEditor(false); });
+$('edSaveAnother').addEventListener('click', function(){ saveEditor(true); });
 $('edDelete').addEventListener('click', deleteEditing);
+$('edDupe').addEventListener('click', duplicateEditing);
+$('ed_name').addEventListener('input', edNameInput);
+$('ed_name').addEventListener('keydown', edNameKey);
+$('qtyMinus').addEventListener('click', function(){ stepQty(-1); });
+$('qtyPlus').addEventListener('click', function(){ stepQty(1); });
 $('syncBadge').addEventListener('click', function(){ load(); });
 $('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')) closeEditor(); });
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeEditor(); });
