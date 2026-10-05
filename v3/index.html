@@ -448,6 +448,34 @@ tbody tr.selrow:hover { background: rgba(176,122,132,0.10); }
 .bulk-prog { flex-basis: 100%; height: 3px; background: var(--s2); border-radius: 2px; overflow: hidden; }
 .bulk-prog i { display: block; height: 100%; background: var(--rose); width: 0; transition: width 0.15s; }
 .bulk-status { flex-basis: 100%; font-size: 11px; color: var(--text-mid); }
+
+/* ── move-to-location popup ── */
+.mvmodal { max-width: 480px; display: flex; flex-direction: column; max-height: calc(100vh - 60px); }
+.mvhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mvhead h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+.mvx { background: none; border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-dim); width: 30px; height: 30px; cursor: pointer; font-size: 13px; flex: none; }
+.mvx:hover { color: var(--text); border-color: var(--border2); }
+#mvTree { overflow-y: auto; flex: 1 1 auto; min-height: 140px; max-height: 48vh;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--s1); padding: 6px; }
+#mvTree ul { list-style: none; margin: 0; padding-left: 10px; }
+#mvTree > ul { padding-left: 0; }
+#mvTree .trow { padding: 7px 8px; font-size: 12px; }
+.mvfoot { display: flex; gap: 10px; margin-top: 12px; }
+.mvfoot .btn { flex: 1; }
+.btn.save:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.save:disabled:hover { filter: none; }
+
+/* selected location — unmistakable, even in a filtered tree */
+.trow.sel { background: var(--rose-dim); border: 1px solid var(--rose); color: var(--rose); font-weight: 600; }
+.trow.sel .tcount { color: var(--rose); opacity: 0.9; }
+.trow.sel .caret { color: var(--rose); }
+
+/* quick-add destination indicator */
+.destline { font-family: var(--font-mono); font-size: 11px; color: var(--text-mid);
+  background: var(--s2); border: 1px solid var(--border); border-left: 3px solid var(--rose);
+  border-radius: var(--radius); padding: 8px 10px; margin: 0 0 12px; }
+.destline b { color: var(--rose); font-weight: 600; }
 .bulk-status:empty { display: none; }
 
 td { padding: 6px 8px; vertical-align: middle; font-size: 12px; }
@@ -751,7 +779,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
     <div class="bulk-bar" id="bulkBar">
       <span class="bulk-count" id="bulkCount">0 selected</span>
       <div class="bulk-groups">
-        <label class="bgrp"><span>Location</span><input type="text" id="bk_location" list="locList" placeholder="Move to…" autocomplete="off" title="Type a location and press Enter to move all selected"></label>
+        <button class="bbtn" id="bkMoveBtn" title="Pick a destination location for all selected">Move to location</button>
         <label class="bgrp"><span>Category</span><select id="bk_category"><option value="">—</option></select></label>
         <label class="bgrp"><span>Condition</span><select id="bk_condition"><option value="">—</option></select></label>
         <label class="bgrp"><span>Keep</span><select id="bk_keep"><option value="">—</option></select></label>
@@ -792,6 +820,7 @@ textarea:focus-visible, [tabindex]:focus-visible {
 <div class="overlay" id="overlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edTitle">
     <h2 id="edTitle">Add Item</h2>
+    <div class="destline" id="edDestLine"><span id="edDestLabel">Destination:</span> <b id="edDestPath">—</b></div>
     <div class="grid">
       <label class="f full suggest-wrap">Item Name <span class="req">*</span><input id="ed_name" maxlength="200" autocomplete="off"><span class="suggest" id="ed_suggest" hidden></span></label>
       <label class="f full">Location<input id="ed_location" list="locList" placeholder="Bedroom > Shelf…">
@@ -825,6 +854,21 @@ textarea:focus-visible, [tabindex]:focus-visible {
       <button class="btn cancel" id="edCancel">Cancel</button>
       <button class="btn another" id="edSaveAnother">Add Another</button>
       <button class="btn save" id="edSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="mvOverlay">
+  <div class="modal mvmodal" role="dialog" aria-modal="true" aria-labelledby="mvTitle">
+    <div class="mvhead">
+      <h2 id="mvTitle">Move items</h2>
+      <button class="mvx" id="mvX" aria-label="Close">✕</button>
+    </div>
+    <input class="loc-tree-search" id="mvFilter" placeholder="filter locations…" autocomplete="off">
+    <div id="mvTree"></div>
+    <div class="mvfoot">
+      <button class="btn cancel" id="mvCancel">Cancel</button>
+      <button class="btn save" id="mvGo" disabled>Choose a destination</button>
     </div>
   </div>
 </div>
@@ -1072,46 +1116,52 @@ function catBarHtml(catCounts, total){
   return '<span class="cbar">' + segs + '</span>';
 }
 
-function renderTree(){
-  var el = $('tree');
-  if(!tree){ el.innerHTML = '<div class="empty">No locations.</div>'; return; }
-  var q = treeQuery.trim().toLowerCase();
-  function nodeMatches(n){
-    if(!q) return true;
-    if(n.name.toLowerCase().indexOf(q) !== -1) return true;
-    return Object.keys(n.children).some(function(k){ return nodeMatches(n.children[k]); });
+/* shared location-tree HTML — opt: {q, selPath, forcePath, pick} */
+function treeRowsHtml(n, branch, opt){
+  function nodeMatches(m){
+    if(opt.forcePath){
+      var fp = opt.forcePath;
+      if(m.path === fp) return true;                    // the selected node itself
+      if(m.path && fp.indexOf(m.path + ' > ') === 0) return true;   // its ancestors
+      if(m.path && m.path.indexOf(fp + ' > ') === 0) return true;   // its descendants
+    }
+    if(!opt.q) return true;
+    if(m.name.toLowerCase().indexOf(opt.q) !== -1) return true;
+    return Object.keys(m.children).some(function(k){ return nodeMatches(m.children[k]); });
   }
-  function nodeHtml(n, branch){
-    var keys = Object.keys(n.children).sort();
-    if(!keys.length) return '';
-    return '<ul>' + keys.map(function(k){
-      var c = n.children[k];
-      if(!nodeMatches(c)) return '';
-      var bcol = branch || locColor(c.path);   // whole branch keeps the root's color
-      var has = Object.keys(c.children).length > 0;
-      var open = q ? true : !!expanded[c.path];
-      var caret = has
-        ? '<span class="caret" tabindex="0" role="button" aria-label="Expand or collapse ' + esc(c.name) + '" data-caret="' + esc(c.path) + '">' + (open ? '▾' : '▸') + '</span>'
-        : '<span class="caret"></span>';
-      var sel = locFilter === c.path ? ' sel' : '';
-      var html = '<li class="tnode"><div class="trow' + sel + '" data-path="' + esc(c.path) + '"' +
-        ' tabindex="0" role="button" title="Tap to filter · tap again to clear"' +
-        ' style="border-left-color:' + bcol + '55">' +
-        caret + '<span class="lchip" style="background:' + bcol + '"></span>' +
-        '<span class="tname">' + esc(c.name) + '</span>' +
-        '<span class="tcount">' + c.total + '</span></div>' +
-        catBarHtml(c.catCounts, c.total);
-      if(open) html += nodeHtml(c, bcol);
-      return html + '</li>';
-    }).join('') + '</ul>';
-  }
-  el.innerHTML = nodeHtml(tree, null) || '<div class="empty">No locations.</div>';
+  var keys = Object.keys(n.children).sort();
+  if(!keys.length) return '';
+  return '<ul>' + keys.map(function(k){
+    var c = n.children[k];
+    if(!nodeMatches(c)) return '';
+    var bcol = branch || locColor(c.path);   // whole branch keeps the root's color
+    var has = Object.keys(c.children).length > 0;
+    var onPath = opt.forcePath && (c.path === opt.forcePath || opt.forcePath.indexOf(c.path + ' > ') === 0);
+    var open = opt.q ? true : (onPath || !!expanded[c.path]);
+    var caret = has
+      ? '<span class="caret" tabindex="0" role="button" aria-label="Expand or collapse ' + esc(c.name) + '" data-caret="' + esc(c.path) + '">' + (open ? '▾' : '▸') + '</span>'
+      : '<span class="caret"></span>';
+    var sel = opt.selPath === c.path ? ' sel' : '';
+    var title = opt.pick ? 'Tap to choose as destination' : 'Tap to filter · tap again to clear';
+    var html = '<li class="tnode"><div class="trow' + sel + '" data-path="' + esc(c.path) + '"' +
+      ' tabindex="0" role="button" title="' + title + '"' +
+      ' style="border-left-color:' + bcol + '55">' +
+      caret + '<span class="lchip" style="background:' + bcol + '"></span>' +
+      '<span class="tname">' + esc(c.name) + '</span>' +
+      '<span class="tcount">' + c.total + '</span></div>' +
+      catBarHtml(c.catCounts, c.total);
+    if(open) html += treeRowsHtml(c, bcol, opt);
+    return html + '</li>';
+  }).join('') + '</ul>';
+}
+function wireTreeRows(el, onRow){
   Array.prototype.forEach.call(el.querySelectorAll('[data-caret]'), function(sp){
     var tog = function(e){
       if(e){ e.stopPropagation(); e.preventDefault(); }
       var p = sp.getAttribute('data-caret');
       expanded[p] = !expanded[p];
       renderTree();
+      if(typeof mvOpen !== 'undefined' && mvOpen) renderMoveTree();
     };
     sp.addEventListener('click', tog);
     sp.addEventListener('keydown', function(e){
@@ -1119,19 +1169,25 @@ function renderTree(){
     });
   });
   Array.prototype.forEach.call(el.querySelectorAll('.trow'), function(row){
-    var go = function(){
-      var p = row.getAttribute('data-path');
-      var turningOn = locFilter !== p;
-      locFilter = turningOn ? p : null;   // tap again to clear
-      $('locAllBtn').classList.toggle('active', !locFilter);
-      paintLocChip();
-      renderTree();
-      render();
-    };
+    var go = function(){ onRow(row.getAttribute('data-path')); };
     row.addEventListener('click', go);
     row.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); }
     });
+  });
+}
+function renderTree(){
+  var el = $('tree');
+  if(!tree){ el.innerHTML = '<div class="empty">No locations.</div>'; return; }
+  var q = treeQuery.trim().toLowerCase();
+  el.innerHTML = treeRowsHtml(tree, null, {q:q, selPath:locFilter, forcePath:locFilter, pick:false}) || '<div class="empty">No locations.</div>';
+  wireTreeRows(el, function(p){
+    var turningOn = locFilter !== p;
+    locFilter = turningOn ? p : null;   // tap again to clear
+    $('locAllBtn').classList.toggle('active', !locFilter);
+    paintLocChip();
+    renderTree();
+    render();
   });
 }
 function paintLocChip(){
@@ -1142,6 +1198,14 @@ function paintLocChip(){
   }else{
     chip.classList.remove('show');
   }
+  updateDestChip();
+}
+/* quick-add destination indicator: shows exactly where a new item will land */
+function updateDestChip(force){
+  var b = $('edDestPath');
+  if(!b) return;
+  var v = (typeof force !== 'undefined' && force !== null) ? force : locFilter;
+  b.textContent = v || '—';
 }
 
 /* ---------- filtering / sorting / rendering ---------- */
@@ -1669,6 +1733,8 @@ function openEditor(item){
   $('ed_name').value = g('name');
   // Quick Add auto-location: prefill from the selected sidebar location (legacy behavior)
   $('ed_location').value = item ? g('location') : (locFilter || '');
+  $('edDestLabel').textContent = item ? 'Current location:' : 'Destination:';
+  updateDestChip(item ? g('location') : locFilter);
   $('ed_category').value = g('category');
   $('ed_qty').value = g('qty') || '1';
   $('ed_sn').value = g('sn');
@@ -1832,6 +1898,47 @@ async function deleteEditing(){
 $('search').addEventListener('input', render);
 $('addBtn').addEventListener('click', function(){ openEditor(null); });
 
+/* ---------- move-to-location popup (bulk bar) ---------- */
+var mvOpen = false, mvDest = null, mvQuery = '';
+function openMove(){
+  var n = selCount();
+  if(!n) return;
+  mvOpen = true; mvDest = null; mvQuery = '';
+  $('mvFilter').value = '';
+  $('mvTitle').textContent = 'Move ' + n + ' item' + (n === 1 ? '' : 's');
+  renderMoveTree();
+  updateMoveGo();
+  $('mvOverlay').classList.add('open');
+  setTimeout(function(){ $('mvFilter').focus(); }, 60);
+}
+function closeMove(){
+  mvOpen = false;
+  $('mvOverlay').classList.remove('open');
+}
+function renderMoveTree(){
+  var el = $('mvTree');
+  if(!tree){ el.innerHTML = '<div class="empty">No locations.</div>'; return; }
+  var q = mvQuery.trim().toLowerCase();
+  el.innerHTML = treeRowsHtml(tree, null, {q:q, selPath:mvDest, forcePath:mvDest, pick:true}) || '<div class="empty">No locations.</div>';
+  wireTreeRows(el, function(p){
+    mvDest = (mvDest === p) ? null : p;   // tap again to deselect
+    renderMoveTree();
+    updateMoveGo();
+  });
+}
+function updateMoveGo(){
+  var n = selCount(), btn = $('mvGo');
+  if(mvDest){
+    btn.disabled = false;
+    btn.textContent = 'Move ' + n + ' item' + (n === 1 ? '' : 's') + ' \u2192 ' + String(mvDest).split(' > ').pop();
+    btn.title = mvDest;
+  }else{
+    btn.disabled = true;
+    btn.textContent = 'Choose a destination';
+    btn.title = '';
+  }
+}
+
 /* ---------- bulk bar wiring ---------- */
 [['bk_category','category'],['bk_condition','condition'],['bk_keep','keep'],
  ['bk_fill_level','fill_level'],['bk_frequency','frequency'],
@@ -1844,7 +1951,7 @@ $('addBtn').addEventListener('click', function(){ openEditor(null); });
     bulkApply(ch, bulkFieldLabel(pair[1]));
   });
 });
-[['bk_location','location'],['bk_year','year_purchased'],['bk_est','est_value'],
+[['bk_year','year_purchased'],['bk_est','est_value'],
  ['bk_qty','qty'],['bk_sn','sn'],['bk_lastused','last_used'],['bk_doctype','doc_type']].forEach(function(pair){
   $(pair[0]).addEventListener('keydown', function(e){
     if(e.key !== 'Enter') return;
@@ -1860,6 +1967,17 @@ $('bkInUse').addEventListener('click', function(){ if(selCount()) bulkApply({in_
 $('bkNotInUse').addEventListener('click', function(){ if(selCount()) bulkApply({in_use: false}, 'In Use'); });
 $('bkDigHas').addEventListener('click', function(){ if(selCount()) bulkApply({digital_copy: true}, 'Digital Copy'); });
 $('bkDigNo').addEventListener('click', function(){ if(selCount()) bulkApply({digital_copy: false}, 'Digital Copy'); });
+$('bkMoveBtn').addEventListener('click', openMove);
+$('mvX').addEventListener('click', closeMove);
+$('mvCancel').addEventListener('click', closeMove);
+$('mvGo').addEventListener('click', function(){
+  if(!mvDest || !selCount()) return;
+  var dest = mvDest;
+  closeMove();
+  bulkApply({location: dest}, 'Location');
+});
+$('mvFilter').addEventListener('input', function(){ mvQuery = $('mvFilter').value; renderMoveTree(); });
+$('mvOverlay').addEventListener('click', function(e){ if(e.target === $('mvOverlay')) closeMove(); });
 $('bkDupe').addEventListener('click', bulkDupe);
 $('bkDelete').addEventListener('click', bulkDelete);
 $('bkClear').addEventListener('click', clearSel);
@@ -1874,7 +1992,11 @@ $('qtyMinus').addEventListener('click', function(){ stepQty(-1); });
 $('qtyPlus').addEventListener('click', function(){ stepQty(1); });
 $('syncBadge').addEventListener('click', function(){ load(); });
 $('overlay').addEventListener('click', function(e){ if(e.target === $('overlay')) closeEditor(); });
-document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeEditor(); });
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(typeof mvOpen !== 'undefined' && mvOpen) closeMove();
+  closeEditor();
+});
 $('treeFilter').addEventListener('input', function(){
   treeQuery = $('treeFilter').value;
   renderTree();
