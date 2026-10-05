@@ -421,6 +421,34 @@ th .arr { color: var(--rose); font-size: 10px; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background 0.08s; cursor: pointer; border-left: 3px solid transparent; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--s1); }
+tbody tr.selrow { background: rgba(176,122,132,0.06); }
+tbody tr.selrow:hover { background: rgba(176,122,132,0.10); }
+.check-col { width: 36px; text-align: center; }
+.row-check, #selAll { width: 15px; height: 15px; accent-color: var(--rose); cursor: pointer; vertical-align: middle; }
+
+/* ── bulk bar ── */
+.bulk-bar { display: none; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--s1); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 12px; margin: 0 0 10px; }
+.bulk-bar.on { display: flex; }
+.bulk-count { font-family: var(--font-mono); font-size: 11px; color: var(--rose); white-space: nowrap; }
+.bulk-groups { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.bgrp { display: flex; flex-direction: column; gap: 3px; }
+.bgrp > span { font-family: var(--font-mono); font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); }
+.bgrp select, .bgrp input[type=text] { background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 12px; padding: 6px 8px; max-width: 150px; }
+.bgrp select:focus, .bgrp input[type=text]:focus { outline: none; border-color: var(--rose); }
+.bgrp-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.bbtn { background: var(--s2); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-mid); font-size: 11px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.bbtn:hover { color: var(--text); border-color: var(--border2); }
+.bbtn.danger { color: #c06060; }
+.bbtn.danger:hover { border-color: #c06060; color: #c06060; }
+.bulk-prog { flex-basis: 100%; height: 3px; background: var(--s2); border-radius: 2px; overflow: hidden; }
+.bulk-prog i { display: block; height: 100%; background: var(--rose); width: 0; transition: width 0.15s; }
+.bulk-status { flex-basis: 100%; font-size: 11px; color: var(--text-mid); }
+.bulk-status:empty { display: none; }
 
 td { padding: 6px 8px; vertical-align: middle; font-size: 12px; }
 td.nm { font-weight: 600; color: var(--text); }
@@ -608,6 +636,8 @@ textarea:focus-visible, [tabindex]:focus-visible {
   }
   tbody td.nmcell { padding-top: 10px; }
   tbody td.nmcell::before { display: none; }
+  tbody td.check-col::before { display: none; }
+  tbody td.check-col { padding-top: 10px; }
   tbody td:last-child { padding-bottom: 10px; }
   .grid { grid-template-columns: 1fr; }
 }
@@ -716,6 +746,37 @@ textarea:focus-visible, [tabindex]:focus-visible {
       <span class="locchip" id="locChip"><span id="locChipPath"></span><button class="x" id="locChipX" aria-label="Clear location filter">✕</button></span>
       <span class="sp"></span>
       <button class="btn-ghost rose" id="addBtn">+ Quick Add</button>
+    </div>
+
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <div class="bulk-groups">
+        <label class="bgrp"><span>Location</span><input type="text" id="bk_location" list="locList" placeholder="Move to…" autocomplete="off" title="Type a location and press Enter to move all selected"></label>
+        <label class="bgrp"><span>Category</span><select id="bk_category"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Condition</span><select id="bk_condition"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Keep</span><select id="bk_keep"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Fill</span><select id="bk_fill_level"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Freq</span><select id="bk_frequency"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Crit</span><select id="bk_criticality"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Repl</span><select id="bk_replaceability"><option value="">—</option></select></label>
+        <label class="bgrp"><span>Year</span><input type="text" id="bk_year" placeholder="2024" inputmode="numeric" title="Type a year and press Enter"></label>
+        <label class="bgrp"><span>Est $</span><input type="text" id="bk_est" placeholder="25" inputmode="decimal" title="Type a value and press Enter"></label>
+        <label class="bgrp"><span>Qty</span><input type="text" id="bk_qty" placeholder="1" inputmode="numeric" title="Type a quantity and press Enter"></label>
+        <label class="bgrp"><span>Serial</span><input type="text" id="bk_sn" placeholder="serial" title="Type a serial and press Enter"></label>
+        <label class="bgrp"><span>Last Used</span><input type="text" id="bk_lastused" placeholder="2026-09" title="Type a date and press Enter"></label>
+        <label class="bgrp"><span>Doc Type</span><input type="text" id="bk_doctype" placeholder="Receipt" title="Type a doc type and press Enter"></label>
+        <div class="bgrp-btns">
+          <button class="bbtn" id="bkInUse" title="Set In Use on all selected">In Use</button>
+          <button class="bbtn" id="bkNotInUse" title="Clear In Use on all selected">Not In Use</button>
+          <button class="bbtn" id="bkDigHas" title="Set Digital Copy on all selected">Has Copy</button>
+          <button class="bbtn" id="bkDigNo" title="Clear Digital Copy on all selected">No Copy</button>
+          <button class="bbtn" id="bkDupe" title="Duplicate all selected items">Dupe</button>
+          <button class="bbtn danger" id="bkDelete" title="Delete all selected items">Delete</button>
+          <button class="bbtn" id="bkClear" title="Clear selection">Clear</button>
+        </div>
+      </div>
+      <div class="bulk-prog" id="bulkProg" hidden><i id="bulkProgFill"></i></div>
+      <div class="bulk-status" id="bulkStatus" aria-live="polite"></div>
     </div>
 
     <div class="table-wrap">
@@ -934,6 +995,7 @@ async function load(){
   }
   tree = buildTree(items);
   buildFilterOptions();
+  buildBulkOptions();
   renderTree();
   render();
   // ?add=1 deep link (from the Locate tab bar): open the add-item editor
@@ -1110,7 +1172,8 @@ function filtered(){
 }
 
 function renderHead(){
-  $('theadRow').innerHTML = COLUMNS.map(function(c){
+  var selTh = '<th class="check-col"><input type="checkbox" id="selAll" aria-label="Select all rows"></th>';
+  $('theadRow').innerHTML = selTh + COLUMNS.map(function(c){
     var sortable = SORTABLE[c.key];
     var cls = sortable ? 'sortable' : '';
     var arr = '';
@@ -1125,6 +1188,8 @@ function renderHead(){
       render();
     });
   });
+  var sa = $('selAll');
+  if(sa) sa.addEventListener('change', function(){ toggleSelAll(sa.checked); });
 }
 
 /* pill + badge builders (legacy look, v3 data) */
@@ -1171,6 +1236,7 @@ var COMPLETENESS_FIELDS = ['location','category','condition','est_value','notes'
 function render(){
   renderHead();
   var rows = filtered();
+  lastRows = rows;
   $('itemCount').textContent = rows.length + ' of ' + items.length;
   $('emptyMsg').hidden = rows.length > 0;
 
@@ -1236,8 +1302,11 @@ function render(){
   // ---- table ----
   $('tbody').innerHTML = rows.map(function(i){
     var cc = catColor(i.category);
-    return '<tr data-id="' + esc(String(i.id)) + '"' +
+    var sid = String(i.id);
+    var isSel = !!sel[sid];
+    return '<tr data-id="' + esc(sid) + '"' + (isSel ? ' class="selrow"' : '') +
       ' style="--catc:' + cc + '" title="' + esc(i.location || '') + '">' +
+      '<td class="check-col" data-l=""><input type="checkbox" class="row-check" data-id="' + esc(sid) + '"' + (isSel ? ' checked' : '') + ' aria-label="Select row"></td>' +
       '<td class="nmcell nm" data-l="Name"><span class="cdot" style="background:' + cc + '"></span>' + esc(i.name || '(unnamed)') + '</td>' +
       '<td data-l="Location">' + locCrumbs(i.location) + '</td>' +
       '<td data-l="Qty" class="qtyv">' + esc(i.qty || '') + '</td>' +
@@ -1250,12 +1319,18 @@ function render(){
     '</tr>';
   }).join('');
   Array.prototype.forEach.call($('tbody').children, function(tr){
+    var id = tr.getAttribute('data-id');
+    var cb = tr.querySelector('.row-check');
+    if(cb){
+      cb.addEventListener('click', function(ev){ ev.stopPropagation(); });
+      cb.addEventListener('change', function(ev){ toggleSel(id, cb.checked, ev); });
+    }
     tr.addEventListener('click', function(){
-      var id = tr.getAttribute('data-id');
       var it = items.find(function(x){ return String(x.id) === id; });
       if(it) openEditor(it);
     });
   });
+  paintSel();
 }
 
 function buildFilterOptions(){
@@ -1294,6 +1369,185 @@ function buildFilterOptions(){
 function paintFilterGroup(sel, attr, val){
   Array.prototype.forEach.call(document.querySelectorAll(sel), function(b){
     b.classList.toggle('active', b.getAttribute(attr) === val);
+  });
+}
+
+/* ---------- bulk select + bulk actions (mirrors the legacy bulk bar) ---------- */
+var sel = {};            // String(id) -> true
+var lastRows = [];       // currently filtered rows (select-all + shift-range scope)
+var lastChkId = null;
+var shiftDown = false;   // tracked globally: change events don't reliably carry it
+document.addEventListener('keydown', function(e){ if(e.key === 'Shift') shiftDown = true; });
+document.addEventListener('keyup', function(e){ if(e.key === 'Shift') shiftDown = false; });
+var BULK_CHUNK = 100;    // rows per upsert request; the API accepts item arrays
+
+function selCount(){ var n = 0; for(var k in sel) n++; return n; }
+function selItems(){ return items.filter(function(i){ return sel[String(i.id)]; }); }
+
+function toggleSel(id, on, ev){
+  id = String(id);
+  if(shiftDown && lastChkId != null && lastChkId !== id){
+    var ids = lastRows.map(function(r){ return String(r.id); });
+    var a = ids.indexOf(String(lastChkId)), b = ids.indexOf(id);
+    if(a > -1 && b > -1){
+      for(var k = Math.min(a, b); k <= Math.max(a, b); k++){
+        if(on) sel[ids[k]] = true; else delete sel[ids[k]];
+      }
+    }else if(on){ sel[id] = true; } else { delete sel[id]; }
+  }else{
+    if(on) sel[id] = true; else delete sel[id];
+  }
+  lastChkId = id;
+  paintSel();
+}
+function toggleSelAll(on){
+  lastRows.forEach(function(r){ var id = String(r.id); if(on) sel[id] = true; else delete sel[id]; });
+  paintSel();
+}
+function clearSel(){ sel = {}; lastChkId = null; paintSel(); }
+
+function paintSel(){
+  var n = selCount();
+  $('bulkBar').classList.toggle('on', n > 0);
+  $('bulkCount').textContent = n + ' selected';
+  var sa = $('selAll');
+  if(sa){
+    if(lastRows.length){
+      var vis = lastRows.map(function(r){ return String(r.id); });
+      var c = vis.filter(function(id){ return sel[id]; }).length;
+      sa.checked = c > 0 && c === vis.length;
+      sa.indeterminate = c > 0 && c < vis.length;
+    }else{ sa.checked = false; sa.indeterminate = false; }
+  }
+  Array.prototype.forEach.call($('tbody').children, function(tr){
+    var id = String(tr.getAttribute('data-id'));
+    var on = !!sel[id];
+    tr.classList.toggle('selrow', on);
+    var cb = tr.querySelector('.row-check');
+    if(cb && cb.checked !== on) cb.checked = on;
+  });
+  if(n === 0){ $('bulkStatus').textContent = ''; $('bulkProg').hidden = true; }
+}
+
+function bulkFieldLabel(k){ return (typeof FIELD_LABELS !== 'undefined' && FIELD_LABELS[k]) || k; }
+
+/* one upsert call per chunk (the API accepts an items array); slim progress bar */
+async function upsertChunks(arr){
+  var ids = [], failed = [];
+  var prog = $('bulkProg'), fill = $('bulkProgFill');
+  prog.hidden = false; fill.style.width = '0%';
+  for(var s = 0; s < arr.length; s += BULK_CHUNK){
+    var chunk = arr.slice(s, s + BULK_CHUNK);
+    try{
+      var r = await apiPost({action:'upsert', items: chunk});
+      if(r && r.ids) ids = ids.concat(r.ids);
+    }catch(e){ failed = failed.concat(chunk); }
+    fill.style.width = Math.round(((s + chunk.length) / arr.length) * 100) + '%';
+  }
+  prog.hidden = true;
+  return {ids: ids, failed: failed};
+}
+
+async function bulkApply(changes, label){
+  var list = selItems();
+  if(!list.length) return;
+  var now = new Date().toISOString();
+  var merged = list.map(function(src){
+    var it = Object.assign({}, src, changes, { id: src.id });  // keep sheet fields the bulk bar doesn't touch
+    var log = []; try{ log = JSON.parse(src.change_log || '[]'); }catch(e){ log = []; }
+    if(!Array.isArray(log)) log = [];
+    Object.keys(changes).forEach(function(k){
+      var a = String(src[k] == null ? '' : src[k]), b = String(changes[k] == null ? '' : changes[k]);
+      if(a !== b) log.push({field: bulkFieldLabel(k), from: a, to: b, at: now});
+    });
+    if(log.length) it.change_log = JSON.stringify(log);
+    return it;
+  });
+  merged.forEach(function(it){
+    var idx = items.findIndex(function(x){ return String(x.id) === String(it.id); });
+    if(idx > -1) items[idx] = it;
+  });
+  tree = buildTree(items); persist(); renderTree(); render(); setSync('sync');
+  var res = await upsertChunks(merged);
+  if(res.failed.length) res.failed.forEach(function(it){ pending.push({t:'upsert', item: it, isNew: false}); });
+  var done = merged.length - res.failed.length;
+  $('bulkStatus').textContent = label + ': ' + done + ' updated' +
+    (res.failed.length ? ', ' + res.failed.length + ' failed — queued to retry' : '') + '.';
+  setSync(pending.length ? 'err' : 'ok');
+}
+
+async function bulkDelete(){
+  var list = selItems();
+  if(!list.length) return;
+  if(!confirm('Delete ' + list.length + ' item' + (list.length > 1 ? 's' : '') + '? This cannot be undone.')) return;
+  var idset = {}, srvIds = [];
+  list.forEach(function(i){ idset[String(i.id)] = 1; if(typeof i.id === 'number') srvIds.push(i.id); });
+  items = items.filter(function(i){ return !idset[String(i.id)]; });
+  pending = pending.filter(function(op){ return !(op.t === 'upsert' && idset[String(op.item.id)]); });
+  clearSel();
+  tree = buildTree(items); persist(); buildFilterOptions(); buildBulkOptions(); renderTree(); render(); setSync('sync');
+  var prog = $('bulkProg'); prog.hidden = false; $('bulkProgFill').style.width = '50%';
+  try{
+    if(srvIds.length) await apiPost({action:'delete', ids: srvIds});
+    $('bulkStatus').textContent = list.length + ' deleted.';
+    setSync(pending.length ? 'err' : 'ok');
+  }catch(e){
+    if(srvIds.length) pending.push({t:'delete', ids: srvIds});
+    setSync('err');
+    $('bulkStatus').textContent = 'Delete did not reach the server — reloading to reconcile.';
+    await load();
+  }
+  prog.hidden = true;
+}
+
+async function bulkDupe(){
+  var list = selItems();
+  if(!list.length) return;
+  var copies = list.map(function(src){
+    var it = Object.assign({}, src);
+    delete it.id;
+    it.name = (src.name ? src.name + ' (copy)' : 'Copy');
+    it.sn = ''; it.in_use = false; it.change_log = '';
+    it.id = 't' + Date.now() + Math.floor(Math.random() * 1e9);
+    return it;
+  });
+  copies.forEach(function(c){ items.unshift(c); });
+  clearSel();
+  tree = buildTree(items); persist(); buildFilterOptions(); buildBulkOptions(); renderTree(); render(); setSync('sync');
+  var prog = $('bulkProg'), fill = $('bulkProgFill');
+  prog.hidden = false; fill.style.width = '0%';
+  var made = 0, failed = 0;
+  for(var s = 0; s < copies.length; s += BULK_CHUNK){
+    var chunk = copies.slice(s, s + BULK_CHUNK);
+    var bodies = chunk.map(function(c){ var b = Object.assign({}, c); delete b.id; return b; });
+    try{
+      var r = await apiPost({action:'upsert', items: bodies});
+      (r.ids || []).forEach(function(nid, k){ if(chunk[k]) chunk[k].id = nid; });
+      made += chunk.length;
+    }catch(e){
+      failed += chunk.length;
+      chunk.forEach(function(c){ pending.push({t:'upsert', item: Object.assign({}, c), isNew: true}); });
+    }
+    fill.style.width = Math.round(((s + chunk.length) / copies.length) * 100) + '%';
+  }
+  prog.hidden = true;
+  persist(); render();
+  $('bulkStatus').textContent = made + ' duplicated' + (failed ? ', ' + failed + ' failed — queued to retry' : '') + '.';
+  setSync(pending.length ? 'err' : 'ok');
+}
+
+function fillBulkSelect(id, vals){
+  var el = $(id);
+  if(!el) return;
+  var seen = {}, out = [];
+  vals.forEach(function(v){ v = String(v == null ? '' : v); if(v && !seen[v]){ seen[v] = 1; out.push(v); } });
+  out.sort();
+  el.innerHTML = '<option value="">—</option>' + out.map(function(v){ return '<option>' + esc(v) + '</option>'; }).join('');
+}
+function buildBulkOptions(){
+  fillBulkSelect('bk_category', items.map(function(i){ return i.category; }));
+  ['condition','keep','fill_level','frequency','criticality','replaceability'].forEach(function(f){
+    fillBulkSelect('bk_' + f, optionsFor(f));
   });
 }
 
@@ -1577,6 +1831,38 @@ async function deleteEditing(){
 /* ---------- wire up ---------- */
 $('search').addEventListener('input', render);
 $('addBtn').addEventListener('click', function(){ openEditor(null); });
+
+/* ---------- bulk bar wiring ---------- */
+[['bk_category','category'],['bk_condition','condition'],['bk_keep','keep'],
+ ['bk_fill_level','fill_level'],['bk_frequency','frequency'],
+ ['bk_criticality','criticality'],['bk_replaceability','replaceability']].forEach(function(pair){
+  $(pair[0]).addEventListener('change', function(){
+    var v = $(pair[0]).value;
+    if(!v || !selCount()){ $(pair[0]).value = ''; return; }
+    var ch = {}; ch[pair[1]] = v;
+    $(pair[0]).value = '';
+    bulkApply(ch, bulkFieldLabel(pair[1]));
+  });
+});
+[['bk_location','location'],['bk_year','year_purchased'],['bk_est','est_value'],
+ ['bk_qty','qty'],['bk_sn','sn'],['bk_lastused','last_used'],['bk_doctype','doc_type']].forEach(function(pair){
+  $(pair[0]).addEventListener('keydown', function(e){
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    var v = $(pair[0]).value.trim();
+    if(!v || !selCount()){ $(pair[0]).value = ''; return; }
+    var ch = {}; ch[pair[1]] = v;
+    $(pair[0]).value = '';
+    bulkApply(ch, bulkFieldLabel(pair[1]));
+  });
+});
+$('bkInUse').addEventListener('click', function(){ if(selCount()) bulkApply({in_use: true}, 'In Use'); });
+$('bkNotInUse').addEventListener('click', function(){ if(selCount()) bulkApply({in_use: false}, 'In Use'); });
+$('bkDigHas').addEventListener('click', function(){ if(selCount()) bulkApply({digital_copy: true}, 'Digital Copy'); });
+$('bkDigNo').addEventListener('click', function(){ if(selCount()) bulkApply({digital_copy: false}, 'Digital Copy'); });
+$('bkDupe').addEventListener('click', bulkDupe);
+$('bkDelete').addEventListener('click', bulkDelete);
+$('bkClear').addEventListener('click', clearSel);
 $('edCancel').addEventListener('click', closeEditor);
 $('edSave').addEventListener('click', function(){ saveEditor(false); });
 $('edSaveAnother').addEventListener('click', function(){ saveEditor(true); });
